@@ -1,0 +1,17 @@
+{% extends "auth_base.html" %}
+{% block "form" %}
+<form class="form1" action='/login/' method='POST'>
+    {% csrf_token %}
+        {% if pswderr %}
+      <div class=" text-danger " align='center' role="alert">
+      <i class="fa fa-exclamation-circle"></i> {{ pswderr }}
+      </div>
+    {% endif %}
+    <input class="un " type="text" align="center" placeholder="Username" name="username">
+    <input class="pass" type="password" align="center" placeholder="Password" name="password">
+    <button  class="submit" align="left">Sign in</button>
+    <p class="forgot" align="center"><a href="#">Forgot Password?</p>
+    <p class="forgot" align="center"><a href="/signup">New User?</a></p>      
+</form>
+
+  {% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block "content" %}
+{% load static%}
+<link rel="stylesheet" href="{% static 'index.css' %}" />
+<div class="main-bg" style="background-image: url({% static 'images/Desk1.svg' %});">
+                            </div>
+                            <div>
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for product in products %}
+    <div class="col">
+      <a href="/product/{{product.id}}">
+          <div class="card h-100">
+          <img src="{{product.images.all.0.mainimage }}" class="card-img-top" alt="...">
+          <div class="card-body">
+              <h5 class="card-title">{{product.title}}</h5>
+              <p class="card-text">{{ product.description}}</p>
+              <p class="card-text">{{product.stock}}</p>
+              <p class="card-text">{{product.price}}</p>
+          </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>  
+{% endblock %}
+
+{% block "scripts" %}
+  <script src="{% static 'index.js' %}"></script
+    {% endblock %}
