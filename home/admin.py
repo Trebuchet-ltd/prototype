@@ -2,7 +2,8 @@ from django.contrib import admin
 from . import models
 
 # Register your models here.
-admin.site.register(models.product)
-admin.site.register(models.imageModel)
-admin.site.register(models.cartModel)
-admin.site.register(models.cart_item)
+admin.site.register(models.Product)
+admin.site.register(models.ImageModel)
+admin.site.register(models.CartModel)
+admin.site.register(models.CartItem)
+admin.site.register(models.MainPage)

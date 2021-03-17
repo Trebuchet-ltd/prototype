@@ -1,12 +1,17 @@
+html { height: 100%; }
+body { height: 100%; }
 .main-bg{
     background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover; 
+    background-position: top ;
+    background-size: cover;
     /* width: 100;  */
     min-height: 100vh;
 }
 
+
+
 .navbar{
-        background-position: top;
-    background-size: cover; 
+     background-position: top center;
+    background-size: cover;
 }
+

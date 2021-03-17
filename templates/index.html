@@ -1,29 +1,72 @@
 {% extends "base.html" %}
-{% block "content" %}
-{% load static%}
-<link rel="stylesheet" href="{% static 'index.css' %}" />
-<div class="main-bg" style="background-image: url({% static 'images/Desk1.svg' %});">
-                            </div>
-                            <div>
-  <div class="row row-cols-1 row-cols-md-3 g-4">
-    {% for product in products %}
-    <div class="col">
-      <a href="/product/{{product.id}}">
-          <div class="card h-100">
-          <img src="{{product.images.all.0.mainimage }}" class="card-img-top" alt="...">
-          <div class="card-body">
-              <h5 class="card-title">{{product.title}}</h5>
-              <p class="card-text">{{ product.description}}</p>
-              <p class="card-text">{{product.stock}}</p>
-              <p class="card-text">{{product.price}}</p>
-          </div>
-      </div>
+{% block content %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'index.css' %}"/>
+    <div class="main-bg h-75" style="background-image: url({% static 'images/Desk1.svg' %});">
+        <div class="container h-100">
+            <div class="row h-100 ">
+                <div class="col col-12 col-md-4">
+
+                </div>
+            <div class="col col-12 col-md-2">
+
+                </div>
+                <div class="col col-12 col-md-4 my-auto">
+                    <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0"
+                                    class="active" aria-current="true" aria-label="Slide 1"></button>
+                            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"
+                                    aria-label="Slide 2"></button>
+                        </div>
+                        <div class="carousel-inner">
+                            {% for item in mainpage %}
+                                <div class="carousel-item {% firstof forloop.counter0   'active' %}">
+                                    <img class="d-block w-100" src="{{ item.product.images.all.0.mainimage }}"
+                                         alt="First slide">
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators"
+                                data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators"
+                                data-bs-slide="next">
+                            <span class="carousel-control-next-icon dark" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endfor %}
-  </div>
-</div>  
+    <div>
+        <div class="row w-100">
+            {% for product in products %}
+                <div class="col col-3">
+
+                    <div class="card h-100">
+
+                        <img src="{{ product.images.all.0.mainimage }}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.title }}</h5>
+                            <p class="card-text">{{ product.description }}</p>
+                            <p class="card-text">{{ product.stock }}</p>
+                            <p class="card-text">{{ product.price }}</p>
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}
 
-{% block "scripts" %}
-  <script src="{% static 'index.js' %}"></script
-    {% endblock %}
+{% block scripts %}
+    <script src="{% static 'index.js' %}"></script>
+{% endblock %}

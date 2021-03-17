@@ -2,15 +2,17 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
-from .models import product, cart_item, cartModel
+from .models import Product, CartItem, CartModel,MainPage
 # Create your views here.
 def index(request): 
-    products = product.objects.all()
-    context = {"products": products}
+    products = Product.objects.all()
+    mainPage = MainPage.objects.all()
+
+    context = {"products": products,"mainpage":mainPage}
     return render(request,template_name="index.html", context= context)
 
 def display_product(request, primary_key):
-    inventory = product.objects.get(id = primary_key)
+    inventory = Product.objects.get(id = primary_key)
     if request.method == "POST":
         
         if  (request.user.id is None):
@@ -26,7 +28,7 @@ def display_product(request, primary_key):
                 inventory_item[0].quantity+= quant_variable
                 inventory_item[0].save()
             else:
-                inventory_item = cart_item(item=inventory, quantity= quant_variable, cart=cart)
+                inventory_item = CartItem(item=inventory, quantity= quant_variable, cart=cart)
                 inventory_item.save()
             cart.total += quant_variable * inventory.price
             cart.save()    
@@ -35,7 +37,7 @@ def display_product(request, primary_key):
 
             
 
-        cart_item.quantity = request.POST["quantity"]
+        CartItem.quantity = request.POST["quantity"]
     
     print(inventory.images.all())
     context = {"products": inventory}
@@ -77,7 +79,7 @@ def signup(request):
             if passwrd2 == password:
                 # try:
                     user = User.objects.create_user(email=email, password=password, username=email)
-                    cart = cartModel(user=user,total=0, address='', pincode=0, state='')
+                    cart = CartModel(user=user, total=0, address='', pincode=0, state='')
                     cart.save()
                     login(request, user)
                     return HttpResponseRedirect('/')
@@ -103,7 +105,7 @@ def cart(request):
 def delete(request, item_key):
     
     if request.method == "POST":
-        item_object = cart_item.objects.get(id = item_key)
+        item_object = CartItem.objects.get(id = item_key)
         total = item_object.item.price * item_object.quantity
         cart_object = item_object.cart
         cart_object.total -= total
@@ -115,7 +117,7 @@ def delete(request, item_key):
 def update(request, update_key):
     if request.method == "POST":
         new_cart_quantity = int(request.POST["cart_quantity"])
-        object_var_from_cart_item = cart_item.objects.get(id = update_key)
+        object_var_from_cart_item = CartItem.objects.get(id = update_key)
         quantity_from_cart_item = object_var_from_cart_item.quantity
         difference_btwn_quantites = new_cart_quantity - quantity_from_cart_item
         object_var_from_cart_item.quantity = new_cart_quantity
