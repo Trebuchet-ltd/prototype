@@ -1,17 +1,50 @@
-html { height: 100%; }
-body { height: 100%; }
-.main-bg{
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+}
+
+.main-bg {
     background-repeat: no-repeat;
-    background-position: top ;
+    background-position: top;
     background-size: cover;
     /* width: 100;  */
     min-height: 100vh;
 }
 
-
-
-.navbar{
-     background-position: top center;
+#navbar{
+    background-position:  center;
     background-size: cover;
 }
 
+.card-body-now {
+
+    border-radius: 50px;
+    background: #eaeaea44;
+
+}
+
+.search {
+    border-radius: 50px;
+    border: 0;
+}
+
+.sticky {
+    position: fixed;
+    top: 58px;
+    width: 100%;
+
+}
+
+#itembar {
+    background-image: url("/static/images/Nav bar continue.svg");
+    background-position:  center;
+    background-size: cover;
+
+}
+
+.sticky + .content {
+    padding-top: 60px;
+}

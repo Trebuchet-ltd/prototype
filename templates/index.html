@@ -5,19 +5,46 @@
     <div class="main-bg h-75" style="background-image: url({% static 'images/Desk1.svg' %});">
         <div class="container h-100">
             <div class="row h-100 ">
-                <div class="col col-12 col-md-4">
+                <div class="col col-12 col-md-4 my-auto my-5">
+                    <div id="carouselExampleIndicators1" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            {% for item in mainpage %}
+                                <div class="carousel-item {% firstof forloop.counter0   'active' %}">
+                                    <div class="h-100 p-3 m-3 card-body-now">
+                                        <h5 class="text-white text-center p-2">{{ item.heading }}</h5>
+                                        <h6 class="text-white p-2">{{ item.description }}</h6>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators1"
+
+                                data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators1"
+                                data-bs-slide="next">
+                            <span class="carousel-control-next-icon dark" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+
+                    </div>
+                </div>
+                <div class="col-2 ">
 
                 </div>
-            <div class="col col-12 col-md-2">
-
-                </div>
-                <div class="col col-12 col-md-4 my-auto">
+                <div class="col col-12 col-md-6 my-auto">
                     <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
                         <div class="carousel-indicators">
-                            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0"
-                                    class="active" aria-current="true" aria-label="Slide 1"></button>
-                            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1"
-                                    aria-label="Slide 2"></button>
+                            {% for item in mainpage %}
+
+                                <button type="button" data-bs-target="#carouselExampleIndicators"
+                                        data-bs-slide-to="{{ forloop.counter0 }}"
+                                        class="active" aria-current="true"
+                                        aria-label="Slide {{ forloop.counter }}"></button>
+
+                            {% endfor %}
                         </div>
                         <div class="carousel-inner">
                             {% for item in mainpage %}
@@ -42,7 +69,32 @@
             </div>
         </div>
     </div>
-    <div>
+
+
+    <ul class="nav d-flex justify-content-center sticky">
+
+    </ul>
+
+    <nav class="navbar sticky-top navbar-expand-lg navbar-dark" id="itembar">
+
+        <ul class="navbar-nav  nav-fill w-100 me-auto mb-3 mb-lg-0">
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="#">Fish</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Poultry</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Red Meat</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link " href="#">Ready To Eat</a>
+            </li>
+        </ul>
+
+
+    </nav>
+    <div class="content">
         <div class="row w-100">
             {% for product in products %}
                 <div class="col col-3">
