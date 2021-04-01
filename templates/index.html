@@ -94,28 +94,28 @@
 
 
     </nav>
-    <div class="content">
-        <div class="row w-100">
-            {% for product in products %}
-                <div class="col col-3">
+    <div class="content" id="content">
+<!--        <div class="row w-100">-->
+<!--            {% for product in products %}-->
+<!--                <div class="col col-3">-->
 
-                    <div class="card h-100">
+<!--                    <div class="card h-100">-->
 
-                        <img src="{{ product.images.all.0.mainimage }}" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ product.title }}</h5>
-                            <p class="card-text">{{ product.description }}</p>
-                            <p class="card-text">{{ product.stock }}</p>
-                            <p class="card-text">{{ product.price }}</p>
-                        </div>
+<!--                        <img src="{{ product.images.all.0.mainimage }}" class="card-img-top" alt="...">-->
+<!--                        <div class="card-body">-->
+<!--                            <h5 class="card-title">{{ product.title }}</h5>-->
+<!--                            <p class="card-text">{{ product.description }}</p>-->
+<!--                            <p class="card-text">{{ product.stock }}</p>-->
+<!--                            <p class="card-text">{{ product.price }}</p>-->
+<!--                        </div>-->
 
-                    </div>
+<!--                    </div>-->
 
 
-                </div>
+<!--                </div>-->
 
-            {% endfor %}
-        </div>
+<!--            {% endfor %}-->
+<!--        </div>-->
     </div>
 {% endblock %}
 
