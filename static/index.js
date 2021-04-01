@@ -68,3 +68,44 @@ $(document).ready(() => {
     })
 
 });
+
+    $.ajax({
+      type: "GET",
+      url: "/display",
+      // data: formData,
+      dataType: "json",
+      encode: true,
+      success: function (data) {
+          let row_variable = document.createElement("div");
+          row_variable.setAttribute("class","row");
+
+           let content = document.getElementById("content");
+          content.appendChild(row_variable);
+          console.log(content);
+          for (let i = 0; i < data.length; i++) {
+              console.log(data[i]);
+              let display_products_var = `<div class="col col-3">
+                            <div class="card h-100">
+                                <img src="{{ product.images.all.0.mainimage }}" class="card-img-top" alt="...">
+                                <div class="card-body">
+                                    <h5 class="card-title">${ data[i].fields.title }</h5>
+                                    <p class="card-text">${ data[i].fields.description }</p>
+                                    <p class="card-text">${ data[i].fields.stock }</p>
+                                    <p class="card-text">${ data[i].fields.price }</p>
+                                </div>
+
+                             </div>
+              </div>`
+              console.log(display_products_var)
+              row_variable.innerHTML += display_products_var;
+
+
+          }
+
+
+      }
+    })
+
+
+
+
