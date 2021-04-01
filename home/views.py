@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
 from .models import Product, CartItem, CartModel,MainPage
+from django.core import serializers
+from django.http import HttpResponse
 # Create your views here.
 def index(request): 
     products = Product.objects.all()
@@ -131,6 +133,12 @@ def update(request, update_key):
         var_of_cart_in_cart_item.save()
 
     return     HttpResponseRedirect("/cart")
+
+def get_product(request):
+    product_set = Product.objects.all().prefetch_related()
+    return HttpResponse(
+        serializers.serialize("json", product_set, relations=('images'))
+    )
 
 
 
