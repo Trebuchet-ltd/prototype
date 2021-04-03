@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'home'
+    'home',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
@@ -125,6 +126,9 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-SERIALIZATION_MODULES = {
-    'json': 'wadofstuff.django.serializers.json'
-}
+MEDIA_URL = '/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static')
+
+# SERIALIZATION_MODULES = {
+#     'json': 'wadofstuff.django.serializers.json'
+# }

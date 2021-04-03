@@ -2,9 +2,12 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
-from .models import Product, CartItem, CartModel,MainPage
+# from .models import Product, CartItem, CartModel,MainPage
+from .models import *
 from django.core import serializers
 from django.http import HttpResponse
+from rest_framework.generics import ListAPIView
+from .serializers import *
 # Create your views here.
 def index(request): 
     products = Product.objects.all()
@@ -134,11 +137,13 @@ def update(request, update_key):
 
     return     HttpResponseRedirect("/cart")
 
-def get_product(request):
-    product_set = Product.objects.all().prefetch_related()
-    return HttpResponse(
-        serializers.serialize("json", product_set, relations=('images'))
-    )
+class getProduct(ListAPIView):
+    queryset = Product.objects.all()
+    serializer_class = getProductSerializer
+    http_method_names = ["get"]
+
+
+
 
 
 
