@@ -83,36 +83,39 @@ $.ajax({
         console.log(content);
         for (let i = 0; i < data.length; i++) {
             console.log(data[i]);
-            let display_products_var = `<div class="col col-6 col-xl-3 col-sm-6">
-
-                            <a href="/product/${data[i].id}">
-                            <div class="el-wrapper">
-                            <div class="box-up">
-                              <img class="img" src="${data[i].images[0].mainimage}" alt="">
-                              <div class="img-info">
+            let display_products_var = `
+            <div class="col col-6 col-xl-3 col-sm-6">
+            
+                <a href="/product/${data[i].id}">
+                    <div class="el-wrapper">
+                        <div class="box-up">
+                            <img class="img" src="${data[i].images[0].mainimage}" alt="">
+                            <div class="img-info">
                                 <div class="info-inner">
-                                  <span class="p-name">${data[i].title}</span>
-                                  <span class="p-company">${data[i].description}</span>
+                                    <span class="p-name">${data[i].title}</span>
+                                    <span class="p-company">${data[i].description}</span>
                                 </div>
-                              </div>
                             </div>
-                    
-                            <div class="box-down">
-                              <div class="h-bg">
+                        </div>
+            
+                        <div class="box-down">
+                            <div class="h-bg">
                                 <div class="h-bg-inner"></div>
-                              </div>
-                    
-                              <a class="cart" href="/product/${data[i].id}">
+                            </div>
+            
+                            <a class="cart" href="/product/${data[i].id}">
                                 <span class="price">Rs ${data[i].price}</span>
                                 <span class="add-to-cart">
-                                  <span class="txt mobile-no-display">Add in cart</span>
+                                    <span class="txt mobile-no-display">Add in cart</span>
                                 </span>
-                              </a>
-                            </div>
                             </a>
-                          </div>
-                      
-              </div>`
+                        </div>
+            
+                    </div>
+                </a>
+            
+            </div>
+            `
             console.log(display_products_var)
             row_variable.innerHTML += display_products_var;
 
