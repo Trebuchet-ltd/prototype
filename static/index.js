@@ -1,6 +1,5 @@
-
 var navbar = document.getElementById("itembar");
-var sticky = navbar.offsetTop-58;
+var sticky = navbar.offsetTop - 58;
 $(window).scroll(function () {
 
 
@@ -69,42 +68,60 @@ $(document).ready(() => {
 
 });
 
-    $.ajax({
-      type: "GET",
-      url: "/display",
-      // data: formData,
-      dataType: "json",
-      encode: true,
-      success: function (data) {
-          let row_variable = document.createElement("div");
-          row_variable.setAttribute("class","row");
+$.ajax({
+    type: "GET",
+    url: "/display",
+    // data: formData,
+    dataType: "json",
+    encode: true,
+    success: function (data) {
+        let row_variable = document.createElement("div");
+        row_variable.setAttribute("class", "row");
 
-           let content = document.getElementById("content");
-          content.appendChild(row_variable);
-          console.log(content);
-          for (let i = 0; i < data.length; i++) {
-              console.log(data[i]);
-              let display_products_var = `<div class="col col-3">
-                            <div class="card h-100">
-                                <img src="${ data[i].images[0].mainimage}" class="card-img-top" alt="...">
-                                <div class="card-body">
-                                    <h5 class="card-title">${ data[i].title }</h5>
-                                    <p class="card-text">${ data[i].description }</p>
-                                    <p class="card-text"> Stock : ${ data[i].stock }</p>
-                                    <p class="card-text"> Price : ${ data[i].price }</p>
+        let content = document.getElementById("content");
+        content.appendChild(row_variable);
+        console.log(content);
+        for (let i = 0; i < data.length; i++) {
+            console.log(data[i]);
+            let display_products_var = `<div class="col col-6 col-xl-3 col-sm-6">
+
+                            <a href="/product/${data[i].id}">
+                            <div class="el-wrapper">
+                            <div class="box-up">
+                              <img class="img" src="${data[i].images[0].mainimage}" alt="">
+                              <div class="img-info">
+                                <div class="info-inner">
+                                  <span class="p-name">${data[i].title}</span>
+                                  <span class="p-company">${data[i].description}</span>
                                 </div>
-
-                             </div>
+                              </div>
+                            </div>
+                    
+                            <div class="box-down">
+                              <div class="h-bg">
+                                <div class="h-bg-inner"></div>
+                              </div>
+                    
+                              <a class="cart" href="/product/${data[i].id}">
+                                <span class="price">Rs ${data[i].price}</span>
+                                <span class="add-to-cart">
+                                  <span class="txt mobile-no-display">Add in cart</span>
+                                </span>
+                              </a>
+                            </div>
+                            </a>
+                          </div>
+                      
               </div>`
-              console.log(display_products_var)
-              row_variable.innerHTML += display_products_var;
+            console.log(display_products_var)
+            row_variable.innerHTML += display_products_var;
 
 
-          }
+        }
 
 
-      }
-    })
+    }
+})
 
 
 

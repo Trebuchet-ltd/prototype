@@ -5,7 +5,7 @@
     <div class="main-bg h-75" style="background-image: url({% static 'images/Desk1.svg' %});">
         <div class="container h-100">
             <div class="row h-100 ">
-                <div class="col col-12 col-md-4 my-auto my-5">
+                <div class="col col-12 col-md-4 my-auto my-5  mobile-no-display">
                     <div id="carouselExampleIndicators1" class="carousel slide" data-bs-ride="carousel">
                         <div class="carousel-inner">
                             {% for item in mainpage %}
@@ -31,7 +31,7 @@
 
                     </div>
                 </div>
-                <div class="col-2 ">
+                <div class="col-2  mobile-no-display">
 
                 </div>
                 <div class="col col-12 col-md-6 my-auto">
@@ -95,27 +95,7 @@
 
     </nav>
     <div class="content" id="content">
-<!--        <div class="row w-100">-->
-<!--            {% for product in products %}-->
-<!--                <div class="col col-3">-->
 
-<!--                    <div class="card h-100">-->
-
-<!--                        <img src="{{ product.images.all.0.mainimage }}" class="card-img-top" alt="...">-->
-<!--                        <div class="card-body">-->
-<!--                            <h5 class="card-title">{{ product.title }}</h5>-->
-<!--                            <p class="card-text">{{ product.description }}</p>-->
-<!--                            <p class="card-text">{{ product.stock }}</p>-->
-<!--                            <p class="card-text">{{ product.price }}</p>-->
-<!--                        </div>-->
-
-<!--                    </div>-->
-
-
-<!--                </div>-->
-
-<!--            {% endfor %}-->
-<!--        </div>-->
     </div>
 {% endblock %}
 
