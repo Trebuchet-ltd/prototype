@@ -20,14 +20,21 @@ body {
     background-size: cover;
 }
 
-.card-body-now {
+.card-body-product {
     background: white;
     box-shadow: 15px -15px 25px 15px rgba(0, 0, 0, 0.25);
     border-top-left-radius: 61px;
     border-top-right-radius: 61px;
-    height: 70%;
+    min-height: 70%;
     top: -10%;
     position: relative;
+}
+
+.card-body-now {
+
+    border-radius: 50px;
+    background: #eaeaea44;
+
 }
 
 .search {
@@ -153,6 +160,7 @@ body {
 
 .el-wrapper:hover .add-to-cart {
     left: 50%;
+    cursor: pointer;
 }
 
 .img {
@@ -386,11 +394,32 @@ body {
     letter-spacing: -0.41px
 }
 
-.text-success{
+.text-success {
     color: #06BE77 !important;
 }
 
-.rounded_cart{
+.rounded_cart {
     border-radius: 50px;
     background: #06BE77;
+}
+
+.product__photo {
+    border-radius: 50px;
+    width: 100%;
+    height: 300px;
+    background-size: cover;
+    position: relative;
+}
+
+.toast{
+    z-index: 2000;
+    border-radius: 25px;
+}
+
+.toast-header{
+    border-top-right-radius: 25px;
+    border-top-left-radius: 25px;
+}
+.polite {
+    z-index: 2000;
 }

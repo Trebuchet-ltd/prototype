@@ -11,7 +11,7 @@
             </div>
 
         </div>
-        <div class="card-body-now ">
+        <div class="card-body-product">
             <div class="container px-5 py-3">
                 <div class="product__heading">
                     {{ products.title }}
@@ -25,96 +25,65 @@
                 </div>
 
 
-                <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
-                    <ol class="carousel-indicators">
+                <div class="row">
 
-                        {% for image in products.images.all %}
-                            <li data-bs-target="#carouselExampleIndicators" data-bs-slide-to="{{ forloop.counter0 }}"
-                                class="{% if forloop.counter0 == 0 %}active{% endif %}"></li>
-                        {% endfor %}
+                    <div class="col-12 col-md-6">
+
+                        <div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+                            <ol class="carousel-indicators">
+
+                                {% for image in products.images.all %}
+                                    <li data-bs-target="#carouselExampleIndicators"
+                                        data-bs-slide-to="{{ forloop.counter0 }}"
+                                        class="{% if forloop.counter0 == 0 %}active{% endif %}"></li>
+                                {% endfor %}
 
 
-                    </ol>
-                    <div class="carousel-inner">
-                        {% for image in products.images.all %}
-                            <div class="carousel-item {% firstof forloop.counter0 'active' %}">
-                                <img src="/{{ image.mainimage }}" class="d-block w-100" alt="...">
+                            </ol>
+                            <div class="carousel-inner">
+                                {% for image in products.images.all %}
+                                    <div class="carousel-item {% firstof forloop.counter0 'active' %}">
+                                        <div style="background-image: url('/{{ image.mainimage }}')"
+                                             class="d-block product__photo"></div>
+                                    </div>
+                                {% endfor %}
                             </div>
-                        {% endfor %}
+                            <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button"
+                               data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </a>
+                            <a class="carousel-control-next" href="#carouselExampleIndicators" role="button"
+                               data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </a>
+                        </div>
                     </div>
-                    <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button"
-                       data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </a>
-                    <a class="carousel-control-next" href="#carouselExampleIndicators" role="button"
-                       data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </a>
+                    <div class="col-12 col-md-6">
+                        <div class="text-center w-100 py-4">
+                            {% csrf_token %}
+                            {% include 'plusandminus.html' %}
+                            <button class="btn rounded_cart text-center w-75"
+                                    onclick="addProductToCart({{ products.id }},this,'{{ products.title }}')"><i
+                                    class="fas fa-cart-plus"></i> Add
+                                To
+                                Cart
+                            </button>
+                        </div>
+                    </div>
                 </div>
-
-               <div class="text-center w-100 py-4">
-                   <button class="btn rounded_cart text-center w-75"><i class="fas fa-cart-plus"></i> Add To Cart</button>
-               </div>
             </div>
 
 
         </div>
-        {#	<div class="product__photo">#}
-        {#		<div class="photo-container">#}
-        {#			<div class="photo-main">#}
-        {#				<div class="controls">#}
-        {#					<i class="material-icons">share</i>#}
-        {#					<i class="material-icons">favorite_border</i>#}
-        {#				</div>#}
-        {##}
-        {#				<img src="/{{products.images.all.0.mainimage}}" alt="beef">#}
-        {#			</div>#}
-        {#			<div class="photo-album">#}
-        {#				<ul>#}
-        {#					{% for image in products.images.all %}#}
-        {#						<li><img src="/{{image.mainimage}}" alt="..."></li>#}
-        {#					{% endfor %}	#}
-        {#				</ul>#}
-        {#			</div>#}
-        {#		</div>#}
-        {#	</div>#}
-        {#	<div class="product__info">#}
-        {#		<div class="title">#}
-        {#			<h1>{{products.title}}</h1>#}
-        {#		Stock :	<span>{{products.stock}}</span>#}
-        {#		</div>#}
-        {#		<div class="price">#}
-        {#			Rs <span>{{products.price}}</span>#}
-        {#		</div>#}
-        {#		<!-- <div class="variant">#}
-        {#			<h3>SELECT A COLOR</h3>#}
-        {#			<ul>#}
-        {#				<li><img src="https://res.cloudinary.com/john-mantas/image/upload/v1537302064/codepen/delicious-apples/green-apple2.png" alt="green apple"></li>#}
-        {#				<li><img src="https://res.cloudinary.com/john-mantas/image/upload/v1537302752/codepen/delicious-apples/yellow-apple.png" alt="yellow apple"></li>#}
-        {#				<li><img src="https://res.cloudinary.com/john-mantas/image/upload/v1537302427/codepen/delicious-apples/orange-apple.png" alt="orange apple"></li>#}
-        {#				<li><img src="https://res.cloudinary.com/john-mantas/image/upload/v1537302285/codepen/delicious-apples/red-apple.png" alt="red apple"></li>#}
-        {#			</ul>#}
-        {#		</div> -->#}
-        {#		<div class="description">#}
-        {#			<h3>{{products.description}}</h3>#}
-        {#			<!-- <ul>#}
-        {#				<li>Apples are nutricious</li>#}
-        {#				<li>Apples may be good for weight loss</li>#}
-        {#				<li>Apples may be good for bone health</li>#}
-        {#				<li>They're linked to a lowest risk of diabetes</li>#}
-        {#			</ul> -->#}
-        {#		</div>#}
-        {#		<form class="form1" action="" method="POST">#}
-        {#		{% csrf_token %}#}
-        {#		<input type="number" placeholder=1 value=1 name="quantity">#}
-        {#		<button class="buy--btn">ADD TO CART</button>#}
-        {#		</form> 		#}
-        {#	</div>#}
     </div>
     <!--
     <footer>
         <p>Design from <a href="https://dribbble.com/shots/5216438-Daily-UI-012">dribbble shot</a> of <a href="https://dribbble.com/rodrigorramos">Rodrigo Ramos</a></p>
     </footer> -->
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'display_product.js' %}"></script>
 {% endblock %}

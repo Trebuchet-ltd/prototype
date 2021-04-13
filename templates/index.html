@@ -97,10 +97,12 @@
     <div class="content" id="content">
 
     </div>
+    {% csrf_token %}
 {% endblock %}
 
 {% block scripts %}
     <script src="{% static 'index.js' %}"></script>
+    <script src="{% static 'display_product.js' %}"></script>
 {% endblock %}
 
 

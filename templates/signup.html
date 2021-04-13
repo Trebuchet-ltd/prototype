@@ -1,15 +1,15 @@
 {% extends "auth_base.html" %}
 {% block "form" %}
-<form class="form1" action="/signup/" method="POST">
-    {% csrf_token %}
-    {% if pswderr %}
-      <div class=" text-danger " align='center' role="alert">
-      <i class="fa fa-exclamation-circle"></i> {{ pswderr }}
-      </div>
-    {% endif %}
-    <input class="un " type="text" align="center" placeholder="E-mail" name="email">
-    <input class="pass" type="password" align="center" placeholder="Password" name="password">
-    <input class="pass" type="password" align="center" placeholder="Retype Password" name="password retype">
-    <button class="submit" align="center">Sign Up</button>
-  </form>
+    <form class="form1" action="/signup/" method="POST">
+        {% csrf_token %}
+        {% if pswderr %}
+            <div class=" text-danger " align='center' role="alert">
+                <i class="fa fa-exclamation-circle"></i> {{ pswderr }}
+            </div>
+        {% endif %}
+        <input class="un " type="text" align="center" placeholder="E-mail" name="email">
+        <input class="pass" type="password" align="center" placeholder="Password" name="password">
+        <input class="pass" type="password" align="center" placeholder="Retype Password" name="password retype">
+        <button class="submit" align="center">Sign Up</button>
+    </form>
 {% endblock %}  

@@ -67,6 +67,7 @@ $(document).ready(() => {
     })
 
 });
+csrf = $('input[name="csrfmiddlewaretoken"]').val()
 
 $.ajax({
     type: "GET",
@@ -74,6 +75,7 @@ $.ajax({
     // data: formData,
     dataType: "json",
     encode: true,
+
     success: function (data) {
         let row_variable = document.createElement("div");
         row_variable.setAttribute("class", "row");
@@ -86,9 +88,10 @@ $.ajax({
             let display_products_var = `
             <div class="col col-6 col-xl-3 col-sm-6">
             
-                <a href="/product/${data[i].id}">
+                
                     <div class="el-wrapper">
-                        <div class="box-up">
+                        <a href="/product/${data[i].id}">
+                            <div class="box-up">
                             <img class="img" src="${data[i].images[0].mainimage}" alt="">
                             <div class="img-info">
                                 <div class="info-inner">
@@ -97,13 +100,13 @@ $.ajax({
                                 </div>
                             </div>
                         </div>
-            
+                        </a>
                         <div class="box-down">
                             <div class="h-bg">
                                 <div class="h-bg-inner"></div>
                             </div>
             
-                            <a class="cart" href="/product/${data[i].id}">
+                            <a class="cart" onclick="addProductToCartPost(${data[i].id},1,'${csrf}','${data[i].title}')">
                                 <span class="price">Rs ${data[i].price}</span>
                                 <span class="add-to-cart">
                                     <span class="txt mobile-no-display">Add in cart</span>
@@ -112,7 +115,7 @@ $.ajax({
                         </div>
             
                     </div>
-                </a>
+               
             
             </div>
             `
