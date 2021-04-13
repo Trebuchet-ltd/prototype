@@ -7,9 +7,32 @@
 */
 
 body {
-    background: #eecda3;
-    background: -webkit-linear-gradient(to right, #eecda3, #ef629f);
-    background: linear-gradient(to right, #eecda3, #ef629f);
-    min-height: 100vh;
-  }
-  
+    background: #FAFAFA;
+}
+
+#navbar {
+    background-image: url("/static/images/NAV BAR.svg");
+}
+
+@media (max-width: 768px) {
+
+    .cart-row {
+        margin: 10px 0;
+        padding: 10px 0;
+        border-bottom: 1px solid #e1e1e1;
+    }
+
+    .cart-row div {
+        text-align: center;
+    }
+
+    .cart-row img.img-responsive {
+        margin: 0 auto;
+    }
+}
+
+.neumorphic_container {
+    border-radius: 25px;
+    background: #ffffff;
+    box-shadow: 8px 8px 16px #eeeeee;
+}

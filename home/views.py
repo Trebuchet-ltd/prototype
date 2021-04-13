@@ -110,6 +110,8 @@ def cart(request):
     cart = user.cart
     items = cart.items.all()
     context['items'] = items
+    context['len_items'] = len(items)
+    context['total'] = cart.total
     return render(request, template_name="cart.html", context=context)
 
 
