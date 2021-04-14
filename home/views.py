@@ -109,6 +109,9 @@ def cart(request):
     user = User.objects.get(id=request.user.id)
     cart = user.cart
     items = cart.items.all()
+    for i in items:
+        i.range = range(1,min(i.item.stock+1,11))
+    print(context)
     context['items'] = items
     context['len_items'] = len(items)
     context['total'] = cart.total
@@ -129,6 +132,9 @@ def delete(request, item_key):
 
 def update(request, update_key):
     if request.method == "POST":
+        context = {
+
+        }
         new_cart_quantity = int(request.POST["cart_quantity"])
         object_var_from_cart_item = CartItem.objects.get(id=update_key)
         quantity_from_cart_item = object_var_from_cart_item.quantity
@@ -142,6 +148,15 @@ def update(request, update_key):
         total_price = price_from_product_model * difference_btwn_quantites
         var_of_cart_in_cart_item.total += total_price
         var_of_cart_in_cart_item.save()
+
+        context["total"] = var_of_cart_in_cart_item.total
+
+        updated_cart_item_price = object_var_from_cart_item.quantity * object_var_from_cart_item.item.price
+
+        context[f"price_{update_key}"] = updated_cart_item_price
+        context[f"key"] = f"price_{update_key}"
+
+        return HttpResponse(json.dumps(context))
 
     return HttpResponseRedirect("/cart")
 
