@@ -8,6 +8,15 @@ $('.cart_quantity').change(function () {
     }
 });
 
+$('.deleteitemfromcart').click(function () {
+
+    var ids = $(this).siblings('input').val()
+
+    var csrf = $('input[name="csrfmiddlewaretoken"]').val();
+    deleteCartQuantity(ids, csrf)
+
+});
+
 function updateCartQuantity(ids, val, csrftoken) {
     $.ajax({
             type: "POST",
@@ -25,7 +34,7 @@ function updateCartQuantity(ids, val, csrftoken) {
                 addToast('Success', `Successfully updated cart`)
                 key = data['key']
                 document.getElementById(key).innerText = "₹" + data[key]
-                document.getElementById("total").innerText = data['total']
+                $(".total").text(data['total'])
             },
             error: function (data) {
                 addToast('Failure', `Failed to update cart`)
@@ -33,3 +42,32 @@ function updateCartQuantity(ids, val, csrftoken) {
         }
     )
 }
+
+function deleteCartQuantity(ids, csrftoken) {
+
+    $.ajax({
+            type: "POST",
+            url: `/delete/${ids}`,
+            // data: formData,
+            dataType: "json",
+            data: {
+                csrfmiddlewaretoken: csrftoken
+            },
+            encode: true,
+            success: function (data) {
+                console.log(data)
+                $('.toast').toast('hide')
+                $(`#${ids}_row`).remove()
+                addToast('Success', `Successfully deleted item`)
+                // key = data['key']
+                // document.getElementById(key).innerText = "₹" + data[key]
+               $(".total").text(data['total'])
+                $(".items").text(data['items'])
+            },
+            error: function (data) {
+                addToast('Failure', `Failed to update cart`)
+            }
+        }
+    )
+}
+

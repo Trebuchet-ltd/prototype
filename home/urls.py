@@ -10,6 +10,7 @@ urlpatterns = [
     path('product/<int:primary_key>', views.display_product, name='product'),
     path('logout/', views.log_out, name='logout'),
     path('cart/', views.cart, name='cart'),
+    path('checkout/', views.checkout, name='checkout'),
     path('delete/<int:item_key>', views.delete, name='delete'),
     path('update/<int:update_key>', views.update, name='update'),
     path('display/', views.getProduct.as_view(), name='display')

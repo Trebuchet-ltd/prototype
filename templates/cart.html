@@ -3,25 +3,35 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'index.css' %}">
     <link rel="stylesheet" href="{% static 'cart.css' %}"/>
+    <link rel="stylesheet" href="{% static 'button.css' %}"/>
 {% endblock %}
 {% block content %}
 
     <div class="container-fluid py-5">
         <div class="row text-center py-4">
             <h2>Cart</h2>
-            <div>{{ len_items }}
+            <div><span class="items">{{ len_items }}</span>
                 {% if len_items == 1 %}
                     item
                 {% else %}
                     items
                 {% endif %}
-                | ₹<span id="total">{{ total }}</span></div>
+                | ₹<span class="total">{{ total }}</span></div>
+            <div class="button_container">
+                <a href="/checkout" class="btn">
+
+                    <button class="checkoutbtn"><span>Checkout</span></button>
+                </a>                <!--<p class="link">
+                  Design by
+                  <a href="https://dribbble.com/skytrip" target="_blank">SkyTrip</a>
+                </p>-->
+            </div>
         </div>
         <div class="container">
 
             <div class="row neumorphic_container px-3">
                 {% for item in items %}
-                    <div class="col-xs-12">
+                    <div class="col-xs-12" id="{{ item.id }}_row">
                         <div class="row py-4">
                             <div class=" col-5">
                                 <div class="pull-left">
@@ -36,27 +46,38 @@
                                 <div class="row">
                                     <div class="h6 col-9 font-weight-bold me-auto">{{ item.item.title }}</div>
                                     <div class="col">
-                                        <i class="fa fa-trash"></i>
+                                        <i class="fa fa-trash deleteitemfromcart"></i>
+                                        <input value="{{ item.id }}" disabled hidden>
                                     </div>
                                 </div>
 
                                 <div class="row">
                                     <div class="col col-6 col-md-9">
-                                        <input value="{{ item.id }}" disabled hidden>
+
                                         {#                                        <input type="number" value={{ item.quantity }} name="cart_quantity"#}
                                         {#                                               class="form-control cart_quantity" style="width: 100px;" min="1"#}
                                         {#                                               max="{{ item.item.stock }}">#}
-                                        <label for="inputGroupSelect01" style="font-size: smaller">Quantity</label>
-                                        <div  class="holder ">
+                                        <div class>
+
+                                            <label for="inputGroupSelect01" style="font-size: smaller">Quantity</label>
+                                        </div>
+                                        <div class="holder ">
                                             {#                                            <div class="input-group-prepend">#}
                                             {#                                                <label class="input-group-text" for="inputGroupSelect01">Options</label>#}
                                             {#                                            </div>#}
 
                                             <div class="fa fa-angle-down e4f9riy3"></div>
-
-                                            <select class="selects">
+                                            <input value="{{ item.id }}" disabled hidden>
+                                            <select value="{{ item.quantity }}" class="cart_quantity selects"
+                                                    onmousedown="if(this.options.length>8){this.size=8;}"
+                                                    onchange='this.size=0;' onblur="this.size=0;">
                                                 {% for i in item.range %}
-                                                    <option value="{{ i }} ">{{ i }}</option>
+                                                    <option value="{{ i }}"
+                                                            {% if i == item.quantity %}
+                                                            selected
+                                                            {% endif %}
+
+                                                    >{{ i }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
@@ -75,7 +96,28 @@
                 {% csrf_token %}
             </div>
         </div>
+        <div class="row text-center py-4">
+            <h2>Cart</h2>
+            <div><span class="items">{{ len_items }}</span>
+                {% if len_items == 1 %}
+                    item
+                {% else %}
+                    items
+                {% endif %}
+                | ₹<span class="total">{{ total }}</span></div>
+            <div class="button_container">
+                <a href="/checkout">
+
+                    <button class="checkoutbtn"><span>Checkout</span></button>
+                </a>
+                <!--<p class="link">
+                  Design by
+                  <a href="https://dribbble.com/skytrip" target="_blank">SkyTrip</a>
+                </p>-->
+            </div>
+        </div>
     </div>
+
 
 {% endblock %}
 

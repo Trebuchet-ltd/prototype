@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+    <link rel="stylesheet" href="{% static 'cart.css' %}"/>
+    <link rel="stylesheet" href="{% static 'button.css' %}"/>
+{% endblock %}
+{% block content %}
+
+    <div class="container-fluid py-5">
+        <div class="row text-center py-4">
+            <h2>Cart</h2>
+            <div><span class="items">{{ len_items }}</span>
+                {% if len_items == 1 %}
+                    item
+                {% else %}
+                    items
+                {% endif %}
+                | ₹<span class="total">{{ total }}</span></div>
+            <div class="button_container">
+                <button class="checkoutbtn"><span>Checkout</span></button>
+                <!--<p class="link">
+                  Design by
+                  <a href="https://dribbble.com/skytrip" target="_blank">SkyTrip</a>
+                </p>-->
+            </div>
+        </div>
+        <div class="container">
+
+            <div class="row neumorphic_container px-3">
+                <div class="col-4"></div>
+                <form class="col-12 col-lg-4">
+                    <div class="input-group  py-3">
+                        {#                        <label for="Name">Name</label>#}
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">Name</div>
+                        </div>
+                        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
+                               placeholder="Enter Name">
+
+                    </div>
+                    <div class="input-group py-3">
+                        {#                        <label for="Address">Address</label>#}
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">Address</div>
+                        </div>
+                        <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Enter Address">
+                    </div>
+                    <div class="input-group py-3 ">
+{#                        <label for="Pincode">Pincode</label>#}
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">Pincode</div>
+                        </div>
+                        <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Enter Pincode">
+                    </div>
+                    <div class="input-group py-3">
+{#                        <label for="state">State</label>#}
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">State</div>
+                        </div>
+                        <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Kerala">
+                    </div>
+                    <div class="input-group py-3">
+{#                        <label for="Phone Number">Phone Number</label>#}
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">Ph no</div>
+                        </div>
+                        <input type="tel" class="form-control" id="exampleInputPassword1"
+                               placeholder="Enter Phone Number">
+                    </div>
+
+
+
+                </form>
+                {% csrf_token %}
+            </div>
+        </div>
+        <div class="row text-center py-4">
+            <h2>Cart</h2>
+            <div><span class="items">{{ len_items }}</span>
+                {% if len_items == 1 %}
+                    item
+                {% else %}
+                    items
+                {% endif %}
+                | ₹<span class="total">{{ total }}</span></div>
+            <div class="button_container">
+                <button class="checkoutbtn"><span>Checkout</span></button>
+                <!--<p class="link">
+                  Design by
+                  <a href="https://dribbble.com/skytrip" target="_blank">SkyTrip</a>
+                </p>-->
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+    <script src="/static/cart.js"></script>
+{% endblock %}

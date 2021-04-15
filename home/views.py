@@ -110,7 +110,7 @@ def cart(request):
     cart = user.cart
     items = cart.items.all()
     for i in items:
-        i.range = range(1,min(i.item.stock+1,11))
+        i.range = range(1,i.item.stock+1)
     print(context)
     context['items'] = items
     context['len_items'] = len(items)
@@ -126,7 +126,7 @@ def delete(request, item_key):
         cart_object.total -= total
         cart_object.save()
         item_object.delete()
-
+        return HttpResponse(json.dumps({'total':cart_object.total,'items':cart_object.items.count()}))
     return HttpResponseRedirect("/cart")
 
 
@@ -161,7 +161,14 @@ def update(request, update_key):
     return HttpResponseRedirect("/cart")
 
 
+def checkout(request):
+    return render(request, template_name="checkout.html", )
+
+
+
+
 class getProduct(ListAPIView):
     queryset = Product.objects.all()
     serializer_class = getProductSerializer
     http_method_names = ["get"]
+
