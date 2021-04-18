@@ -34,7 +34,6 @@ class ImageModel(models.Model):
 class CartModel(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="cart", on_delete=models.CASCADE)
     total = models.FloatField()
-    address = models.TextField(max_length=255)
     pincode = models.IntegerField()
     state = models.TextField(max_length=20)
 
@@ -49,3 +48,11 @@ class MainPage(models.Model):
     product = models.ForeignKey(Product, related_name="Product", on_delete=models.CASCADE)
     heading = models.TextField(max_length=20)
     description = models.TextField(max_length=255)
+
+class Adresses(models.Model):
+    name = models.TextField(max_length=100)
+    address = models.TextField(max_length=3000)
+    pincode = models.CharField(max_length=6)
+    state = models.TextField(max_length=100)
+    phone = models.CharField(max_length=12)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
