@@ -80,3 +80,6 @@ img {
     overflow: hidden;
     z-index: 0;
 }
+.cart_quantity{
+    border:0 !important;
+}
