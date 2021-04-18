@@ -45,7 +45,7 @@ def display_product(request, primary_key):
             cart.save()
 
         CartItem.quantity = request.POST["quantity"]
-        return HttpResponse(json.dumps({'qty':inventory_item.quantity}))
+        return HttpResponse(json.dumps({'qty': inventory_item.quantity}))
     context = {"products": inventory}
     return render(request, template_name="display_product.html", context=context)
 
@@ -110,7 +110,7 @@ def cart(request):
     cart = user.cart
     items = cart.items.all()
     for i in items:
-        i.range = range(1,i.item.stock+1)
+        i.range = range(1, i.item.stock + 1)
     print(context)
     context['items'] = items
     context['len_items'] = len(items)
@@ -126,7 +126,7 @@ def delete(request, item_key):
         cart_object.total -= total
         cart_object.save()
         item_object.delete()
-        return HttpResponse(json.dumps({'total':cart_object.total,'items':cart_object.items.count()}))
+        return HttpResponse(json.dumps({'total': cart_object.total, 'items': cart_object.items.count()}))
     return HttpResponseRedirect("/cart")
 
 
@@ -162,9 +162,14 @@ def update(request, update_key):
 
 
 def checkout(request):
-    return render(request, template_name="checkout.html", )
-
-
+    context = {}
+    user = User.objects.get(id=request.user.id)
+    user_addresses = user.Addresses.all()
+    context["user_address"] = user_addresses
+    items = user.cart.items.all()
+    context["len_items"] = len(items)
+    context["total"] = user.cart.total
+    return render(request, template_name="checkout.html", context=context)
 
 
 class getProduct(ListAPIView):
@@ -172,3 +177,25 @@ class getProduct(ListAPIView):
     serializer_class = getProductSerializer
     http_method_names = ["get"]
 
+
+def addUserDetails(request):
+    if request.method == "POST":
+        name = request.POST["name"]
+        address = request.POST["address"]
+        pincode = request.POST["pincode"]
+        state = request.POST["state"]
+        phone = request.POST["phone"]
+        new_address = Adresses(name=name, address=address, pincode=pincode, state=state, phone=phone, user=request.user)
+
+        new_address.save()
+    return HttpResponseRedirect("/")
+
+
+def delivery_options(request):
+    if (request.method == "POST"):
+        context = {}
+        user = User.objects.get(id=request.user.id)
+        adid = request.POST["adid"]
+        address = user.Addresses.get(id = adid)
+        context["selected_address"] = address
+        return render(request, template_name="delivery_options.html", context=context)

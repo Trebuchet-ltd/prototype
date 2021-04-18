@@ -17,26 +17,42 @@
                     items
                 {% endif %}
                 | ₹<span class="total">{{ total }}</span></div>
-            <div class="button_container">
-                <button class="checkoutbtn"><span>Checkout</span></button>
-                <!--<p class="link">
-                  Design by
-                  <a href="https://dribbble.com/skytrip" target="_blank">SkyTrip</a>
-                </p>-->
+        </div>
+        <div class="container">
+
+            <div class="row py-3 ">
+                {% for adress in user_address %}
+                    <div class="col-12 col-md-6 col-lg-4 py-3 ">
+                        <div class="col-12 col-lg-4 neumorphic_container px-3 w-100">
+                            <div class="row font-weight-bold h4 mx-2">{{ adress.name }}</div>
+                            <div class="row py-2 mx-2">{{ adress.address }}</div>
+                            <div class="row py-2 mx-2">{{ adress.pincode }}</div>
+                            <div class="row py-2 mx-2">{{ adress.state }}</div>
+                            <div class="row py-2 mx-2">{{ adress.phone }}</div>
+                            <div class="pb-4 button-container">
+                                <form action="/delivery_options " method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" value="{{ adress.id }}" name="adid">
+                                <button type="submit" class="checkoutbtn"><span>Deliver to this Address</span></button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
         </div>
         <div class="container">
 
             <div class="row neumorphic_container px-3">
                 <div class="col-4"></div>
-                <form class="col-12 col-lg-4">
+                <form class="col-12 col-lg-4" id="checkout_form" method="POST" action="/details/">
                     <div class="input-group  py-3">
                         {#                        <label for="Name">Name</label>#}
                         <div class="input-group-prepend">
                             <div class="input-group-text">Name</div>
                         </div>
-                        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
-                               placeholder="Enter Name">
+                        <input type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
+                               placeholder="Enter Name" name="name">
 
                     </div>
                     <div class="input-group py-3">
@@ -44,35 +60,43 @@
                         <div class="input-group-prepend">
                             <div class="input-group-text">Address</div>
                         </div>
-                        <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Enter Address">
+                        <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Enter Address"
+                               name="address">
                     </div>
                     <div class="input-group py-3 ">
-{#                        <label for="Pincode">Pincode</label>#}
+                        {#                        <label for="Pincode">Pincode</label>#}
                         <div class="input-group-prepend">
                             <div class="input-group-text">Pincode</div>
                         </div>
-                        <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Enter Pincode">
+                        <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Enter Pincode"
+                               name="pincode">
                     </div>
                     <div class="input-group py-3">
-{#                        <label for="state">State</label>#}
+                        {#                        <label for="state">State</label>#}
                         <div class="input-group-prepend">
                             <div class="input-group-text">State</div>
                         </div>
-                        <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Kerala">
+                        <input type="text" class="form-control" id="exampleInputPassword1" placeholder="Kerala"
+                               name="state">
                     </div>
                     <div class="input-group py-3">
-{#                        <label for="Phone Number">Phone Number</label>#}
+                        {#                        <label for="Phone Number">Phone Number</label>#}
                         <div class="input-group-prepend">
                             <div class="input-group-text">Ph no</div>
                         </div>
                         <input type="tel" class="form-control" id="exampleInputPassword1"
-                               placeholder="Enter Phone Number">
+                               placeholder="Enter Phone Number" name="phone">
+                    </div>
+                    <div class="button_container pb-3">
+                        <button class="checkoutbtn" onclick="formSubmit()"><span>Checkout</span></button>
+                        <!--<p class="link">
+                          Design by
+                          <a href="https://dribbble.com/skytrip" target="_blank">SkyTrip</a>
+                        </p>-->
                     </div>
 
-
-
+                    {% csrf_token %}
                 </form>
-                {% csrf_token %}
             </div>
         </div>
         <div class="row text-center py-4">
@@ -84,13 +108,6 @@
                     items
                 {% endif %}
                 | ₹<span class="total">{{ total }}</span></div>
-            <div class="button_container">
-                <button class="checkoutbtn"><span>Checkout</span></button>
-                <!--<p class="link">
-                  Design by
-                  <a href="https://dribbble.com/skytrip" target="_blank">SkyTrip</a>
-                </p>-->
-            </div>
         </div>
     </div>
 
@@ -99,4 +116,11 @@
 
 {% block scripts %}
     <script src="/static/cart.js"></script>
+    <script>
+        let checkout_form = document.getElementById("checkout_form");
+
+        function formSubmit() {
+            checkout_form.submit();
+        }
+    </script>
 {% endblock %}
