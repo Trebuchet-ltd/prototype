@@ -30,8 +30,8 @@
             <img src="{% static 'images/icon.svg' %}" width="30" height="30" alt="">
         </a>
         <div class="col-1 col-md-2"></div>
-        <form class="d-flex ml-auto align-self-center text-center w-50 ">
-            <input class="form-control search me-2" type="search" placeholder="Search" aria-label="Search">
+        <form class="d-flex ml-auto align-self-center text-center w-50 " method="GET" action="/search/">
+            <input class="form-control search me-2" type="search" placeholder="Search" aria-label="Search" name="query">
         </form>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">

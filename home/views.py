@@ -196,6 +196,18 @@ def delivery_options(request):
         context = {}
         user = User.objects.get(id=request.user.id)
         adid = request.POST["adid"]
-        address = user.Addresses.get(id = adid)
+        address = user.Addresses.get(id=adid)
         context["selected_address"] = address
         return render(request, template_name="delivery_options.html", context=context)
+
+
+def searchResultview(request):
+    if (request.method == "GET"):
+        query = request.GET["query"]
+        model = Product
+        template_name = "search_results.html"
+        context = {}
+        context["search_result"] = Product.objects.filter(meat__icontains=query) | Product.objects.filter(
+            title__icontains=query) | Product.objects.filter(description__icontains=query)
+
+        return render(request, template_name, context=context)
