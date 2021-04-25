@@ -86,9 +86,7 @@ $.ajax({
         for (let i = 0; i < data.length; i++) {
             console.log(data[i]);
             let display_products_var = `
-            <div class="col col-6 col-xl-3 col-sm-6">
-            
-                
+            <div class="col col-6 col-xl-3 col-sm-6">    
                     <div class="el-wrapper">
                         <a href="/product/${data[i].id}">
                             <div class="box-up">
