@@ -79,16 +79,20 @@
 
         <ul class="navbar-nav  nav-fill w-100 me-auto mb-3 mb-lg-0">
             <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="#">Fish</a>
+                <a class="nav-link" aria-current="page" onclick="filterCards('f',this)">Fish <i
+                        class="fa fa-times-circle" aria-hidden="true"></i></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Poultry</a>
+                <a class="nav-link" onclick="filterCards('c',this)">Poultry <i class="fa fa-times-circle"
+                                                                               aria-hidden="true" ></i></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Red Meat</a>
+                <a class="nav-link" onclick="filterCards('p',this)">Pork <i class="fa fa-times-circle"
+                                                                            aria-hidden="true" ></i></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link " href="#">Ready To Eat</a>
+                <a class="nav-link " onclick="filterCards('ready to eat',this)" >Ready To Eat <i
+                        class="fa fa-times-circle" aria-hidden="true"></i></a>
             </li>
         </ul>
 

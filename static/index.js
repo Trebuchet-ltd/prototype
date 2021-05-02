@@ -10,7 +10,7 @@ $(window).scroll(function () {
     }
 
     if ($(window).scrollTop() > 10) {
-        console.log('hello')
+        //console.log('hello')
         $("#navbar").css("background-image", 'url("/static/images/NAV BAR.svg")');
     } else {
         $("#navbar").css("background-image", "");
@@ -40,7 +40,7 @@ $(document).ready(() => {
     var PicCarousel = document.getElementById('carouselExampleIndicators')
 
     PicCarousel.addEventListener('slide.bs.carousel', function (e) {
-        console.log(e.direction)
+        //console.log(e.direction)
         if (move) {
             move = 0
             if (e.direction === 'left') {
@@ -54,7 +54,7 @@ $(document).ready(() => {
 
     })
     myCarousel.addEventListener('slide.bs.carousel', function (e) {
-        console.log(e.direction)
+        //console.log(e.direction)
         if (move) {
             move = 0
             if (e.direction === 'left') {
@@ -82,11 +82,11 @@ $.ajax({
 
         let content = document.getElementById("content");
         content.appendChild(row_variable);
-        console.log(content);
+        //console.log(content);
         for (let i = 0; i < data.length; i++) {
-            console.log(data[i]);
+            //console.log(data[i]);
             let display_products_var = `
-            <div class="col col-6 col-xl-3 col-sm-6">    
+            <div class="col col-6 col-xl-3 col-sm-6 ${data[i].meat} card_prod">    
                     <div class="el-wrapper">
                         <a href="/product/${data[i].id}">
                             <div class="box-up">
@@ -117,7 +117,7 @@ $.ajax({
             
             </div>
             `
-            console.log(display_products_var)
+            //console.log(display_products_var)
             row_variable.innerHTML += display_products_var;
 
 
