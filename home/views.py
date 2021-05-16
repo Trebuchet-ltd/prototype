@@ -11,6 +11,8 @@ from django.http import HttpResponse
 from rest_framework.generics import ListAPIView
 from .serializers import *
 
+from django.contrib.auth.decorators import login_required
+
 
 # Create your views here.
 def index(request):
@@ -85,25 +87,29 @@ def signup(request):
             context1['pswderr'] = 'Password cannot be empty'
         else:
             if passwrd2 == password:
-                # try:
-                user = User.objects.create_user(email=email, password=password, username=email)
-                cart = CartModel(user=user, total=0, address='', pincode=0, state='')
-                cart.save()
-                login(request, user)
-                return HttpResponseRedirect('/')
-            # except:
-            #     context1['pswderr'] = 'User already exists'
+                try:
+                    user = User.objects.create_user(email=email, password=password, username=email)
+                    cart = CartModel(user=user, total=0, pincode=0, state='')
+                    cart.save()
+                    login(request, user)
+                    return HttpResponseRedirect('/')
+
+                except Exception as e:
+                    print(e)
+                    context1['pswderr'] = 'User already exists'
             else:
                 context1['pswderr'] = 'Password Does not match'
     context1['sign_text'] = "Register"
     return render(request, template_name="signup.html", context=context1)
 
 
+@login_required
 def log_out(request):
     logout(request)
     return HttpResponseRedirect('/')
 
 
+@login_required
 def cart(request):
     context = {}
     user = User.objects.get(id=request.user.id)
@@ -118,49 +124,59 @@ def cart(request):
     return render(request, template_name="cart.html", context=context)
 
 
+@login_required
 def delete(request, item_key):
     if request.method == "POST":
-        item_object = CartItem.objects.get(id=item_key)
-        total = item_object.item.price * item_object.quantity
-        cart_object = item_object.cart
-        cart_object.total -= total
-        cart_object.save()
-        item_object.delete()
-        return HttpResponse(json.dumps({'total': cart_object.total, 'items': cart_object.items.count()}))
+
+        try:
+            user = User.objects.get(id=request.user.id)
+            item_object = CartItem.objects.get(id=item_key,cart=user.cart)
+            total = item_object.item.price * item_object.quantity
+            cart_object = item_object.cart
+            cart_object.total -= total
+            cart_object.save()
+            item_object.delete()
+            return HttpResponse(json.dumps({'total': cart_object.total, 'items': cart_object.items.count()}))
+        except Exception as e:
+            print(e)
+
     return HttpResponseRedirect("/cart")
 
 
+@login_required
 def update(request, update_key):
     if request.method == "POST":
         context = {
-
         }
         new_cart_quantity = int(request.POST["cart_quantity"])
-        object_var_from_cart_item = CartItem.objects.get(id=update_key)
-        quantity_from_cart_item = object_var_from_cart_item.quantity
-        difference_btwn_quantites = new_cart_quantity - quantity_from_cart_item
-        object_var_from_cart_item.quantity = new_cart_quantity
-        object_var_from_cart_item.save()
+        try:
+            user = User.objects.get(id = request.user.id)
+            object_var_from_cart_item = CartItem.objects.get(id=update_key)
+            quantity_from_cart_item = object_var_from_cart_item.quantity
+            difference_btwn_quantites = new_cart_quantity - quantity_from_cart_item
+            object_var_from_cart_item.quantity = new_cart_quantity
+            object_var_from_cart_item.save()
 
-        var_of_cart_in_cart_item = object_var_from_cart_item.cart
-        current_cart_quantity = object_var_from_cart_item.quantity
-        price_from_product_model = object_var_from_cart_item.item.price
-        total_price = price_from_product_model * difference_btwn_quantites
-        var_of_cart_in_cart_item.total += total_price
-        var_of_cart_in_cart_item.save()
+            var_of_cart_in_cart_item = object_var_from_cart_item.cart
+            current_cart_quantity = object_var_from_cart_item.quantity
+            price_from_product_model = object_var_from_cart_item.item.price
+            total_price = price_from_product_model * difference_btwn_quantites
+            var_of_cart_in_cart_item.total += total_price
+            var_of_cart_in_cart_item.save()
+            context["total"] = var_of_cart_in_cart_item.total
+            updated_cart_item_price = object_var_from_cart_item.quantity * object_var_from_cart_item.item.price
 
-        context["total"] = var_of_cart_in_cart_item.total
+            context[f"price_{update_key}"] = updated_cart_item_price
+            context[f"key"] = f"price_{update_key}"
 
-        updated_cart_item_price = object_var_from_cart_item.quantity * object_var_from_cart_item.item.price
-
-        context[f"price_{update_key}"] = updated_cart_item_price
-        context[f"key"] = f"price_{update_key}"
-
-        return HttpResponse(json.dumps(context))
+            return HttpResponse(json.dumps(context))
+        except Exception as e:
+            print(e)
 
     return HttpResponseRedirect("/cart")
 
 
+@login_required
 def checkout(request):
     context = {}
     user = User.objects.get(id=request.user.id)
@@ -178,6 +194,7 @@ class getProduct(ListAPIView):
     http_method_names = ["get"]
 
 
+@login_required
 def addUserDetails(request):
     if request.method == "POST":
         name = request.POST["name"]
@@ -185,12 +202,14 @@ def addUserDetails(request):
         pincode = request.POST["pincode"]
         state = request.POST["state"]
         phone = request.POST["phone"]
-        new_address = Adresses(name=name, address=address, pincode=pincode, state=state, phone=phone, user=request.user)
+        new_address = Addresses(name=name, address=address, pincode=pincode, state=state, phone=phone,
+                                user=request.user)
 
         new_address.save()
     return HttpResponseRedirect("/")
 
 
+@login_required
 def delivery_options(request):
     if (request.method == "POST"):
         context = {}
@@ -201,6 +220,7 @@ def delivery_options(request):
         return render(request, template_name="delivery_options.html", context=context)
 
 
+
 def searchResultview(request):
     if (request.method == "GET"):
         query = request.GET["query"]
@@ -209,5 +229,4 @@ def searchResultview(request):
         context = {}
         context["search_result"] = Product.objects.filter(meat__icontains=query) | Product.objects.filter(
             title__icontains=query) | Product.objects.filter(description__icontains=query)
-
         return render(request, template_name, context=context)

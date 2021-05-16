@@ -49,7 +49,8 @@ class MainPage(models.Model):
     heading = models.TextField(max_length=20)
     description = models.TextField(max_length=255)
 
-class Adresses(models.Model):
+
+class Addresses(models.Model):
     name = models.TextField(max_length=100)
     address = models.TextField(max_length=3000)
     pincode = models.CharField(max_length=6)
