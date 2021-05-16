@@ -14,25 +14,36 @@
                 <div class="row neumorphic_container py-3">
                     <div class="row py-3">
 
-                        <div class="col">
-                            <span class="">Select Preferable Date  of Delivery</span>
+                            <div class="col">
+                                <span class="">Select Preferable Date  of Delivery</span>
+                            </div>
+                            <div class="col">
+                                <input type="date" id="date" class="cart_quantity form-control" name="date">
+                            </div>
+                            <input name="selected_address" value="{{ selected_address.id }}" hidden>
                         </div>
-                        <div class="col">
-                            <input type="date" id="date" class="cart_quantity form-control" name="date">
+                        <div class="row py-3">
+                            <div class="col">
+                                <span class="">Select Preferable time of Delivery</span>
+                            </div>
+                            <div class="col">
+                                <select class="cart_quantity selects"
+                                        onmousedown="if(this.options.length>8){this.size=8;}"
+                                        onchange='this.size=0;' onblur="this.size=0;" name="time">
+                                    <option value="morning">Morning</option>
+                                    <option value="evening">Evening</option>
+                                </select>
+                            </div>
                         </div>
-
-                    </div>
-                    <div class="col">
-                        <span class="">Select Preferable time of Delivery</span>
-                    </div>
-                    <div class="col">
-                        <select class="cart_quantity selects"
-                                onmousedown="if(this.options.length>8){this.size=8;}"
-                                onchange='this.size=0;' onblur="this.size=0;">
-                            <option>Morning</option>
-                            <option>Evening</option>
-                        </select>
-                    </div>
+                        <div class="row py-3">
+                            <div class="col-6 col-md-3"></div>
+                            <div class="col-12 col-md-6">
+                                <button type="submit" class="checkoutbtn"><span
+                                        class="nowrap">Deliver to this Address</span></button>
+                            </div>
+                        </div>
+                        {% csrf_token %}
+                    </form>
                 </div>
             </div>
         </div>
@@ -47,6 +58,11 @@
                     <div class="row py-2 mx-2">{{ selected_address.phone }}</div>
                 </div>
             </div>
+        </div>
+    </div>
+
+
+
 
 
 {% endblock %}

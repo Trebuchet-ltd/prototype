@@ -206,7 +206,7 @@ def addUserDetails(request):
                                 user=request.user)
 
         new_address.save()
-    return HttpResponseRedirect("/")
+    return HttpResponseRedirect("/checkout/")
 
 
 @login_required
@@ -220,7 +220,6 @@ def delivery_options(request):
         return render(request, template_name="delivery_options.html", context=context)
 
 
-
 def searchResultview(request):
     if (request.method == "GET"):
         query = request.GET["query"]
@@ -230,3 +229,52 @@ def searchResultview(request):
         context["search_result"] = Product.objects.filter(meat__icontains=query) | Product.objects.filter(
             title__icontains=query) | Product.objects.filter(description__icontains=query)
         return render(request, template_name, context=context)
+
+
+@login_required
+def confirmOrder(request):
+    if (request.method == "POST"):
+        date = request.POST["date"]
+        time = request.POST["time"]
+        address = request.POST["selected_address"]
+        user = User.objects.get(id=request.user.id)
+        cart = user.cart
+        order = Orders.objects.create(user=request.user, date=date, time=time, address_id=int(address),
+                                      total=cart.total)
+
+        order.save()
+
+        for item in cart.items.all():
+            order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
+            order_item.save()
+        cart.total = 0
+        cart.save()
+        for item in cart.items.all():
+            item.delete()
+    return HttpResponseRedirect("/orders/")
+
+
+@login_required
+def orders(request):
+    context = {}
+    order = Orders.objects.filter(user=request.user)
+    context["orders"] = order
+    return render(request, template_name="orders.html", context=context)
+
+
+@login_required
+def order(request, primary_key):
+    try:
+        order = Orders.objects.get(id=primary_key, user=request.user)
+        context = {}
+        items = order.order_item.all()
+        for i in items:
+            i.range = range(1, i.item.stock + 1)
+        print(context)
+        context['items'] = items
+        context['len_items'] = len(items)
+        context['total'] = order.total
+        return render(request, template_name="order_items.html", context=context)
+    except Exception as e:
+        print(e)
+        return HttpResponseRedirect("/orders/")

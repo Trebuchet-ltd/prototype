@@ -16,5 +16,8 @@ urlpatterns = [
     path('display/', views.getProduct.as_view(), name='display'),
     path('details/', views.addUserDetails, name='details'),
     path('delivery_options', views.delivery_options, name='delivery_options'),
-    path('search/', views.searchResultview, name='search_results')
+    path('search/', views.searchResultview, name='search_results'),
+    path('confirmOrder/', views.confirmOrder, name="confirmOrder"),
+    path('orders/', views.orders, name="orders"),
+    path('order/<int:primary_key>/', views.order, name='order'),
 ]
