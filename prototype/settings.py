@@ -128,6 +128,7 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static')
+LOGIN_URL = '/login/'
 
 # SERIALIZATION_MODULES = {
 #     'json': 'wadofstuff.django.serializers.json'
