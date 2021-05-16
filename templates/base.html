@@ -21,7 +21,7 @@
 
     {% block extra_css %}
     {% endblock %}
-    <title>Hello, world!</title>
+    <title>{% firstof title 'CARBLE' %}</title>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark   fixed-top navbar-dark" id="navbar">

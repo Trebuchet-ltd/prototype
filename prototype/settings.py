@@ -26,7 +26,7 @@ SECRET_KEY = 'em-!%*w_wa4l*e@-((blr(%8+-pkld)-78#1yibh9d3#(4=3l='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['meat.trebuchet.one']
+ALLOWED_HOSTS = ['meat.trebuchet.one','localhost','127.0.0.1']
 
 
 # Application definition

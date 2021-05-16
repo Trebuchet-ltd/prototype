@@ -14,10 +14,15 @@
                 <div class="row neumorphic_container py-3">
 
                     <form method="post" action="/confirmOrder/">
+                        <div class="text-center">
+                             <span class="alert-danger">{{ errors }}</span>
+                        </div>
+
                         <div class="row py-3">
 
                             <div class="col">
                                 <span class="">Select Preferable Date  of Delivery</span>
+
                             </div>
                             <div class="col">
                                 <input type="date" id="date" class="cart_quantity form-control" name="date">

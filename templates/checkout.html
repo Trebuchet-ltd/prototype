@@ -30,7 +30,7 @@
                             <div class="row py-2 mx-2">{{ adress.state }}</div>
                             <div class="row py-2 mx-2">{{ adress.phone }}</div>
                             <div class="pb-4 button-container">
-                                <form action="/delivery_options " method="POST">
+                                <form action="/delivery_options/" method="POST">
                                     {% csrf_token %}
                                     <input type="hidden" value="{{ adress.id }}" name="adid">
                                 <button type="submit" class="checkoutbtn"><span>Deliver to this Address</span></button>

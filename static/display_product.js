@@ -23,7 +23,9 @@ function addProductToCartPost(ids, val, csrftoken, title) {
                 addToast('Success', `Successfully added ${val} ${title} to cart`)
             },
             error: function (data) {
+                console.log(data)
                 addToast('Failure', `Failed to add  ${title} to cart`)
+                window.location.href = '/login/'
             }
         }
     )

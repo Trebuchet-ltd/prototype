@@ -37,7 +37,10 @@ function updateCartQuantity(ids, val, csrftoken) {
                 $(".total").text(data['total'])
             },
             error: function (data) {
+                console.log(data)
                 addToast('Failure', `Failed to update cart`)
+                window.location.href = '/login/'
+
             }
         }
     )
@@ -61,7 +64,7 @@ function deleteCartQuantity(ids, csrftoken) {
                 addToast('Success', `Successfully deleted item`)
                 // key = data['key']
                 // document.getElementById(key).innerText = "₹" + data[key]
-               $(".total").text(data['total'])
+                $(".total").text(data['total'])
                 $(".items").text(data['items'])
             },
             error: function (data) {

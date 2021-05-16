@@ -26,7 +26,6 @@ def index(request):
 def display_product(request, primary_key):
     inventory = Product.objects.get(id=primary_key)
     if request.method == "POST":
-
         if (request.user.id is None):
             return HttpResponseRedirect('/login')
         else:
@@ -48,7 +47,7 @@ def display_product(request, primary_key):
 
         CartItem.quantity = request.POST["quantity"]
         return HttpResponse(json.dumps({'qty': inventory_item.quantity}))
-    context = {"products": inventory}
+    context = {"products": inventory,'title':inventory.title}
     return render(request, template_name="display_product.html", context=context)
 
 
@@ -127,7 +126,6 @@ def cart(request):
 @login_required
 def delete(request, item_key):
     if request.method == "POST":
-
         try:
             user = User.objects.get(id=request.user.id)
             item_object = CartItem.objects.get(id=item_key,cart=user.cart)
@@ -211,13 +209,18 @@ def addUserDetails(request):
 
 @login_required
 def delivery_options(request):
+    context = {}
+    user = User.objects.get(id=request.user.id)
     if (request.method == "POST"):
-        context = {}
-        user = User.objects.get(id=request.user.id)
         adid = request.POST["adid"]
-        address = user.Addresses.get(id=adid)
-        context["selected_address"] = address
-        return render(request, template_name="delivery_options.html", context=context)
+    else:
+        adid = request.GET["adid"]
+        context['errors'] = 'All Fields are Mandatory'
+    address = user.Addresses.get(id=adid)
+    context["selected_address"] = address
+
+    return render(request, template_name="delivery_options.html", context=context)
+
 
 
 def searchResultview(request):
@@ -237,20 +240,24 @@ def confirmOrder(request):
         date = request.POST["date"]
         time = request.POST["time"]
         address = request.POST["selected_address"]
-        user = User.objects.get(id=request.user.id)
-        cart = user.cart
-        order = Orders.objects.create(user=request.user, date=date, time=time, address_id=int(address),
-                                      total=cart.total)
+        try:
+            user = User.objects.get(id=request.user.id)
+            cart = user.cart
+            order = Orders.objects.create(user=request.user, date=date, time=time, address_id=int(address),
+                                          total=cart.total)
 
-        order.save()
+            order.save()
 
-        for item in cart.items.all():
-            order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
-            order_item.save()
-        cart.total = 0
-        cart.save()
-        for item in cart.items.all():
-            item.delete()
+            for item in cart.items.all():
+                order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
+                order_item.save()
+            cart.total = 0
+            cart.save()
+            for item in cart.items.all():
+                item.delete()
+        except Exception as e:
+            print(e)
+            return HttpResponseRedirect(f'/delivery_options/?adid={address}')
     return HttpResponseRedirect("/orders/")
 
 
