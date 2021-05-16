@@ -57,3 +57,17 @@ class Addresses(models.Model):
     state = models.TextField(max_length=100)
     phone = models.CharField(max_length=12)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
+
+
+class Orders(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.CASCADE)
+    total = models.FloatField()
+    address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE)
+    date = models.DateField()
+    time = models.CharField(max_length=10)
+
+
+class OrderItem(models.Model):
+    item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE)

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+    <link rel="stylesheet" href="{% static 'cart.css' %}"/>
+    <link rel="stylesheet" href="{% static 'button.css' %}"/>
+{% endblock %}
+{% block content %}
+
+    <div class="container-fluid py-5">
+        <div class="row text-center py-4">
+            <h2>Order</h2>
+            <div><span class="items">{{ len_items }}</span>
+                {% if len_items == 1 %}
+                    item
+                {% else %}
+                    items
+                {% endif %}
+                | ₹<span class="total">{{ total }}</span></div>
+        </div>
+        <div class="container">
+
+            <div class="row neumorphic_container px-3">
+                {% for item in items %}
+                    <div class="col-xs-12" id="{{ item.id }}_row">
+                        <div class="row py-4">
+                            <div class=" col-5">
+                                <div class="pull-left">
+                                    <div>
+                                        <img src="/{{ item.item.images.all.0.mainimage }}" alt="/{{ item.item.title }}"
+                                             class="w-100">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-7">
+
+                                <div class="row">
+                                    <div class="h6 col-9 font-weight-bold me-auto">{{ item.item.title }}</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col col-6 col-md-9">
+
+                                        {#                                        <input type="number" value={{ item.quantity }} name="cart_quantity"#}
+                                        {#                                               class="form-control cart_quantity" style="width: 100px;" min="1"#}
+                                        {#                                               max="{{ item.item.stock }}">#}
+                                        <div class>
+
+                                            <label for="inputGroupSelect01" style="font-size: smaller">Quantity</label>
+                                        </div>
+                                        <div class="holder ">
+                                            {#                                            <div class="input-group-prepend">#}
+                                            {#                                                <label class="input-group-text" for="inputGroupSelect01">Options</label>#}
+                                            {#                                            </div>#}
+                                            <input value="{{ item.id }}" disabled hidden>
+                                            {{ item.quantity }}
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <p id="price_{{ item.id }}" class="font-weight-bold">
+                                            ₹{% widthratio item.item.price 1 item.quantity %} </p>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                {% csrf_token %}
+            </div>
+        </div>
+        <div class="row text-center py-4">
+            <h2>Order</h2>
+            <div><span class="items">{{ len_items }}</span>
+                {% if len_items == 1 %}
+                    item
+                {% else %}
+                    items
+                {% endif %}
+                | ₹<span class="total">{{ total }}</span>
+            </div>
+        </div>
+    </div>
+{% endblock %}
