@@ -1,5 +1,10 @@
 import json
-
+import random
+import string
+import razorpay
+import requests
+from decouple import config
+from requests.auth import HTTPBasicAuth
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
@@ -236,30 +241,109 @@ def searchResultview(request):
 
 @login_required
 def confirmOrder(request):
+    global paymenturl
     if (request.method == "POST"):
         date = request.POST["date"]
         time = request.POST["time"]
         address = request.POST["selected_address"]
+        key_id=config("key_id")
+        key_secret=config("key_secret")
+
+        def id_generator(size=6, chars = string.ascii_uppercase + string.digits):
+            """ This function generate a random string  """
+            return ''.join(random.choice(chars) for _ in range(size))
+
+        def create_new_id():
+            """ This function create an unique id for transaction """
+            not_unique = True
+            unique_id = id_generator()
+            while not_unique:
+                unique_id = id_generator()
+                if not TransactionDetails.objects.filter(transation_id=unique_id):
+                    not_unique = False
+            return str(unique_id)
+
         try:
             user = User.objects.get(id=request.user.id)
             cart = user.cart
             order = Orders.objects.create(user=request.user, date=date, time=time, address_id=int(address),
                                           total=cart.total)
-
             order.save()
+            amount = 0
 
             for item in cart.items.all():
+                if item.quantity > 0 :
+                    amount += item.quantity * item.item.price
+                elif item.quantity < 0:
+                    amount += -item.quantity * item.item.price
+
                 order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
                 order_item.save()
-            cart.total = 0
-            cart.save()
-            for item in cart.items.all():
-                item.delete()
+
+            amount *= 100  # converting rupees to paisa
+            if amount > 0:
+
+                transaction_id = create_new_id()
+                transactionDetails = TransactionDetails(transation_id=transaction_id, user=user)
+                transactionDetails.save()
+                DATA = {
+                    "amount": amount,
+                    "currency": "INR",
+                    "receipt": transaction_id
+                    }
+                client = razorpay.Client(auth=(key_id, key_secret))
+                client.set_app_details({"title": "CARBLE", "version": "1"})
+
+                try:
+                    order = client.order.create(data=DATA)
+                    url = 'https://api.razorpay.com/v1/payment_links'
+
+                    myobj = {
+                        "amount": amount,
+                        "currency": "INR",
+                        "callback_url": "https://0c9c5151a1b5.ngrok.io/payment",
+                        "callback_method": "get",
+                        'reference_id': transaction_id
+                        }
+                    x = requests.post(url,
+                                      json=myobj,
+                                      headers={'Content-type': 'application/json'},
+                                      auth=HTTPBasicAuth(key_id, key_secret))
+                    data = x.json()
+
+                    transactionDetails.payment_id = data.get("id")
+                    transactionDetails.payment_status = data.get("status")
+                    transactionDetails.save()
+                    paymenturl = data.get('short_url')
+                    return HttpResponseRedirect(paymenturl)
+                except Exception as e:
+                    print(e)
+
+
+
+
         except Exception as e:
             print(e)
             return HttpResponseRedirect(f'/delivery_options/?adid={address}')
     return HttpResponseRedirect("/orders/")
 
+
+def payment(request):
+    if request.method == "GET":
+        try:
+            transactiondetails = TransactionDetails.objects.get(transation_id=request.GET["razorpay_payment_link_reference_id"])
+            transactiondetails.payment_status=request.GET["razorpay_payment_link_status"]
+            transactiondetails.save()
+            user = transactiondetails.user
+            cart = user.cart
+            cart.total = 0
+            cart.save()
+            for item in cart.items.all():
+                item.delete()
+
+        except Exception as ex:
+            print(ex)
+    return HttpResponseRedirect('https://0c9c5151a1b5.ngrok.io/cart/')
 
 @login_required
 def orders(request):

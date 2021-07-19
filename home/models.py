@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
-
+import string
+import random
 
 # Create your models here.
 class Product(models.Model):
@@ -71,3 +72,32 @@ class OrderItem(models.Model):
     item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE)
+
+class TransactionDetails(models.Model):
+    # to store the random generated unique id
+    transation_id = models.CharField(max_length=10)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="transaction", on_delete=models.CASCADE)
+    # to store the id returned when creating a payment link
+    payment_id = models.CharField(max_length=20, default="")
+    payment_status = models.CharField(max_length=20, default="")
+
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
+def create_new_id():
+    not_unique = True
+    unique_id = id_generator()
+    while not_unique:
+        unique_id = id_generator()
+        if not Tokens.objects.filter(private_token=unique_id):
+            not_unique = False
+    return str(unique_id)
+
+class Tokens(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='tokens', on_delete=models.CASCADE)
+    private_token = models.CharField(max_length=10, unique=True, default=create_new_id)
+    invited = models.IntegerField(default=0)
+    points = models.IntegerField(default=0)
+    reviews = models.IntegerField(default=0)
+    invite_token = models.CharField(max_length=10, blank=True, null=True)
