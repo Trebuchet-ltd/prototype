@@ -10,11 +10,12 @@ from django.views.decorators.csrf import csrf_exempt
 
 class ProductViewSet(viewsets.ModelViewSet):
     """
-
+    API end point to get all product details
     """
     queryset = Product.objects.all()
     serializer_class = getProductSerializer
     permission_classes = [permissions.IsAuthenticated]
+
 
 class CartItemViewSets(viewsets.ModelViewSet):
     """

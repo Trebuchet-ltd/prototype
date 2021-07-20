@@ -1,8 +1,8 @@
 .env
 db.sqlite3
 
-auth/migrations
+auth/migrations/
 
-home/migrations
+home/migrations/
 venv/
 
