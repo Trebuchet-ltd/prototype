@@ -1,22 +1,14 @@
-from django.urls import path
-
+from django.urls import path,include
+from rest_framework.routers import DefaultRouter
 from . import views
+from .apiviewsets import *
+
+
+router = DefaultRouter()
+router.register(r'products', ProductViewSet)
+router.register(r'cart_items', CartItemViewSets)
+
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('link/', views.link, name='link'),
-    path('product/<int:primary_key>', views.display_product, name='product'),
-    path('logout/', views.log_out, name='logout'),
-    path('cart/', views.cart, name='cart'),
-    path('checkout/', views.checkout, name='checkout'),
-    path('delete/<int:item_key>', views.delete, name='delete'),
-    path('update/<int:update_key>', views.update, name='update'),
-    path('display/', views.getProduct.as_view(), name='display'),
-    path('details/', views.addUserDetails, name='details'),
-    path('delivery_options/', views.delivery_options, name='delivery_options'),
-    path('search/', views.searchResultview, name='search_results'),
-    path('confirmOrder/', views.confirmOrder, name="confirmOrder"),
-    path('orders/', views.orders, name="orders"),
-    path('order/<int:primary_key>/', views.order, name='order'),
-    path('payment/', views.payment, name='order')
+    path(r'', include(router.urls))
 ]
