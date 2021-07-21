@@ -91,7 +91,7 @@ $.ajax({
                     <div class="el-wrapper">
                         <a href="/product/${data[i].id}">
                             <div class="box-up">
-                            <img class="img" src="/media/${data[i].images[0].mainimage}" alt="">
+                            <img class="img" src="${data[i].images[0].mainimage}" alt="">
                             <div class="img-info">
                                 <div class="info-inner">
                                     <span class="p-name">${data[i].title}</span>
