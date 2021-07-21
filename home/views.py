@@ -248,7 +248,7 @@ def confirmOrder(request):
         address = request.POST["selected_address"]
         key_id=config("key_id")
         key_secret=config("key_secret")
-
+        call_back_url =config("call_back_url")
         def id_generator(size=6, chars = string.ascii_uppercase + string.digits):
             """ This function generate a random string  """
             return ''.join(random.choice(chars) for _ in range(size))
@@ -276,7 +276,7 @@ def confirmOrder(request):
                     amount += item.quantity * item.item.price
                 elif item.quantity < 0:
                     amount += -item.quantity * item.item.price
-
+                print(amount)
                 order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
                 order_item.save()
 
@@ -292,7 +292,7 @@ def confirmOrder(request):
                     "receipt": transaction_id
                     }
                 client = razorpay.Client(auth=(key_id, key_secret))
-                client.set_app_details({"title": "CARBLE", "version": "1"})
+                client.set_app_details({"title": "Prototype", "version": "1"})
 
                 try:
                     order = client.order.create(data=DATA)
@@ -301,7 +301,7 @@ def confirmOrder(request):
                     myobj = {
                         "amount": amount,
                         "currency": "INR",
-                        "callback_url": "https://0c9c5151a1b5.ngrok.io/payment",
+                        "callback_url": call_back_url,
                         "callback_method": "get",
                         'reference_id': transaction_id
                         }
