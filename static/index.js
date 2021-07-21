@@ -76,7 +76,8 @@ $.ajax({
     dataType: "json",
     encode: true,
 
-    success: function (data) {
+    success: function (body) {
+        let data = body.results
         let row_variable = document.createElement("div");
         row_variable.setAttribute("class", "row");
 

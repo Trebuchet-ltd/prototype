@@ -18,7 +18,7 @@
                 </div>
                 <div>
                     <span class="bold h3 text-success">{{ products.price }}</span> <span
-                        class="text-secondary">Rs/Kg</span>
+                        class="text-secondary">Rs</span>
                 </div>
                 <div>
                     {{ products.description }}
@@ -43,7 +43,7 @@
                             <div class="carousel-inner">
                                 {% for image in products.images.all %}
                                     <div class="carousel-item {% firstof forloop.counter0 'active' %}">
-                                        <div style="background-image: url('/media/{{ image.mainimage }}')"
+                                        <div style="background-image: url('/media/{{ image.mainimage }}');    background-position: center;"
                                              class="d-block product__photo"></div>
                                     </div>
                                 {% endfor %}
