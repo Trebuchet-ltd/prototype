@@ -14,7 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include, re_path
+from django.urls import path,include,re_path
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -40,15 +40,14 @@ schema_view = get_schema_view(
 
 )
 
+
 urlpatterns = [
-                  path('admin/', admin.site.urls),
-                  path('', include('home.urls')),
-                  path('auth/', include('authentication.urls')),
-                  path('', include('auth.urls')),
-                  path('openid/', include('oidc_provider.urls', namespace='oidc_provider')),
-                  re_path(r'swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0),
-                          name='schema-json'),
-                  path(r'swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-                  path(r'redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-              ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL,
-                                                                                           document_root=settings.MEDIA_ROOT)
+    path('admin/', admin.site.urls),
+    path('', include('home.urls')),
+    path('auth/', include('authentication.urls')),
+    path('', include('auth.urls')),
+    path('openid/', include('oidc_provider.urls', namespace='oidc_provider')),
+    re_path(r'swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path(r'swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path(r'redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

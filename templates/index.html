@@ -49,7 +49,7 @@
                         <div class="carousel-inner">
                             {% for item in mainpage %}
                                 <div class="carousel-item {% firstof forloop.counter0   'active' %}">
-                                    <img class="d-block w-100" src="{{ item.product.images.all.0.mainimage }}"
+                                    <img class="d-block w-100" src="/media/{{ item.product.images.all.0.mainimage }}"
                                          alt="First slide">
                                 </div>
                             {% endfor %}

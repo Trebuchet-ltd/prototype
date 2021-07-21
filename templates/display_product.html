@@ -6,7 +6,7 @@
 {% block content %}
     <div class="product">
 
-        <div style="background-image: url('/{{ products.images.all.0.mainimage }}')" class="background_img">
+        <div style="background-image: url('/media/{{ products.images.all.0.mainimage }}')" class="background_img">
             <div class="img_overlay  ">
             </div>
 
@@ -43,7 +43,7 @@
                             <div class="carousel-inner">
                                 {% for image in products.images.all %}
                                     <div class="carousel-item {% firstof forloop.counter0 'active' %}">
-                                        <div style="background-image: url('/{{ image.mainimage }}')"
+                                        <div style="background-image: url('/media/{{ image.mainimage }}')"
                                              class="d-block product__photo"></div>
                                     </div>
                                 {% endfor %}
