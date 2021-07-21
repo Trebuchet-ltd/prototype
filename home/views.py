@@ -22,7 +22,7 @@ from django.contrib.auth.decorators import login_required
 # Create your views here.
 def index(request):
     products = Product.objects.all()
-    mainPage = MainPage.objects.all()
+    mainPage = Mainpage.objects.all()
 
     context = {"products": products, "mainpage": mainPage}
     return render(request, template_name="index.html", context=context)
@@ -45,12 +45,12 @@ def display_product(request, primary_key):
                 inventory_item[0].save()
                 inventory_item = inventory_item[0]
             else:
-                inventory_item = CartItem(item=inventory, quantity=quant_variable, cart=cart)
+                inventory_item = Cartitem(item=inventory, quantity=quant_variable, cart=cart)
                 inventory_item.save()
             cart.total += quant_variable * inventory.price
             cart.save()
 
-        CartItem.quantity = request.POST["quantity"]
+        Cartitem.quantity = request.POST["quantity"]
         return HttpResponse(json.dumps({'qty': inventory_item.quantity}))
     context = {"products": inventory,'title':inventory.title}
     return render(request, template_name="display_product.html", context=context)
@@ -90,7 +90,7 @@ def delete(request, item_key):
     if request.method == "POST":
         try:
             user = User.objects.get(id=request.user.id)
-            item_object = CartItem.objects.get(id=item_key,cart=user.cart)
+            item_object = Cartitem.objects.get(id=item_key, cart=user.cart)
             total = item_object.item.price * item_object.quantity
             cart_object = item_object.cart
             cart_object.total -= total
@@ -111,7 +111,7 @@ def update(request, update_key):
         new_cart_quantity = int(request.POST["cart_quantity"])
         try:
             user = User.objects.get(id = request.user.id)
-            object_var_from_cart_item = CartItem.objects.get(id=update_key)
+            object_var_from_cart_item = Cartitem.objects.get(id=update_key)
             quantity_from_cart_item = object_var_from_cart_item.quantity
             difference_btwn_quantites = new_cart_quantity - quantity_from_cart_item
             object_var_from_cart_item.quantity = new_cart_quantity
@@ -295,7 +295,7 @@ def payment(request):
             cart.total = 0
             cart.save()
             for item in cart.items.all():
-                order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
+                order_item = Orderitem.objects.create(item=item.item, quantity=item.quantity, order=order)
                 order_item.save()
                 item.delete()
 

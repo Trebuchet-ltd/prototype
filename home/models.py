@@ -3,6 +3,7 @@ from django.conf import settings
 import string
 import random
 
+
 # Create your models here.
 class Product(models.Model):
     meat_type = (
@@ -19,11 +20,12 @@ class Product(models.Model):
     stock = models.IntegerField()
     meat = models.CharField(max_length=1, choices=meat_type)
     bestSeller = models.BooleanField(default=False)
+
     def __str__(self):
         return self.title
 
 
-class ImageModel(models.Model):
+class Imagemodel(models.Model):
     title = models.TextField(max_length=10)
     mainimage = models.ImageField(upload_to="static/images/", null=True)
     image = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
@@ -36,16 +38,16 @@ class CartModel(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="cart", on_delete=models.CASCADE)
     total = models.FloatField(default=0)
     pincode = models.IntegerField(default=0)
-    state = models.TextField(default=0,max_length=20)
+    state = models.TextField(default=0, max_length=20)
 
 
-class CartItem(models.Model):
+class Cartitem(models.Model):
     item = models.ForeignKey(Product, related_name="cart_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     cart = models.ForeignKey(CartModel, related_name="items", on_delete=models.CASCADE)
 
 
-class MainPage(models.Model):
+class Mainpage(models.Model):
     product = models.ForeignKey(Product, related_name="Product", on_delete=models.CASCADE)
     heading = models.TextField(max_length=20)
     description = models.TextField(max_length=255)
@@ -73,13 +75,14 @@ class Orders(models.Model):
     address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE)
     date = models.DateField()
     time = models.CharField(max_length=10)
-    status = models.CharField(max_length=10, choices=order_status,)
+    status = models.CharField(max_length=10, choices=order_status, )
 
 
-class OrderItem(models.Model):
+class Orderitem(models.Model):
     item = models.ForeignKey(Product, related_name="ordered_products", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     order = models.ForeignKey(Orders, related_name="order_items", on_delete=models.CASCADE)
+
 
 class TransactionDetails(models.Model):
     # to store the random generated unique id
@@ -88,6 +91,7 @@ class TransactionDetails(models.Model):
     # to store the id returned when creating a payment link
     payment_id = models.CharField(max_length=20, default="")
     payment_status = models.CharField(max_length=20, default="")
+
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -101,6 +105,7 @@ def create_new_id():
         if not Tokens.objects.filter(private_token=unique_id):
             not_unique = False
     return str(unique_id)
+
 
 class Tokens(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='tokens', on_delete=models.CASCADE)

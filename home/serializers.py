@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from .models import ImageModel
+from .models import Imagemodel
 from .models import Product
 from  .models import Tokens
 class getImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ImageModel
+        model = Imagemodel
         fields = [
             'title', 'mainimage'
         ]
