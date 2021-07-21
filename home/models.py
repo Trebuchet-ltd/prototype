@@ -34,9 +34,9 @@ class ImageModel(models.Model):
 
 class CartModel(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="cart", on_delete=models.CASCADE)
-    total = models.FloatField()
-    pincode = models.IntegerField()
-    state = models.TextField(max_length=20)
+    total = models.FloatField(default=0)
+    pincode = models.IntegerField(default=0)
+    state = models.TextField(default=0,max_length=20)
 
 
 class CartItem(models.Model):

@@ -93,7 +93,7 @@ def signup(request):
             if passwrd2 == password:
                 try:
                     user = User.objects.create_user(email=email, password=password, username=email)
-                    cart = CartModel(user=user, total=0, pincode=0, state='')
+                    cart = CartModel.objects.get_or_create(user=user)
                     cart.save()
                     login(request, user)
                     return HttpResponseRedirect('/')
