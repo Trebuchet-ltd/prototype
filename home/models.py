@@ -3,6 +3,7 @@ from django.conf import settings
 import string
 import random
 
+
 # Create your models here.
 class Product(models.Model):
     meat_type = (
@@ -19,6 +20,7 @@ class Product(models.Model):
     stock = models.IntegerField()
     meat = models.CharField(max_length=1, choices=meat_type)
     bestSeller = models.BooleanField(default=False)
+
     def __str__(self):
         return self.title
 
@@ -73,6 +75,7 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField()
     order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE)
 
+
 class TransactionDetails(models.Model):
     # to store the random generated unique id
     transation_id = models.CharField(max_length=10)
@@ -80,6 +83,7 @@ class TransactionDetails(models.Model):
     # to store the id returned when creating a payment link
     payment_id = models.CharField(max_length=20, default="")
     payment_status = models.CharField(max_length=20, default="")
+
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -93,6 +97,7 @@ def create_new_id():
         if not Tokens.objects.filter(private_token=unique_id):
             not_unique = False
     return str(unique_id)
+
 
 class Tokens(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='tokens', on_delete=models.CASCADE)

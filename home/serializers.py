@@ -1,7 +1,9 @@
 from rest_framework import serializers
-from .models import ImageModel
+from .models import ImageModel, CartModel
 from .models import Product
 from .models import Tokens, CartItem
+
+
 # from .models import TransactionDetails
 
 class getImageSerializer(serializers.ModelSerializer):
@@ -13,13 +15,12 @@ class getImageSerializer(serializers.ModelSerializer):
 
 
 class getProductSerializer(serializers.ModelSerializer):
-
-    images = getImageSerializer(many=True, required = False)
+    images = getImageSerializer(many=True, required=False)
 
     class Meta:
         model = Product
         fields = [
-            'id','title', 'description', 'price', 'stock', 'meat','images', 'bestSeller'
+            'id', 'title', 'description', 'price', 'stock', 'meat', 'images', 'bestSeller'
         ]
 
 
@@ -31,9 +32,19 @@ class GetTokensSerializer(serializers.ModelSerializer):
         ]
 
 
-class CartSerializer(serializers.ModelSerializer):
+class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = [
-            'item', 'quantity',"cart"
+            'item', 'quantity'
+        ]
+
+
+class CartSerializer(serializers.ModelSerializer):
+    cart_item = CartItemSerializer(many=True, read_only=True, required=False)
+
+    class Meta:
+        model = CartModel
+        fields = [
+            'total', "cart_item"
         ]
