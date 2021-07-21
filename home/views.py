@@ -35,9 +35,8 @@ def display_product(request, primary_key):
             return HttpResponseRedirect('/login')
         else:
             user = User.objects.get(id=request.user.id)
-            cart = user.cart
 
-            inventory_item = cart.items.all().filter(item=inventory)
+            inventory_item = user.cart.items.all().filter(item=inventory)
             print(inventory_item)
             quant_variable = int(request.POST["quantity"])
             if inventory_item:
@@ -93,7 +92,7 @@ def signup(request):
             if passwrd2 == password:
                 try:
                     user = User.objects.create_user(email=email, password=password, username=email)
-                    cart = CartModel.objects.get_or_create(user=user)
+                    cart = CartModel.objects.get_or_create(user__id=user.id)
                     cart.save()
                     login(request, user)
                     return HttpResponseRedirect('/')
