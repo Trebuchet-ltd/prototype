@@ -61,11 +61,19 @@ class Addresses(models.Model):
 
 
 class Orders(models.Model):
+    order_status = (
+        ('r', 'received'),
+        ('p', 'preparing'),
+        ('o', 'on route'),
+        ('d', 'delivered'),
+
+    )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.CASCADE)
     total = models.FloatField()
     address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE)
     date = models.DateField()
     time = models.CharField(max_length=10)
+    status = models.CharField(max_length=10, choices=order_status,)
 
 
 class OrderItem(models.Model):

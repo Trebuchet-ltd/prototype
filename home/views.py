@@ -277,8 +277,7 @@ def confirmOrder(request):
                 elif item.quantity < 0:
                     amount += -item.quantity * item.item.price
                 print(amount)
-                order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
-                order_item.save()
+
 
             amount *= 100  # converting rupees to paisa
             if amount > 0:
@@ -339,11 +338,13 @@ def payment(request):
             cart.total = 0
             cart.save()
             for item in cart.items.all():
+                order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
+                order_item.save()
                 item.delete()
 
         except Exception as ex:
             print(ex)
-    return HttpResponseRedirect('https://0c9c5151a1b5.ngrok.io/cart/')
+    return HttpResponseRedirect('/orders/')
 
 @login_required
 def orders(request):
