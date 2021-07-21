@@ -77,9 +77,9 @@ class Orders(models.Model):
 
 
 class OrderItem(models.Model):
-    item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
+    item = models.ForeignKey(Product, related_name="ordered_products", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
-    order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE)
+    order = models.ForeignKey(Orders, related_name="order_items", on_delete=models.CASCADE)
 
 class TransactionDetails(models.Model):
     # to store the random generated unique id
