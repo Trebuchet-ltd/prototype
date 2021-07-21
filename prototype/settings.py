@@ -167,7 +167,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 # ]
 
 MEDIA_URL = '/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_URL = '/login/'
 
 # SERIALIZATION_MODULES = {
