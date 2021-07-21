@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import ImageModel, CartModel
 from .models import Product
-from .models import Tokens, CartItem
+from .models import Tokens, CartItem,TransactionDetails
 
 
 # from .models import TransactionDetails
@@ -48,3 +48,4 @@ class CartSerializer(serializers.ModelSerializer):
         fields = [
             'total', "cart_item"
         ]
+

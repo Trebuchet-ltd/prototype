@@ -9,6 +9,9 @@ router.register(r'products', ProductViewSet)
 router.register(r'cart_items', CartItemViewSets)
 
 
+
 urlpatterns = [
-    path(r'', include(router.urls))
+    path(r'', include(router.urls)),
+    path(r'transaction/', confirm_order),
+
 ]

@@ -246,8 +246,8 @@ def confirmOrder(request):
         date = request.POST["date"]
         time = request.POST["time"]
         address = request.POST["selected_address"]
-        key_id=config("key_id")
-        key_secret=config("key_secret")
+        key_id = config("key_id")
+        key_secret = config("key_secret")
 
         def id_generator(size=6, chars = string.ascii_uppercase + string.digits):
             """ This function generate a random string  """
