@@ -27,7 +27,7 @@ class Product(models.Model):
 
 class ImageModel(models.Model):
     title = models.TextField(max_length=10)
-    mainimage = models.ImageField(upload_to="static/images/", null=True)
+    mainimage = models.ImageField(upload_to="images/", null=True)
     image = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
 
     def __str__(self):
