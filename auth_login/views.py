@@ -161,7 +161,7 @@ def signup(request):
                     token.invite_token=inv
                     token.save()
                     CartModel.objects.get_or_create(user=user)
-                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+                    login(request, user, backend='django.contrib.auth_login.backends.ModelBackend')
                     redirect_location = request.GET.get('next', '/') + '?' + request.META['QUERY_STRING']
                     return HttpResponseRedirect(redirect_location)
 
@@ -208,12 +208,12 @@ def request_google(auth_code, redirect_uri):
             'grant_type': 'authorization_code'}
     r = requests.post('https://oauth2.googleapis.com/token', data=data)
     try:
-        logger.info('google auth ')
+        logger.info('google auth_login ')
         content = json.loads(r.content.decode())
         token = content["access_token"]
         return token
     except Exception as e:
-        logger.exception('google auth fail')
+        logger.exception('google auth_login fail')
         logger.debug(r.content.decode())
         return False
 
@@ -228,10 +228,10 @@ def convert_google_token(token, client_id):
         'token': token
     }
 
-    url = settings.DEPLOYMENT_URL + '/auth/social/convert-token/'
+    url = settings.DEPLOYMENT_URL + '/auth_login/social/convert-token/'
     r = requests.post(url, data=data)
     try:
-        logger.info('google auth convert')
+        logger.info('google auth_login convert')
         cont = json.loads(r.content.decode())
         access_token = cont['access_token']
         return access_token
@@ -257,7 +257,7 @@ def Google_login(request):
         access_token = convert_google_token(token, client_id)
         if access_token:
             user = AccessToken.objects.get(token=access_token).user
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            login(request, user, backend='django.contrib.auth_login.backends.ModelBackend')
             try:
 
                 token_of_user, _ = Tokens.objects.get_or_create(user=user)
@@ -284,14 +284,14 @@ def request_facebook(auth_code, redirect_uri):
     print(data)
     r = requests.get('https://graph.facebook.com/v11.0/oauth/access_token?', params=data)
     try:
-        logger.info('facebook auth ')
+        logger.info('facebook auth_login ')
         content = json.loads(r.content.decode())
         print(content)
         token = content["access_token"]
         logger.info('token is ' + token)
         return token
     except Exception as e:
-        logger.exception('facebook auth fail')
+        logger.exception('facebook auth_login fail')
         logger.debug(r.content.decode())
         return False
 
@@ -314,7 +314,7 @@ def convert_facebook_token(token, client_id):
     r = requests.post(url, data=data)
     logger.info('recived the request')
     try:
-        logger.info('facebook auth convert')
+        logger.info('facebook auth_login convert')
         cont = json.loads(r.content.decode())
         print(cont)
         access_token = cont['access_token']
@@ -346,7 +346,7 @@ def Facebook_login(request):
         logger.info('received access token')
         if access_token:
             user = AccessToken.objects.get(token=access_token).user
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            login(request, user, backend='django.contrib.auth_login.backends.ModelBackend')
             try:
 
                 token, _ = Tokens.objects.get_or_create(user=user)

@@ -44,8 +44,8 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('home.urls')),
-    path('auth/', include('authentication.urls')),
-    path('', include('auth.urls')),
+    path('auth_login/', include('authentication.urls')),
+    path('', include('auth_login.urls')),
     path('openid/', include('oidc_provider.urls', namespace='oidc_provider')),
     re_path(r'swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path(r'swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
