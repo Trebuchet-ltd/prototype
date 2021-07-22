@@ -13,7 +13,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from oauth2_provider.models import AccessToken, Application
 
-from home.models import Tokens
+from home.models import Tokens,CartModel
 
 logger = logging.getLogger('v2')
 
