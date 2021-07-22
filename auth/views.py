@@ -156,7 +156,7 @@ def signup(request):
                     user = User.objects.create_user(email=email, password=password, username=username,
                                                     first_name=firstname, last_name=lastname)
                     Tokens.objects.get_or_create(user=user, invite_token=inv)
-                    cart = CartModel(user=user, total=0, pincode=0, state='')
+                    cart = CartModel.objects.get_or_create(user=user)
                     cart.save()
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     redirect_location = request.GET.get('next', '/') + '?' + request.META['QUERY_STRING']
