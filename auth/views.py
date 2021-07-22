@@ -157,7 +157,9 @@ def signup(request):
                     give_points(inv, 'invite')
                     user = User.objects.create_user(email=email, password=password, username=username,
                                                     first_name=firstname, last_name=lastname)
-                    Tokens.objects.get_or_create(user=user, invite_token=inv)
+                    token,_ = Tokens.objects.get_or_create(user=user)
+                    token.invite_token=inv
+                    token.save()
                     CartModel.objects.get_or_create(user=user)
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     redirect_location = request.GET.get('next', '/') + '?' + request.META['QUERY_STRING']
