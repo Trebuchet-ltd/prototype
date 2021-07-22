@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -162,7 +163,7 @@ def signup(request):
                     redirect_location = request.GET.get('next', '/') + '?' + request.META['QUERY_STRING']
                     return HttpResponseRedirect(redirect_location)
 
-                except django.db.IntergrityError as e:
+                except IntegrityError as e:
                     print(e)
                     logger.info('User already exist')
                     context1['pswderr'] = 'User already exists'
