@@ -2,6 +2,7 @@ import json
 import random
 import string
 import razorpay
+import datetime
 import requests
 from decouple import config
 from requests.auth import HTTPBasicAuth
@@ -206,7 +207,6 @@ def confirmOrder(request):
         key_id=config("key_id")
         key_secret=config("key_secret")
         call_back_url ='https://vikkis.in/payment'
-
         def id_generator(size=6, chars = string.ascii_uppercase + string.digits):
             """ This function generate a random string  """
             return ''.join(random.choice(chars) for _ in range(size))
@@ -224,9 +224,7 @@ def confirmOrder(request):
         try:
             user = User.objects.get(id=request.user.id)
             cart = user.cart
-            order = Orders.objects.create(user=request.user, date=date, time=time, address_id=int(address),
-                                          total=cart.total)
-            order.save()
+
             amount = 0
 
             for item in cart.items.all():
@@ -234,14 +232,16 @@ def confirmOrder(request):
                     amount += item.quantity * item.item.price
                 elif item.quantity < 0:
                     amount += -item.quantity * item.item.price
-                print(amount)
+
 
 
             amount *= 100  # converting rupees to paisa
+
             if amount > 0:
 
                 transaction_id = create_new_id()
-                transactionDetails = TransactionDetails(transation_id=transaction_id, user=user)
+                transactionDetails = TransactionDetails(transation_id=transaction_id, user=user,
+                                                        date=date, time=time,adress_id=address)
                 transactionDetails.save()
                 DATA = {
                     "amount": amount,
@@ -293,13 +293,22 @@ def payment(request):
             transactiondetails.save()
             user = transactiondetails.user
             cart = user.cart
-            cart.total = 0
-            cart.save()
+
+            order = Orders.objects.create(user=user, date=transactiondetails.date, time=transactiondetails.time,
+                                          address_id=transactiondetails.adress_id,
+                                          total=cart.total, status="preparing")
+            order.save()
+
+            print("worked2")
+
             for item in cart.items.all():
+
                 order_item = Orderitem.objects.create(item=item.item, quantity=item.quantity, order=order)
                 order_item.save()
-                item.delete()
 
+                item.delete()
+            cart.total = 0
+            cart.save()
         except Exception as ex:
             print(ex)
     return HttpResponseRedirect('/orders/')

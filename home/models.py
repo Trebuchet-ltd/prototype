@@ -73,9 +73,10 @@ class Orders(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.CASCADE)
     total = models.FloatField()
     address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE)
+
     date = models.DateField()
     time = models.CharField(max_length=10)
-    status = models.CharField(max_length=10, choices=order_status, )
+    status = models.CharField(max_length=10, choices=order_status, default='preparing')
 
 
 class Orderitem(models.Model):
@@ -91,6 +92,11 @@ class TransactionDetails(models.Model):
     # to store the id returned when creating a payment link
     payment_id = models.CharField(max_length=20, default="")
     payment_status = models.CharField(max_length=20, default="")
+
+    # The order date ,time ,and adress id
+    date = models.DateField()
+    time = models.CharField(max_length=20,default='')
+    adress_id = models.CharField(max_length=10,default='')
 
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
