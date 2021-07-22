@@ -3,6 +3,7 @@ import logging
 from pprint import pprint
 from urllib import parse
 
+import django
 import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
@@ -13,7 +14,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from oauth2_provider.models import AccessToken, Application
 
-from home.models import Tokens
+from home.models import Tokens, CartModel
 
 logger = logging.getLogger('v2')
 
@@ -156,11 +157,12 @@ def signup(request):
                     user = User.objects.create_user(email=email, password=password, username=username,
                                                     first_name=firstname, last_name=lastname)
                     Tokens.objects.get_or_create(user=user, invite_token=inv)
+                    CartModel.objects.get_or_create(user=user)
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     redirect_location = request.GET.get('next', '/') + '?' + request.META['QUERY_STRING']
                     return HttpResponseRedirect(redirect_location)
 
-                except User.DoesNotExist as e:
+                except django.db.IntergrityError as e:
                     print(e)
                     logger.info('User already exist')
                     context1['pswderr'] = 'User already exists'
