@@ -205,7 +205,8 @@ def confirmOrder(request):
         address = request.POST["selected_address"]
         key_id=config("key_id")
         key_secret=config("key_secret")
-        call_back_url =config("call_back_url")
+        call_back_url ='https://vikkis.in/payment'
+
         def id_generator(size=6, chars = string.ascii_uppercase + string.digits):
             """ This function generate a random string  """
             return ''.join(random.choice(chars) for _ in range(size))

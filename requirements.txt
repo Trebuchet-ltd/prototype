@@ -1,7 +1,6 @@
  
 Django==3.0.7
 django-braces==1.14.0
-django-filter==2.4.0
 django-oauth-toolkit==1.5.0
 django-oauth2-provider==0.2.6.1
 django-oidc-provider==0.7.0
