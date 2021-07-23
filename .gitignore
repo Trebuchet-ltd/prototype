@@ -3,3 +3,4 @@ db.sqlite3
 auth/migrations
 home/migrations
 venv/
+*/migrations/*
