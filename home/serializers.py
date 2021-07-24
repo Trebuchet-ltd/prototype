@@ -33,7 +33,7 @@ class GetTokensSerializer(serializers.ModelSerializer):
 
 
 class CartItemSerializer(serializers.ModelSerializer):
-    product = serializers.RelatedField(source='item',read_only=True,required=False,many=False)
+    item = getProductSerializer(read_only=True,required=False,many=False)
     class Meta:
         model = CartItem
         fields = [
