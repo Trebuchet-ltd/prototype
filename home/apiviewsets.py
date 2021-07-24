@@ -39,5 +39,5 @@ class CartItemViewSets(viewsets.ModelViewSet):
     Api end point to get cart items
     """
     queryset = CartItem.objects.all()
-    serializer_class = CartSerializer
+    serializer_class = CartItemSerializer
     permission_classes = [permissions.IsAuthenticated]
