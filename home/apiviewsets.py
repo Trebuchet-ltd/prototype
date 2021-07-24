@@ -3,12 +3,9 @@ from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework.decorators import action
 
+from authentication.permissions import IsOwner
 from home.serializers import *
 from .models import *
-from rest_framework.response import Response
-from django.http import HttpResponse, JsonResponse
-from rest_framework.parsers import JSONParser
-from django.views.decorators.csrf import csrf_exempt
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -45,3 +42,22 @@ class CartItemViewSets(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # The request user is set as author automatically.
         serializer.save(cart=self.request.user.cart)
+
+
+class CartViewSets(viewsets.ModelViewSet):
+    """
+    Api end point to get cart fully
+    """
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    queryset = CartModel.objects.all()
+    serializer_class = CartSerializer
+
+    def list(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            self.queryset = self.queryset.filter(user=request.user)
+        return viewsets.ModelViewSet.list(self, request, *args, **kwargs)
+
+    @action(detail=False, methods=["get", "post"], url_path='me')
+    def me(self, request, *args, **kwargs):
+        self.queryset = self.queryset.filter(user=request.user)
+        return viewsets.ModelViewSet.list(self, request, *args, **kwargs)
