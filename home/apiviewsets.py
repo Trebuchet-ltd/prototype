@@ -41,3 +41,7 @@ class CartItemViewSets(viewsets.ModelViewSet):
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        # The request user is set as author automatically.
+        serializer.save(cart=self.request.user.cart)
