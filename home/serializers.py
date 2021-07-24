@@ -38,6 +38,9 @@ class CartItemSerializer(serializers.ModelSerializer):
         fields = [
             'item', 'quantity','cart'
         ]
+        extra_kwargs = {
+            'cart': {'read_only': True},
+        }
 
 
 class CartSerializer(serializers.ModelSerializer):
