@@ -33,10 +33,11 @@ class GetTokensSerializer(serializers.ModelSerializer):
 
 
 class CartItemSerializer(serializers.ModelSerializer):
+    product = serializers.RelatedField(source='item',read_only=True,required=False,many=False)
     class Meta:
         model = CartItem
         fields = [
-            'item', 'quantity','cart'
+            'item', 'quantity','cart','product'
         ]
         extra_kwargs = {
             'cart': {'read_only': True},
