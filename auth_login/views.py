@@ -94,15 +94,6 @@ def get_client_ip(request):
     return ip
 
 
-# Create your views here.
-@ensure_csrf_cookie
-def index(request):
-    context = {}
-    ipaddress = get_client_ip(request)
-    context['ip'] = ipaddress
-    context['searchbar'] = True
-    return render(request, template_name='v2/index.html', context=context)
-
 
 @ensure_csrf_cookie
 def signin(request):
@@ -194,10 +185,6 @@ def log_out(request):
     url = '/?' + request.META['QUERY_STRING']
     return HttpResponseRedirect(url)
 
-
-@ensure_csrf_cookie
-def help_page(request):
-    return render(request, template_name='help.html')
 
 
 def request_google(auth_code, redirect_uri):

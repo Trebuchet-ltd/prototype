@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import index, signin, log_out, signup, Google_login, help_page, Facebook_login
+from .views import signin, log_out, signup, Google_login, Facebook_login
 
 urlpatterns = [
     path('login/', signin),

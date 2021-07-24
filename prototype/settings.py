@@ -52,12 +52,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    'oauth2_provider',
-    'social_django',
-    'rest_framework',
-    'rest_framework_social_oauth2',
-    'django_filters',
-    'oidc_provider',
+
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -66,26 +61,31 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+    'oauth2_provider',
+    'social_django',
+    'rest_framework',
+    'rest_framework_social_oauth2',
+    'django_filters',
+    'oidc_provider',
     'drf_yasg',
-    
-    
-
+    'admin_honeypot',
+    "log_viewer",
+    # custom
     'home',
     'auth_login',
-    'authentication',
-
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'prototype.urls'
 
 TEMPLATES = [
@@ -118,6 +118,7 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': os.environ.get('DB_PORT'),
     }
+
 }
 
 # Password validation
@@ -189,16 +190,6 @@ OAUTH2_PROVIDER = {
 }
 
 
-OAUTH2_PROVIDER = {
-    "OIDC_ENABLED": True,
-    "OIDC_RSA_PRIVATE_KEY": os.environ.get("OIDC_RSA_PRIVATE_KEY"),
-    # this is the list of available scopes
-    'SCOPES': {"openid": "See Profile",
-               'read': 'Read Patient Data',
-               'write': 'Add Patient Data',
-               'groups': 'Add Invites'},
-    'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore'
-}
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],

@@ -24,7 +24,6 @@ class UserApiViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get", "post"], url_path='me')
     def me(self, request, *args, **kwargs):
         print(request.user)
-
         self.queryset = self.queryset.filter(id=request.user.id)
         return viewsets.ModelViewSet.list(self, request, *args, **kwargs)
 
