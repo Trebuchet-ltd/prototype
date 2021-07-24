@@ -3,7 +3,6 @@ import random
 import string
 import razorpay
 import requests
-from decouple import config
 from requests.auth import HTTPBasicAuth
 from django.shortcuts import render
 from django.contrib.auth.models import User

@@ -161,7 +161,7 @@ def signup(request):
                     token.invite_token=inv
                     token.save()
                     CartModel.objects.get_or_create(user=user)
-                    login(request, user, backend='django.contrib.auth_login.backends.ModelBackend')
+                    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     redirect_location = request.GET.get('next', '/') + '?' + request.META['QUERY_STRING']
                     return HttpResponseRedirect(redirect_location)
 
@@ -257,7 +257,7 @@ def Google_login(request):
         access_token = convert_google_token(token, client_id)
         if access_token:
             user = AccessToken.objects.get(token=access_token).user
-            login(request, user, backend='django.contrib.auth_login.backends.ModelBackend')
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             try:
 
                 token_of_user, _ = Tokens.objects.get_or_create(user=user)
@@ -346,7 +346,7 @@ def Facebook_login(request):
         logger.info('received access token')
         if access_token:
             user = AccessToken.objects.get(token=access_token).user
-            login(request, user, backend='django.contrib.auth_login.backends.ModelBackend')
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             try:
 
                 token, _ = Tokens.objects.get_or_create(user=user)
