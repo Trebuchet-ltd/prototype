@@ -61,6 +61,9 @@ class Addresses(models.Model):
     phone = models.CharField(max_length=12)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"{self.address}, {self.state}, {self.pincode} (PIN) "
+
 
 class Orders(models.Model):
     order_status = (
@@ -70,13 +73,20 @@ class Orders(models.Model):
         ('d', 'delivered'),
 
     )
+    order_time =(
+        ('m', 'morning'),
+        ('e', 'evening')
+    )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.CASCADE)
     total = models.FloatField()
     address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE)
 
     date = models.DateField()
-    time = models.CharField(max_length=10)
+    time = models.CharField(max_length=10,choices=order_time)
     status = models.CharField(max_length=10, choices=order_status, default='preparing')
+
+    def __str__(self):
+        return f"{self.user} , date-{self.date} , status -{self.status} "
 
 
 class Orderitem(models.Model):
