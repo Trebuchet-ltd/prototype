@@ -44,7 +44,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
-    cart_item = serializers.RelatedField(source='cart_item', many=True, read_only=True, required=False)
+    cart_item = serializers.RelatedField(many=True, read_only=True, required=False)
 
     class Meta:
         model = CartModel
