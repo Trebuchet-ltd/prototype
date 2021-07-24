@@ -7,6 +7,7 @@ from .apiviewsets import *
 router = DefaultRouter()
 router.register(r'products', ProductViewSet)
 router.register(r'cart_items', CartItemViewSets)
+router.register(r'cart', CartViewSets)
 
 
 urlpatterns = [
