@@ -41,7 +41,14 @@ class CartItemViewSets(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         # The request user is set as author automatically.
-        serializer.save(cart=self.request.user.cart)
+        if self.request.user.cart:
+            item = self.request.data['item']
+            items = self.request.user.cart.items.all().filter(item__id=item).first()
+            if items:
+                items.quantity+=self.request.data['quantity']
+                items.save()
+            else:
+                serializer.save(cart=self.request.user.cart)
 
 
 class CartViewSets(viewsets.ModelViewSet):
