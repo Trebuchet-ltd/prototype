@@ -13,6 +13,14 @@ from decouple import config
 import requests
 import razorpay
 from requests.auth import HTTPBasicAuth
+
+
+from authentication.permissions import IsOwner
+from home.serializers import *
+from .models import *
+
+
+
 class ProductViewSet(viewsets.ModelViewSet):
     """
     API end point to get all product details
@@ -46,7 +54,8 @@ class CartItemViewSets(viewsets.ModelViewSet):
 
 @api_view()
 def confirm_order(request):
-
+    # transaction/?date=25-07-2021&time=morning&address=1
+    print(request.user)
     date = request.GET['date']
     time = request.GET['time']
     address =request.GET['address']
@@ -136,4 +145,49 @@ def confirm_order(request):
         print(e)
 
     return Response(status=400)
+
+
+    def perform_create(self, serializer):
+        # The request user is set as author automatically.
+        if self.request.user.cart:
+            item = self.request.data['item']
+            items = self.request.user.cart.items.all().filter(item__id=item).first()
+            if items:
+                items.quantity+=self.request.data['quantity']
+                items.save()
+            else:
+                serializer.save(cart=self.request.user.cart,item_id=item)
+
+
+class CartViewSets(viewsets.ModelViewSet):
+    """
+    Api end point to get cart fully
+    """
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    queryset = CartModel.objects.all()
+    serializer_class = CartSerializer
+
+    def list(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            self.queryset = self.queryset.filter(user=request.user)
+        return viewsets.ModelViewSet.list(self, request, *args, **kwargs)
+
+    @action(detail=False, methods=["get", "post"], url_path='me')
+    def me(self, request, *args, **kwargs):
+        self.queryset = self.queryset.filter(user=request.user)
+        return viewsets.ModelViewSet.list(self, request, *args, **kwargs)
+
+
+class OrderViewSets(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    queryset = Orders.objects.all()
+    serializer_class = OrderSerializer
+
+    def get_queryset(self):
+        self.queryset = Orders.objects.filter(user=self.request.user)
+        return self.queryset
+
+
+
+
 

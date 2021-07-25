@@ -27,7 +27,7 @@ class Product(models.Model):
 
 class ImageModel(models.Model):
     title = models.TextField(max_length=10)
-    mainimage = models.ImageField(upload_to="static/images/", null=True)
+    mainimage = models.ImageField(upload_to="images/", null=True)
     image = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -36,9 +36,9 @@ class ImageModel(models.Model):
 
 class CartModel(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="cart", on_delete=models.CASCADE)
-    total = models.FloatField()
-    pincode = models.IntegerField()
-    state = models.TextField(max_length=20)
+    total = models.FloatField(default=0)
+    pincode = models.IntegerField(default=0)
+    state = models.TextField(max_length=20,default='')
 
 
 class CartItem(models.Model):
@@ -61,14 +61,31 @@ class Addresses(models.Model):
     phone = models.CharField(max_length=12)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"{self.address}, {self.state}, {self.pincode} (PIN) "
 
 class Orders(models.Model):
+    order_status = (
+        ('r', 'received'),
+        ('p', 'preparing'),
+        ('o', 'on route'),
+        ('d', 'delivered'),
+
+    )
+    order_time =(
+        ('m', 'morning'),
+        ('e', 'evening')
+    )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.CASCADE)
     total = models.FloatField()
     address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE)
-    date = models.DateField()
-    time = models.CharField(max_length=10)
 
+    date = models.DateField()
+    time = models.CharField(max_length=10,choices=order_time)
+    status = models.CharField(max_length=10, choices=order_status, default='preparing')
+
+    def __str__(self):
+        return f"{self.user} , date-{self.date} , status -{self.status} "
 
 class OrderItem(models.Model):
     item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
@@ -77,13 +94,14 @@ class OrderItem(models.Model):
 
 
 class TransactionDetails(models.Model):
+
+    order = models.ForeignKey(Orders, related_name="transaction", on_delete=models.CASCADE,null=True,blank=True)
     # to store the random generated unique id
-    transation_id = models.CharField(max_length=10)
+    transaction_id = models.CharField(max_length=10)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="transaction", on_delete=models.CASCADE)
     # to store the id returned when creating a payment link
     payment_id = models.CharField(max_length=20, default="")
     payment_status = models.CharField(max_length=20, default="")
-
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))

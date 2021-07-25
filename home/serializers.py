@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import ImageModel, CartModel
 from .models import Product
-from .models import Tokens, CartItem,TransactionDetails
+from .models import Tokens, CartItem,TransactionDetails,Orders,OrderItem,Addresses
 
 
 # from .models import TransactionDetails
@@ -33,19 +33,56 @@ class GetTokensSerializer(serializers.ModelSerializer):
 
 
 class CartItemSerializer(serializers.ModelSerializer):
+    item = getProductSerializer(read_only=True,required=False,many=False)
     class Meta:
         model = CartItem
         fields = [
-            'item', 'quantity'
+            'item', 'quantity','cart'
         ]
+        extra_kwargs = {
+            'cart': {'read_only': True},
+        }
 
 
 class CartSerializer(serializers.ModelSerializer):
-    cart_item = CartItemSerializer(many=True, read_only=True, required=False)
+    items = CartItemSerializer(many=True, read_only=True, required=False)
 
     class Meta:
         model = CartModel
         fields = [
-            'total', "cart_item"
+            'id','total', "items"
         ]
 
+
+class TransactionDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransactionDetails
+        fields =[
+            'transaction_id', 'payment_status'
+        ]
+
+class GetAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Addresses
+        fields=[
+            'name','address','pincode','state','phone'
+            ]
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    item = getProductSerializer(read_only=True,required=False,many=False)
+    class Meta:
+        model = OrderItem
+        fields = [
+            'item', 'quantity',
+        ]
+
+class OrderSerializer(serializers.ModelSerializer):
+    order_item = OrderItemSerializer(many=True, read_only=True, required=False)
+    address = GetAddressSerializer(read_only=True, required=False)
+    transaction = TransactionDetailsSerializer(many=True)
+    class Meta:
+        model = Orders
+        fields = [
+            'user','total', 'date', 'time','address','status','order_item','transaction'
+        ]

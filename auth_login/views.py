@@ -3,17 +3,19 @@ import logging
 from pprint import pprint
 from urllib import parse
 
+import django
 import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.views.decorators.csrf import ensure_csrf_cookie
 from oauth2_provider.models import AccessToken, Application
 
-from home.models import Tokens
+from home.models import Tokens, CartModel
 
 logger = logging.getLogger('v2')
 
@@ -92,15 +94,6 @@ def get_client_ip(request):
     return ip
 
 
-# Create your views here.
-@ensure_csrf_cookie
-def index(request):
-    context = {}
-    ipaddress = get_client_ip(request)
-    context['ip'] = ipaddress
-    context['searchbar'] = True
-    return render(request, template_name='v2/index.html', context=context)
-
 
 @ensure_csrf_cookie
 def signin(request):
@@ -155,12 +148,15 @@ def signup(request):
                     give_points(inv, 'invite')
                     user = User.objects.create_user(email=email, password=password, username=username,
                                                     first_name=firstname, last_name=lastname)
-                    Tokens.objects.get_or_create(user=user, invite_token=inv)
+                    token,_ = Tokens.objects.get_or_create(user=user)
+                    token.invite_token=inv
+                    token.save()
+                    CartModel.objects.get_or_create(user=user)
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                     redirect_location = request.GET.get('next', '/') + '?' + request.META['QUERY_STRING']
                     return HttpResponseRedirect(redirect_location)
 
-                except User.DoesNotExist as e:
+                except IntegrityError as e:
                     print(e)
                     logger.info('User already exist')
                     context1['pswderr'] = 'User already exists'
@@ -190,10 +186,6 @@ def log_out(request):
     return HttpResponseRedirect(url)
 
 
-@ensure_csrf_cookie
-def help_page(request):
-    return render(request, template_name='help.html')
-
 
 def request_google(auth_code, redirect_uri):
     data = {'code': auth_code,
@@ -203,12 +195,12 @@ def request_google(auth_code, redirect_uri):
             'grant_type': 'authorization_code'}
     r = requests.post('https://oauth2.googleapis.com/token', data=data)
     try:
-        logger.info('google auth ')
+        logger.info('google auth_login ')
         content = json.loads(r.content.decode())
         token = content["access_token"]
         return token
     except Exception as e:
-        logger.exception('google auth fail')
+        logger.exception('google auth_login fail')
         logger.debug(r.content.decode())
         return False
 
@@ -223,10 +215,10 @@ def convert_google_token(token, client_id):
         'token': token
     }
 
-    url = settings.DEPLOYMENT_URL + '/auth/social/convert-token/'
+    url = settings.DEPLOYMENT_URL + '/auth_login/social/convert-token/'
     r = requests.post(url, data=data)
     try:
-        logger.info('google auth convert')
+        logger.info('google auth_login convert')
         cont = json.loads(r.content.decode())
         access_token = cont['access_token']
         return access_token
@@ -279,14 +271,14 @@ def request_facebook(auth_code, redirect_uri):
     print(data)
     r = requests.get('https://graph.facebook.com/v11.0/oauth/access_token?', params=data)
     try:
-        logger.info('facebook auth ')
+        logger.info('facebook auth_login ')
         content = json.loads(r.content.decode())
         print(content)
         token = content["access_token"]
         logger.info('token is ' + token)
         return token
     except Exception as e:
-        logger.exception('facebook auth fail')
+        logger.exception('facebook auth_login fail')
         logger.debug(r.content.decode())
         return False
 
@@ -309,7 +301,7 @@ def convert_facebook_token(token, client_id):
     r = requests.post(url, data=data)
     logger.info('recived the request')
     try:
-        logger.info('facebook auth convert')
+        logger.info('facebook auth_login convert')
         cont = json.loads(r.content.decode())
         print(cont)
         access_token = cont['access_token']

@@ -3,15 +3,12 @@ import random
 import string
 import razorpay
 import requests
-from decouple import config
 from requests.auth import HTTPBasicAuth
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate, login, logout
-# from .models import Product, CartItem, CartModel,MainPage
 from .models import *
-from django.core import serializers
 from django.http import HttpResponse
 from rest_framework.generics import ListAPIView
 from .serializers import *
@@ -52,59 +49,12 @@ def display_product(request, primary_key):
 
         CartItem.quantity = request.POST["quantity"]
         return HttpResponse(json.dumps({'qty': inventory_item.quantity}))
-    context = {"products": inventory,'title':inventory.title}
+    context = {"products": inventory, 'title': inventory.title}
     return render(request, template_name="display_product.html", context=context)
 
 
 def link(request):
     return render(request, template_name="link.html")
-
-
-def signin(request):
-    context1 = {}
-    if request.method == "POST":
-        email = request.POST["username"]
-        password = request.POST["password"]
-        if not email or not password:
-            context1['pswderr'] = "Text fields cannot be empty"
-        user = authenticate(request, username=email, password=password)
-        if user is not None:
-            login(request, user)
-            # Redirect to a success page.
-            return HttpResponseRedirect('/')
-        else:
-            # Return an 'invalid login' error message.
-            context1['pswderr'] = "Invalid Credentials"
-    context1['sign_text'] = 'Sign In'
-    return render((request), template_name="login.html", context=context1)
-
-
-def signup(request):
-    context1 = {}
-    if request.method == "POST":
-        email = request.POST["email"]
-        password = request.POST["password"]
-        passwrd2 = request.POST["password retype"]
-        if not email:
-            context1['pswderr'] = 'Email cannot be empty'
-        elif not password or not passwrd2:
-            context1['pswderr'] = 'Password cannot be empty'
-        else:
-            if passwrd2 == password:
-                try:
-                    user = User.objects.create_user(email=email, password=password, username=email)
-                    cart = CartModel(user=user, total=0, pincode=0, state='')
-                    cart.save()
-                    login(request, user)
-                    return HttpResponseRedirect('/')
-
-                except Exception as e:
-                    print(e)
-                    context1['pswderr'] = 'User already exists'
-            else:
-                context1['pswderr'] = 'Password Does not match'
-    context1['sign_text'] = "Register"
-    return render(request, template_name="signup.html", context=context1)
 
 
 @login_required
@@ -133,7 +83,7 @@ def delete(request, item_key):
     if request.method == "POST":
         try:
             user = User.objects.get(id=request.user.id)
-            item_object = CartItem.objects.get(id=item_key,cart=user.cart)
+            item_object = CartItem.objects.get(id=item_key, cart=user.cart)
             total = item_object.item.price * item_object.quantity
             cart_object = item_object.cart
             cart_object.total -= total
@@ -153,7 +103,7 @@ def update(request, update_key):
         }
         new_cart_quantity = int(request.POST["cart_quantity"])
         try:
-            user = User.objects.get(id = request.user.id)
+            user = User.objects.get(id=request.user.id)
             object_var_from_cart_item = CartItem.objects.get(id=update_key)
             quantity_from_cart_item = object_var_from_cart_item.quantity
             difference_btwn_quantites = new_cart_quantity - quantity_from_cart_item
@@ -227,7 +177,6 @@ def delivery_options(request):
     return render(request, template_name="delivery_options.html", context=context)
 
 
-
 def searchResultview(request):
     if (request.method == "GET"):
         query = request.GET["query"]
@@ -249,7 +198,7 @@ def confirmOrder(request):
         key_id = config("key_id")
         key_secret = config("key_secret")
 
-        def id_generator(size=6, chars = string.ascii_uppercase + string.digits):
+        def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
             """ This function generate a random string  """
             return ''.join(random.choice(chars) for _ in range(size))
 
@@ -272,7 +221,7 @@ def confirmOrder(request):
             amount = 0
 
             for item in cart.items.all():
-                if item.quantity > 0 :
+                if item.quantity > 0:
                     amount += item.quantity * item.item.price
                 elif item.quantity < 0:
                     amount += -item.quantity * item.item.price
@@ -290,7 +239,7 @@ def confirmOrder(request):
                     "amount": amount,
                     "currency": "INR",
                     "receipt": transaction_id
-                    }
+                }
                 client = razorpay.Client(auth=(key_id, key_secret))
                 client.set_app_details({"title": "CARBLE", "version": "1"})
 
@@ -304,7 +253,7 @@ def confirmOrder(request):
                         "callback_url": "https://0c9c5151a1b5.ngrok.io/payment",
                         "callback_method": "get",
                         'reference_id': transaction_id
-                        }
+                    }
                     x = requests.post(url,
                                       json=myobj,
                                       headers={'Content-type': 'application/json'},
@@ -331,8 +280,9 @@ def confirmOrder(request):
 def payment(request):
     if request.method == "GET":
         try:
-            transactiondetails = TransactionDetails.objects.get(transation_id=request.GET["razorpay_payment_link_reference_id"])
-            transactiondetails.payment_status=request.GET["razorpay_payment_link_status"]
+            transactiondetails = TransactionDetails.objects.get(
+                transation_id=request.GET["razorpay_payment_link_reference_id"])
+            transactiondetails.payment_status = request.GET["razorpay_payment_link_status"]
             transactiondetails.save()
             user = transactiondetails.user
             cart = user.cart
@@ -344,6 +294,7 @@ def payment(request):
         except Exception as ex:
             print(ex)
     return HttpResponseRedirect('https://0c9c5151a1b5.ngrok.io/cart/')
+
 
 @login_required
 def orders(request):
