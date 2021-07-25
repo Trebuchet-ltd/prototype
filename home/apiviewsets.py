@@ -48,7 +48,7 @@ class CartItemViewSets(viewsets.ModelViewSet):
                 items.quantity+=self.request.data['quantity']
                 items.save()
             else:
-                serializer.save(cart=self.request.user.cart)
+                serializer.save(cart=self.request.user.cart,item_id=item)
 
 
 class CartViewSets(viewsets.ModelViewSet):
