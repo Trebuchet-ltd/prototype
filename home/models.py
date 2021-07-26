@@ -79,7 +79,10 @@ class Orders(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.CASCADE)
     total = models.FloatField()
     address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE)
-
+    is_seen = models.IntegerField(default=0,blank=True, null=True, help_text='1->Seen, 0->Not seen',
+                                    choices=(
+                                        (1, 'Seen'), (0, 'Not seen')
+                                    ))
     date = models.DateField()
     time = models.CharField(max_length=10,choices=order_time)
     status = models.CharField(max_length=10, choices=order_status, default='preparing')
