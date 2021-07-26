@@ -80,14 +80,16 @@ class Orders(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.CASCADE)
     total = models.FloatField()
     address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE)
-
+    is_seen = models.IntegerField(default=0,blank=True, null=True, help_text='1->Seen, 0->Not seen',
+                                    choices =(
+                                        (1, 'Seen'), (0, 'Not seen')
+                                    ))
     date = models.DateField()
     time = models.CharField(max_length=10,choices=order_time)
     status = models.CharField(max_length=10, choices=order_status, default='preparing')
 
     def __str__(self):
         return f"{self.user} , date-{self.date} , status -{self.status} "
-
 
 class Orderitem(models.Model):
     item = models.ForeignKey(Product, related_name="ordered_products", on_delete=models.CASCADE)
@@ -97,7 +99,7 @@ class Orderitem(models.Model):
 
 class TransactionDetails(models.Model):
     # to store the random generated unique id
-    transation_id = models.CharField(max_length=10)
+    transaction_id = models.CharField(max_length=10)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="transaction", on_delete=models.CASCADE)
     # to store the id returned when creating a payment link
     payment_id = models.CharField(max_length=20, default="")

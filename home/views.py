@@ -217,7 +217,7 @@ def confirmOrder(request):
             unique_id = id_generator()
             while not_unique:
                 unique_id = id_generator()
-                if not TransactionDetails.objects.filter(transation_id=unique_id):
+                if not TransactionDetails.objects.filter(transaction_id=unique_id):
                     not_unique = False
             return str(unique_id)
 
@@ -240,7 +240,7 @@ def confirmOrder(request):
             if amount > 0:
 
                 transaction_id = create_new_id()
-                transactionDetails = TransactionDetails(transation_id=transaction_id, user=user,
+                transactionDetails = TransactionDetails(transaction_id=transaction_id, user=user,
                                                         date=date, time=time,adress_id=address)
                 transactionDetails.save()
                 DATA = {
@@ -288,7 +288,7 @@ def confirmOrder(request):
 def payment(request):
     if request.method == "GET":
         try:
-            transactiondetails = TransactionDetails.objects.get(transation_id=request.GET["razorpay_payment_link_reference_id"])
+            transactiondetails = TransactionDetails.objects.get(transaction_id=request.GET["razorpay_payment_link_reference_id"])
             transactiondetails.payment_status=request.GET["razorpay_payment_link_status"]
             transactiondetails.save()
             user = transactiondetails.user
