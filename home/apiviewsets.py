@@ -52,6 +52,17 @@ class CartItemViewSets(viewsets.ModelViewSet):
     serializer_class = CartItemSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def perform_create(self, serializer):
+        # The request user is set as author automatically.
+        if self.request.user.cart:
+            item = self.request.data['item']
+            items = self.request.user.cart.items.all().filter(item__id=item).first()
+            if items:
+                items.quantity+=self.request.data['quantity']
+                items.save()
+            else:
+                serializer.save(cart=self.request.user.cart,item_id=item)
+
 @api_view()
 def confirm_order(request):
     # transaction/?date=25-07-2021&time=morning&address=1
@@ -147,16 +158,7 @@ def confirm_order(request):
     return Response(status=400)
 
 
-    def perform_create(self, serializer):
-        # The request user is set as author automatically.
-        if self.request.user.cart:
-            item = self.request.data['item']
-            items = self.request.user.cart.items.all().filter(item__id=item).first()
-            if items:
-                items.quantity+=self.request.data['quantity']
-                items.save()
-            else:
-                serializer.save(cart=self.request.user.cart,item_id=item)
+
 
 
 class CartViewSets(viewsets.ModelViewSet):

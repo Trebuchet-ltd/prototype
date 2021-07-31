@@ -107,6 +107,7 @@ class TransactionDetails(models.Model):
     payment_id = models.CharField(max_length=20, default="")
     payment_status = models.CharField(max_length=20, default="")
 
+
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
@@ -146,7 +147,7 @@ class AvailableState(models.Model):
 
 
 class District(models.Model):
-    districts = district_choices = [(None, 'District'), ('Anantapur', 'Anantapur'), ('Chittoor', 'Chittoor'),
+    district_choices = [(None, 'District'), ('Anantapur', 'Anantapur'), ('Chittoor', 'Chittoor'),
                     ('East Godavari', 'East Godavari'),
                     ('Guntur', 'Guntur'),
                     ('Krishna', 'Krishna'), ('Kurnool', 'Kurnool'), ('Nellore', 'Nellore'), ('Prakasam', 'Prakasam'),
@@ -457,7 +458,7 @@ class District(models.Model):
                     ('South 24 Parganas', 'South 24 Parganas'),
                     ('Uttar Dinajpur (North Dinajpur)', 'Uttar Dinajpur (North Dinajpur)')]
     state = models.ForeignKey(AvailableState, related_name="state", on_delete=models.CASCADE)
-    district_name = models.CharField(max_length=40, unique=True,choices=districts)
+    district_name = models.CharField(max_length=40, unique=True,choices=district_choices)
     Available_status = models.IntegerField(default=1, blank=True, null=True, help_text='1->Available, 0->Not Available',
                                   choices = (
                                       (1, 'Available'), (0, 'Not Available')

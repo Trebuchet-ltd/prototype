@@ -8,3 +8,4 @@ venv/
 logs/
 */migrations/*
 *.pyc
+/venv/
