@@ -172,7 +172,7 @@ class CartViewSets(viewsets.ModelViewSet):
             self.queryset = self.queryset.filter(user=request.user)
         return viewsets.ModelViewSet.list(self, request, *args, **kwargs)
 
-    @action(detail=False, methods=["get", "post"], url_path='me')
+    @action(detail=False, methods=["get", "post",'delete'], url_path='me')
     def me(self, request, *args, **kwargs):
         self.queryset = self.queryset.filter(user=request.user)
         return viewsets.ModelViewSet.list(self, request, *args, **kwargs)

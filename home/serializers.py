@@ -65,7 +65,7 @@ class GetAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Addresses
         fields=[
-            'name','address','pincode','state','phone'
+            'name','address','pincode','state','phone','latitude','longitude'
             ]
 
 

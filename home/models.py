@@ -60,7 +60,8 @@ class Addresses(models.Model):
     state = models.TextField(max_length=100)
     phone = models.CharField(max_length=12)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
-
+    latitude = models.FloatField(blank=True, null=True,)
+    longitude = models.FloatField(blank=True, null=True,)
     def __str__(self):
         return f"{self.address}, {self.state}, {self.pincode} (PIN) "
 
