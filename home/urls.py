@@ -13,6 +13,6 @@ router.register(r'order', OrderViewSets)
 
 urlpatterns = [
     path(r'', include(router.urls)),
-    path(r'transaction/', confirm_order),
+    path(r'transaction/', confirmOrder),
 
 ]

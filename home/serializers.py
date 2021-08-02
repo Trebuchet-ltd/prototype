@@ -61,11 +61,12 @@ class TransactionDetailsSerializer(serializers.ModelSerializer):
             'transaction_id', 'payment_status'
         ]
 
+
 class GetAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Addresses
         fields=[
-            'name','address','pincode','state','phone','latitude','longitude'
+            'name','address','pincode','state','phone',
             ]
 
 

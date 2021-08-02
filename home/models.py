@@ -20,6 +20,7 @@ class Product(models.Model):
     stock = models.IntegerField()
     meat = models.CharField(max_length=1, choices=meat_type)
     bestSeller = models.BooleanField(default=False)
+    rating = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -40,11 +41,15 @@ class CartModel(models.Model):
     pincode = models.IntegerField(default=0)
     state = models.TextField(max_length=20,default='')
 
+    def __str__(self):
+        return f"{self.user}'s cart"
 
 class CartItem(models.Model):
     item = models.ForeignKey(Product, related_name="cart_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     cart = models.ForeignKey(CartModel, related_name="items", on_delete=models.CASCADE)
+    def __str__(self):
+        return f"{self.item} - {self.quantity} "
 
 
 class MainPage(models.Model):
@@ -60,8 +65,8 @@ class Addresses(models.Model):
     state = models.TextField(max_length=100)
     phone = models.CharField(max_length=12)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
-    latitude = models.FloatField(blank=True, null=True,)
-    longitude = models.FloatField(blank=True, null=True,)
+    latitude =models.FloatField()
+    longitude =models.FloatField()
     def __str__(self):
         return f"{self.address}, {self.state}, {self.pincode} (PIN) "
 
@@ -91,6 +96,7 @@ class Orders(models.Model):
     def __str__(self):
         return f"{self.user} , date-{self.date} , status -{self.status} "
 
+
 class OrderItem(models.Model):
     item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
@@ -106,7 +112,10 @@ class TransactionDetails(models.Model):
     # to store the id returned when creating a payment link
     payment_id = models.CharField(max_length=20, default="")
     payment_status = models.CharField(max_length=20, default="")
-
+    # The order date ,time ,and adress id
+    date = models.DateField(blank=True,null=True)
+    time = models.CharField(max_length=20, default='')
+    adress_id = models.CharField(max_length=10, default='')
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -129,6 +138,7 @@ class Tokens(models.Model):
     points = models.IntegerField(default=0)
     reviews = models.IntegerField(default=0)
     invite_token = models.CharField(max_length=10, blank=True, null=True)
+
 
 class AvailableState(models.Model):
     states = (('1', 'Andaman and Nicobar Islands'), ('2', 'Andhra Pradesh'), ('3', 'Arunachal Pradesh'), ('4', 'Assam'), ('5', 'Bihar'),
