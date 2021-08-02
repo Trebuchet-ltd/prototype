@@ -64,9 +64,10 @@ class TransactionDetailsSerializer(serializers.ModelSerializer):
 
 class GetAddressSerializer(serializers.ModelSerializer):
     class Meta:
+        ordering = ['id']
         model = Addresses
         fields=[
-            'name','address','pincode','state','phone',
+            'id','name','address','pincode','state','phone','latitude','longitude'
             ]
 
 

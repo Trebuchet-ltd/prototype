@@ -221,4 +221,53 @@ class OrderViewSets(viewsets.ModelViewSet):
         return self.queryset
 
 
+class AddressViewSets(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    queryset = Addresses.objects.all()
+    serializer_class = GetAddressSerializer
+    http_method_names = ['get', 'post','patch']
+    def get_queryset(self):
+        self.queryset = Addresses.objects.filter(user=self.request.user)
 
+        return self.queryset
+    def perform_create(self, serializer):
+        try:
+            if self.request.method == "POST":
+
+                address = self.request.data["address"]
+                name = self.request.data["name"]
+                pincode = self.request.data["pincode"]
+                state = self.request.data["state"]
+                phone = self.request.data["phone"]
+                latitude = self.request.data['latitude']
+                longitude = self.request.data['longitude']
+                new_address = Addresses(name=name, address=address, pincode=pincode, state=state, phone=phone,latitude=latitude,longitude=longitude,
+                                        user=self.request.user)
+
+                new_address.save()
+
+            return Response(status=200)
+        except Exception as e:
+            print(f'Exeption {e}')
+
+    def patch(self,serializer):
+        id = self.request.data['id']
+        current_address = Addresses.objects.get(id=id)
+
+        if self.request.user == current_address.user:
+            try:
+                current_address.address = self.request.data["address"]
+                current_address.name = self.request.data["name"]
+                current_address.pincode = self.request.data["pincode"]
+                current_address.state = self.request.data["state"]
+                current_address.phone = self.request.data["phone"]
+                current_address.latitude = self.request.data['latitude']
+                current_address.longitude = self.request.data['longitude']
+                current_address.save()
+                return Response(status=200)
+            except Exception as e:
+                print(e)
+                return Response(status=400)
+
+        else:
+            return  Response(status=400)
