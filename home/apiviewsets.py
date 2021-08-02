@@ -13,7 +13,7 @@ from decouple import config
 import requests
 import razorpay
 from requests.auth import HTTPBasicAuth
-
+import datetime
 
 from authentication.permissions import IsOwner
 from home.serializers import *
@@ -63,7 +63,7 @@ class CartItemViewSets(viewsets.ModelViewSet):
             else:
                 serializer.save(cart=self.request.user.cart,item_id=item)
 
-    def patch(self, serializer):
+    def perform_update(self, serializer):
         if self.request.user.cart:
             item = self.request.data["item"]
             items = self.request.user.cart.items.all().filter(item__id=item).first()
@@ -71,93 +71,113 @@ class CartItemViewSets(viewsets.ModelViewSet):
                 print(self.request.data['quantity'])
                 items.quantity = self.request.data['quantity']
                 items.save()
-                return Response(status=200)
-            return Response(status=400)
 
+    #transaction/?date=2021-8-2&time="morning"&selected_address=1
 
-@api_view()
+@api_view(["POST"])
 def confirmOrder(request):
     global paymenturl
-    if (request.method == "GET"):
-        date = request.GET["date"]
-        time = request.GET["time"]
-        address = request.GET["selected_address"]
-        key_id=config("key_id")
-        key_secret=config("key_secret")
-        call_back_url ='https://vikkis.in/payment'
-        def id_generator(size=6, chars = string.ascii_uppercase + string.digits):
 
-            """ This function generate a random string  """
-            return ''.join(random.choice(chars) for _ in range(size))
+    date = request.data["date"]
+    date_str = "".join(date.split("-"))
+    time = request.data["time"]
+    address = request.data["selected_address"]
+    key_id = config("key_id")
+    date_obj = datetime.datetime.strptime(date_str,'%Y%m%d')
 
-        def create_new_id():
-            """ This function create an unique id for transaction """
-            not_unique = True
+    # checking weather the date is a future date by calculating differance between today and date from request
+    if (date_obj-datetime.datetime.now()).days < 1:
+        return  Response({"error":"Date should be a future date"},status=400)
+    address_obj = Addresses.objects.get(id=int(address))
+    # print(address_obj.pincode)
+
+    # get the district of the pincode of user from the indian postal api
+    # It returns a object that include the array of post offices in that pincode and it include the district
+
+    district = requests.get(f'https://api.postalpincode.in/pincode/{address_obj.pincode}').json()[0].get("PostOffice")[0].get("District")
+    # district obj contains the district if it is added to database else return null queryset
+    district_obj = District.objects.filter(district_name=district)
+
+    # this check whether the the district added to the database and it is available for delivery
+    if not (district_obj and district_obj[0].Available_status):
+        return Response({"error": "Delivery to this address is not available"})
+
+    key_secret= config("key_secret")
+    call_back_url = config("call_back_url")     # the url for  razorpay's request
+
+    def id_generator(size=6, chars = string.ascii_uppercase + string.digits):
+
+        """ This function generate a random string  """
+        return ''.join(random.choice(chars) for _ in range(size))
+
+    def create_new_id():
+        """ This function veryfy the id for transaction """
+        not_unique = True
+        unique_id = id_generator()
+        while not_unique:
             unique_id = id_generator()
-            while not_unique:
-                unique_id = id_generator()
-                if not TransactionDetails.objects.filter(transaction_id=unique_id):
-                    not_unique = False
-            return str(unique_id)
+            if not TransactionDetails.objects.filter(transaction_id=unique_id):
+                not_unique = False
+        return str(unique_id)
 
-        try:
-            user = User.objects.get(id=request.user.id)
-            cart = user.cart
-            amount = 0
+    try:
+        user = User.objects.get(id=request.user.id)
+        cart = user.cart
+        amount = 0
 
-            for item in cart.items.all():
-                if item.quantity > 0 :
-                    amount += item.quantity * item.item.price
-                elif item.quantity < 0:
-                    amount += -item.quantity * item.item.price
+        for item in cart.items.all():
+            if item.quantity > 0 :
+                amount += item.quantity * item.item.price
+            elif item.quantity < 0:
+                amount += -item.quantity * item.item.price
 
 
 
-            amount *= 100  # converting rupees to paisa
+        amount *= 100  # converting rupees to paisa
 
-            if amount > 0:
+        if amount > 0:
 
-                transaction_id = create_new_id()
-                transactionDetails = TransactionDetails(transaction_id=transaction_id, user=user,
-                                                        date=date, time=time,adress_id=address)
-                transactionDetails.save()
-                DATA = {
+            transaction_id = create_new_id()
+            transactionDetails = TransactionDetails(transaction_id=transaction_id, user=user,
+                                                    date=date, time=time, adress_id=address)
+            transactionDetails.save()
+            DATA = {
+                "amount": amount,
+                "currency": "INR",
+                "receipt": transaction_id
+                }
+            client = razorpay.Client(auth=(key_id, key_secret))
+            client.set_app_details({"title": "Prototype", "version": "1"})
+
+            try:
+                order = client.order.create(data=DATA)
+                url = 'https://api.razorpay.com/v1/payment_links'
+
+                myobj = {
                     "amount": amount,
                     "currency": "INR",
-                    "receipt": transaction_id
+                    "callback_url": call_back_url,
+                    "callback_method": "get",
+                    'reference_id': transaction_id
                     }
-                client = razorpay.Client(auth=(key_id, key_secret))
-                client.set_app_details({"title": "Prototype", "version": "1"})
+                x = requests.post(url,
+                                  json=myobj,
+                                  headers={'Content-type': 'application/json'},
+                                  auth=HTTPBasicAuth(key_id, key_secret))
+                data = x.json()
 
-                try:
-                    order = client.order.create(data=DATA)
-                    url = 'https://api.razorpay.com/v1/payment_links'
+                transactionDetails.payment_id = data.get("id")
+                transactionDetails.payment_status = data.get("status")
+                transactionDetails.save()
+                paymenturl = data.get('short_url')
+                return Response({"payment_url": paymenturl})
+            except Exception as e:
+                print(e)
+                Response(status=400)
+    except Exception as e:
+        print(e)
+        return Response(status=400)
 
-                    myobj = {
-                        "amount": amount,
-                        "currency": "INR",
-                        "callback_url": call_back_url,
-                        "callback_method": "get",
-                        'reference_id': transaction_id
-                        }
-                    x = requests.post(url,
-                                      json=myobj,
-                                      headers={'Content-type': 'application/json'},
-                                      auth=HTTPBasicAuth(key_id, key_secret))
-                    data = x.json()
-
-                    transactionDetails.payment_id = data.get("id")
-                    transactionDetails.payment_status = data.get("status")
-                    transactionDetails.save()
-                    paymenturl = data.get('short_url')
-                    return Response({"payment_url": paymenturl})
-                except Exception as e:
-                    print(e)
-                    Response(status=400)
-        except Exception as e:
-            print(e)
-            return Response(status=400)
-    return Response(status=400)
 
 
 def payment(request):
@@ -186,7 +206,7 @@ def payment(request):
             cart.save()
         except Exception as ex:
             print(ex)
-    return HttpResponseRedirect('https://vikkis.in/orders')
+    return HttpResponseRedirect(config("order_url"))
 
 
 
@@ -250,24 +270,7 @@ class AddressViewSets(viewsets.ModelViewSet):
         except Exception as e:
             print(f'Exeption {e}')
 
-    def patch(self,serializer):
-        id = self.request.data['id']
-        current_address = Addresses.objects.get(id=id)
 
-        if self.request.user == current_address.user:
-            try:
-                current_address.address = self.request.data["address"]
-                current_address.name = self.request.data["name"]
-                current_address.pincode = self.request.data["pincode"]
-                current_address.state = self.request.data["state"]
-                current_address.phone = self.request.data["phone"]
-                current_address.latitude = self.request.data['latitude']
-                current_address.longitude = self.request.data['longitude']
-                current_address.save()
-                return Response(status=200)
-            except Exception as e:
-                print(e)
-                return Response(status=400)
 
-        else:
-            return  Response(status=400)
+
+

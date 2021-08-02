@@ -21,6 +21,7 @@ class Product(models.Model):
     meat = models.CharField(max_length=1, choices=meat_type)
     bestSeller = models.BooleanField(default=False)
     rating = models.IntegerField(default=0)
+    weight =models.CharField(max_length=30,null=True,blank=True)
 
     def __str__(self):
         return self.title
@@ -65,8 +66,8 @@ class Addresses(models.Model):
     state = models.TextField(max_length=100)
     phone = models.CharField(max_length=12)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
-    latitude =models.FloatField(null=True,blank=True)
-    longitude =models.FloatField(null=True,blank=True)
+    latitude = models.FloatField(null=True,blank=True)
+    longitude = models.FloatField(null=True,blank=True)
     def __str__(self):
         return f"{self.address}, {self.state}, {self.pincode} (PIN) "
 

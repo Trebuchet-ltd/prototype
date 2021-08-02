@@ -15,5 +15,6 @@ router.register(r'address', AddressViewSets)
 urlpatterns = [
     path(r'', include(router.urls)),
     path(r'transaction/', confirmOrder),
+    path(r'payment/', payment),
 
 ]
