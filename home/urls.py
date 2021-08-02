@@ -8,6 +8,7 @@ router.register(r'products', ProductViewSet)
 router.register(r'cart_items', CartItemViewSets)
 router.register(r'cart', CartViewSets)
 router.register(r'order', OrderViewSets)
+# router.register(r'address', AddressViewSets)
 
 
 

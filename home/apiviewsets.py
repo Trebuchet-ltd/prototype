@@ -222,5 +222,3 @@ class OrderViewSets(viewsets.ModelViewSet):
 
 
 
-
-
