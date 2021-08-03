@@ -68,7 +68,7 @@ class Addresses(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
     latitude = models.FloatField(null=True,blank=True)
     longitude = models.FloatField(null=True,blank=True)
-    delivery_charge = models.IntegerField(null=True,blank=True,choices=((1,30),(2,60)))
+    delivery_charge = models.IntegerField(null=True,blank=True,choices=((30,30),(30,60)))
     def __str__(self):
         return f"{self.address}, {self.state}, {self.pincode} (PIN) "
 

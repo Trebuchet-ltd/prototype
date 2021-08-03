@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User, Group
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.decorators import api_view
@@ -299,20 +299,19 @@ class AddressViewSets(viewsets.ModelViewSet):
         else:
             return 60
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        location = request.data["latitude"], request.data["longitude"]
+        delivery_charge = self.delivery_charge(location)
 
-    def perform_create(self, serializer):
-        try:
-            if self.request.method == "POST":
+        serializer.initial_data["delivery_charge"] = delivery_charge
+        print(serializer.initial_data)
+        serializer.is_valid(raise_exception=True    )
 
-
-                latitude = self.request.data['latitude']
-                longitude = self.request.data['longitude']
-                delivery_charge = self.delivery_charge([latitude,longitude])
-                serializer.save(delivery_charge=delivery_charge)
-
-        except Exception as e:
-            print(f'Exception {e}')
-
+        serializer.save(user=request.user)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 

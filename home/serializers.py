@@ -69,9 +69,6 @@ class GetAddressSerializer(serializers.ModelSerializer):
         fields=[
             'id','name','address','pincode','state','phone','latitude','longitude',"delivery_charge"
             ]
-        extra_kwargs = {
-            'delivery_charge': {'read_only': True},
-        }
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
