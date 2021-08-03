@@ -9,17 +9,16 @@ from rest_framework.response import Response
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from rest_framework.parsers import JSONParser
 from django.views.decorators.csrf import csrf_exempt
-from decouple import config
+import os
 import requests
 import razorpay
 from requests.auth import HTTPBasicAuth
 import datetime
-
+from math import sin, cos, sqrt, atan2, radians
 from authentication.permissions import IsOwner
 from home.serializers import *
 from .models import *
-
-
+import prototype.settings as settings
 
 class ProductViewSet(viewsets.ModelViewSet):
     """
@@ -104,7 +103,7 @@ def confirmOrder(request):
     date_str = "".join(date.split("-"))
     time = request.data["time"]
     address = request.data["selected_address"]
-    key_id = config("key_id")
+    key_id = settings.razorpay_key_id
     date_obj = datetime.datetime.strptime(date_str,'%Y%m%d')
 
     # checking weather the date is a future date by calculating differance between today and date from request
@@ -133,8 +132,8 @@ def confirmOrder(request):
     if not (district_obj and district_obj[0].Available_status):
         return Response({"error": "Delivery to this address is not available"})
 
-    key_secret= config("key_secret")
-    call_back_url = config("call_back_url")     # the url for  razorpay's request
+    key_secret = settings.razorpay_key_secret
+    call_back_url = settings.webhook_call_back_url
 
     def id_generator(size=6, chars = string.ascii_uppercase + string.digits):
 
@@ -235,7 +234,7 @@ def payment(request):
             cart.save()
         except Exception as ex:
             print(ex)
-    return HttpResponseRedirect(config("order_url"))
+    return HttpResponseRedirect(settings.webhook_redirect_url)
 
 
 class CartViewSets(viewsets.ModelViewSet):
@@ -276,25 +275,43 @@ class AddressViewSets(viewsets.ModelViewSet):
         self.queryset = Addresses.objects.filter(user=self.request.user)
 
         return self.queryset
+
+    def distance_btwn(self,loc1,loc2):
+        R = 6373.0
+
+        lat1 = radians(loc1[0])
+        lon1 = radians(loc1[1])
+        lat2 = radians(loc2[0])
+        lon2 = radians(loc2[1])
+
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+
+        a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+        distance = R * c
+        return round(distance)
+    def delivery_charge(self,location):
+        distance = self.distance_btwn([9.997795804491675, 76.26409019445995],[location[0],location[1]])
+        if distance <= 15:
+            return 30
+        else:
+            return 60
+
+
     def perform_create(self, serializer):
         try:
             if self.request.method == "POST":
 
-                address = self.request.data["address"]
-                name = self.request.data["name"]
-                pincode = self.request.data["pincode"]
-                state = self.request.data["state"]
-                phone = self.request.data["phone"]
+
                 latitude = self.request.data['latitude']
                 longitude = self.request.data['longitude']
-                new_address = Addresses(name=name, address=address, pincode=pincode, state=state, phone=phone,latitude=latitude,longitude=longitude,
-                                        user=self.request.user)
+                delivery_charge = self.delivery_charge([latitude,longitude])
+                serializer.save(delivery_charge=delivery_charge)
 
-                new_address.save()
-
-            return Response(status=200)
         except Exception as e:
-            print(f'Exeption {e}')
+            print(f'Exception {e}')
 
 
 

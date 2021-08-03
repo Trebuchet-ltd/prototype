@@ -20,6 +20,13 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get('GOOGLE_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get('GOOGLE_SECRET')
 DEFAULT_CLIENT = os.environ.get('DEFAULT_CLIENT')
 
+
+razorpay_key_id = os.environ.get('key_id')
+razorpay_key_secret = os.environ.get('key_secret')
+webhook_call_back_url = os.environ.get('call_back_url')
+webhook_redirect_url = os.environ.get('order_url')
+
+
 # Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.email',
