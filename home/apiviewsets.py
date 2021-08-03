@@ -86,10 +86,19 @@ def confirmOrder(request):
     date_obj = datetime.datetime.strptime(date_str,'%Y%m%d')
 
     # checking weather the date is a future date by calculating differance between today and date from request
-    if (date_obj-datetime.datetime.now()).days < 1:
-        return  Response({"error":"Date should be a future date"},status=400)
+    # if (date_obj-datetime.datetime.now()).days < 1:
+    #     return  Response({"error":"Date should be a future date"},status=400)
     address_obj = Addresses.objects.get(id=int(address))
-    # print(address_obj.pincode)
+
+    # checking the date is not a past date
+    if date_obj.day - datetime.datetime.now().day < 0:
+        return Response({"error": "Date should be a future date"}, status=400)
+    elif date_obj.day == datetime.datetime.now().day:   # checking the date is today or not
+        if time == "morning": # if the date is today morning slot is not available
+            return Response({"error": "Time should be a future time"}, status=400)
+
+
+
 
     # get the district of the pincode of user from the indian postal api
     # It returns a object that include the array of post offices in that pincode and it include the district
@@ -179,7 +188,6 @@ def confirmOrder(request):
         return Response(status=400)
 
 
-
 def payment(request):
     if request.method == "GET":
         try:
@@ -194,22 +202,18 @@ def payment(request):
                                           total=cart.total, status="preparing")
             order.save()
 
-            print("worked2")
-
             for item in cart.items.all():
-
                 order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
                 order_item.save()
-
+                reduction_in_stock = item.item.weight * item.quantity / 1000
+                item.item.stock-=reduction_in_stock
+                item.item.save()
                 item.delete()
             cart.total = 0
             cart.save()
         except Exception as ex:
             print(ex)
     return HttpResponseRedirect(config("order_url"))
-
-
-
 
 
 class CartViewSets(viewsets.ModelViewSet):

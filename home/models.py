@@ -21,7 +21,7 @@ class Product(models.Model):
     meat = models.CharField(max_length=1, choices=meat_type)
     bestSeller = models.BooleanField(default=False)
     rating = models.IntegerField(default=0)
-    weight =models.CharField(max_length=30,null=True,blank=True)
+    weight = models.FloatField(default=1)
 
     def __str__(self):
         return self.title
