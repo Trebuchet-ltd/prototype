@@ -143,19 +143,48 @@ class Tokens(models.Model):
 
 
 class AvailableState(models.Model):
-    states = (('1', 'Andaman and Nicobar Islands'), ('2', 'Andhra Pradesh'), ('3', 'Arunachal Pradesh'), ('4', 'Assam'), ('5', 'Bihar'),
-              ('6', 'Chandigarh'), ('7', 'Chhattisgarh'), ('8', 'Dadra and Nagar Haveli'), ('9', 'Delhi'), ('10', 'Goa'),
-              ('11', 'Gujarat'), ('12', 'Haryana'), ('13', 'Himachal Pradesh'), ('14', 'Jammu and Kashmir'), ('15', 'Jharkhand'), ('16', 'Karnataka'),
-              ('17', 'Kerala'), ('18', 'Ladakh'), ('19', 'Lakshadweep'), ('20', 'Madhya Pradesh'), ('21', 'Maharashtra'), ('22', 'Manipur'),
-              ('23', 'Meghalaya'), ('24', 'Mizoram'), ('25', 'Nagaland'), ('26', 'Odisha'), ('27', 'Puducherry'), ('28', 'Punjab'), ('29', 'Rajasthan'),
-              ('30', 'Sikkim'), ('31', 'Tamil Nadu'), ('32', 'Telangana'), ('33', 'Tripura'), ('34', 'Uttar Pradesh'), ('35', 'Uttarakhand'),
-              ('36', 'West Bengal'),('37', 'Daman and Diu'))
+    states = state_choices = ((None, 'State'),
+                 ("Andhra Pradesh", "Andhra Pradesh"),
+                 ("Arunachal Pradesh", "Arunachal Pradesh"),
+                 ("Assam", "Assam"),
+                 ("Bihar", "Bihar"),
+                 ("Chandigarh (UT)", "Chandigarh (UT)"),
+                 ("Chhattisgarh", "Chhattisgarh"),
+                 ("Dadra and Nagar Haveli (UT)", "Dadra and Nagar Haveli (UT)"),
+                 ("Daman and Diu (UT)", "Daman and Diu (UT)"),
+                 ("Delhi (NCT)", "Delhi (NCT)"),
+                 ("Goa", "Goa"),
+                 ("Gujarat", "Gujarat"),
+                 ("Haryana", "Haryana"),
+                 ('Himachal Pradesh', 'Himachal Pradesh'),
+                 ("Jammu and Kashmir", "Jammu and Kashmir"),
+                 ("Jharkhand", "Jharkhand"),
+                 ("Karnataka", "Karnataka"),
+                 ("Kerala", "Kerala"),
+                 ("Lakshadweep (UT)", "Lakshadweep (UT)"),
+                 ("Madhya Pradesh", "Madhya Pradesh"),
+                 ("Maharashtra", "Maharashtra"),
+                 ("Manipur", "Manipur"),
+                 ("Meghalaya", "Meghalaya"),
+                 ("Mizoram", "Mizoram"),
+                 ("Nagaland", "Nagaland"),
+                 ("Odisha", "Odisha"),
+                 ("Puducherry (UT)", "Puducherry (UT)"),
+                 ("Punjab", "Punjab"),
+                 ("Rajasthan", "Rajasthan"),
+                 ("Sikkim", "Sikkim"),
+                 ("Tamil Nadu", "Tamil Nadu"),
+                 ("Telangana", "Telangana"),
+                 ("Tripura", "Tripura"),
+                 ("Uttarakhand", "Uttarakhand"),
+                 ("Uttar Pradesh", "Uttar Pradesh"),
+                 ("West Bengal", "West Bengal"))
 
     state_name = models.CharField(max_length=30 , unique=True, choices=states)
 
     def __str__(self):
 
-        return self.states[int(self.state_name)-1][1]
+        return self.state_name
 
 
 class District(models.Model):
