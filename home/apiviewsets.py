@@ -74,6 +74,25 @@ class CartItemViewSets(viewsets.ModelViewSet):
 
     #transaction/?date=2021-8-2&time="morning"&selected_address=1
 
+@api_view(['GET'])
+def availablePincodes(request):
+    address = request.GET["selected_address"]
+    try:
+        address_obj = Addresses.objects.get(id=int(address))
+        district = requests.get(f'https://api.postalpincode.in/pincode/{address_obj.pincode}').json()[0].get("PostOffice")[
+            0].get("District")
+        # district obj contains the district if it is added to database else return null queryset
+        district_obj = District.objects.filter(district_name=district)
+
+        # this check whether the the district added to the database and it is available for delivery
+        if not (district_obj and district_obj[0].Available_status):
+            return Response({"error": "Delivery to this address is not available"})
+        else:
+            return Response(status=200)
+    except :
+        return Response(status=400)
+
+
 @api_view(["POST"])
 def confirmOrder(request):
     global paymenturl

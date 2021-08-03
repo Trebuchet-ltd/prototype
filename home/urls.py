@@ -16,5 +16,6 @@ urlpatterns = [
     path(r'', include(router.urls)),
     path(r'transaction/', confirmOrder),
     path(r'payment/', payment),
+    path(r'is_available_address/', availablePincodes),
 
 ]
