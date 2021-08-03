@@ -76,11 +76,12 @@ class CartItemViewSets(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 def availablePincodes(request):
-    address = request.GET["selected_address"]
+    pincode = request.GET["pincode"]
     try:
-        address_obj = Addresses.objects.get(id=int(address))
-        district = requests.get(f'https://api.postalpincode.in/pincode/{address_obj.pincode}').json()[0].get("PostOffice")[
+
+        district = requests.get(f'https://api.postalpincode.in/pincode/{pincode}').json()[0].get("PostOffice")[
             0].get("District")
+        print(district)
         # district obj contains the district if it is added to database else return null queryset
         district_obj = District.objects.filter(district_name=district)
 
@@ -89,7 +90,9 @@ def availablePincodes(request):
             return Response({"error": "Delivery to this address is not available"})
         else:
             return Response(status=200)
-    except :
+
+    except Exception as e:
+        print(e)
         return Response(status=400)
 
 
