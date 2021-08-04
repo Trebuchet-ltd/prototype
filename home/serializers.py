@@ -20,7 +20,11 @@ class getProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'title', 'description', 'price', 'stock', 'meat', 'images', 'bestSeller',"weight",'rating'
+            'id', 'title', 'description', 'short_description', 'price', 'stock',
+            'meat', 'images', 'bestSeller', "weight", 'rating',
+            'weight_variants', 'pieces', 'serves', 'can_be_cleaned','cleaned_price',
+
+
         ]
 
 
@@ -37,7 +41,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = [
-            'item', 'quantity','cart'
+            'item', 'quantity','cart','weight_variants','can_be_cleaned'
         ]
         extra_kwargs = {
             'cart': {'read_only': True},
@@ -77,7 +81,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = [
-            'item', 'quantity',
+            'item', 'quantity','weight_variants','can_be_cleaned'
         ]
 
 

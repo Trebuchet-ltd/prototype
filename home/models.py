@@ -2,9 +2,11 @@ from django.db import models
 from django.conf import settings
 import string
 import random
-
+from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
+
+
 class Product(models.Model):
     meat_type = (
         ('c', 'chicken'),
@@ -13,24 +15,25 @@ class Product(models.Model):
         ('p', 'pork'),
         ('f', 'fish'),
     )
+    weight_choice = ((250, 250), (500, 500), (1000, 1000))
 
     title = models.CharField(max_length=255)
-    description = models.TextField(max_length=2048)
+    short_description = models.TextField(max_length=2048, default='')
+    description = models.TextField(max_length=2048,)
     price = models.FloatField()
     stock = models.IntegerField()
     meat = models.CharField(max_length=1, choices=meat_type)
     bestSeller = models.BooleanField(default=False)
     rating = models.IntegerField(default=0)
     weight = models.FloatField(default=1)
+    pieces = models.IntegerField(default=1)
+    serves = models.IntegerField(default=4)
+    can_be_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Can be cleaned, 0->Can not be cleaned')
+    cleaned_price = models.FloatField(blank=True, null=True,)
+    weight_variants = ArrayField(models.IntegerField(blank=True,null=True,default=0,choices=weight_choice), default=list)
 
     def __str__(self):
         return self.title
-
-# class ProductVarient(models.Model):
-#     product=models.ForeignKey(to=Product,related_name="variant",on_delete=models.CASCADE)
-#     weight = models.FloatField(default=1)
-#     cleaned_status = models.BooleanField(choices=((1,"cleaned"),(0,'not cleaned')))
-#     price = models.FloatField()
 
 
 class ImageModel(models.Model):
@@ -51,10 +54,15 @@ class CartModel(models.Model):
     def __str__(self):
         return f"{self.user}'s cart"
 
+
 class CartItem(models.Model):
+    weight_choice = ((250, 250), (500, 500), (1000, 1000))
     item = models.ForeignKey(Product, related_name="cart_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     cart = models.ForeignKey(CartModel, related_name="items", on_delete=models.CASCADE)
+    weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
+    can_be_cleaned = models.BooleanField(default=0, blank=True, null=True,
+                                         help_text='1->Cleaned, 0->Not cleaned')
     def __str__(self):
         return f"{self.item} - {self.quantity} "
 
@@ -78,6 +86,7 @@ class Addresses(models.Model):
     def __str__(self):
         return f"{self.address}, {self.state}, {self.pincode} (PIN) "
 
+
 class Orders(models.Model):
     order_status = (
         ('r', 'received'),
@@ -86,7 +95,7 @@ class Orders(models.Model):
         ('d', 'delivered'),
 
     )
-    order_time =(
+    order_time = (
         ('m', 'morning'),
         ('e', 'evening')
     )
@@ -106,13 +115,16 @@ class Orders(models.Model):
 
 
 class OrderItem(models.Model):
+    weight_choice = ((250, 250), (500, 500), (1000, 1000))
     item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE)
+    weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
+    can_be_cleaned = models.BooleanField(default=0, blank=True, null=True,
+                                         help_text='1->Cleaned, 0->Not cleaned')
 
 
 class TransactionDetails(models.Model):
-
     order = models.ForeignKey(Orders, related_name="transaction", on_delete=models.CASCADE,null=True,blank=True)
     total = models.FloatField(default=0)
     # to store the random generated unique id
@@ -125,6 +137,7 @@ class TransactionDetails(models.Model):
     date = models.DateField(blank=True,null=True)
     time = models.CharField(max_length=20, default='')
     adress_id = models.CharField(max_length=10, default='')
+
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))

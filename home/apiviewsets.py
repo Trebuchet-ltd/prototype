@@ -1,5 +1,6 @@
+import django_filters
 from django.contrib.auth.models import User, Group
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.decorators import api_view
@@ -28,7 +29,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = getProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ['bestSeller', 'meat']
-
+    filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
+    search_fields = ['title', 'short_description','description','can_be_cleaned','weight_variants']
     # @action(methods=['get'], detail=False, permission_classes=[permissions.IsAuthenticatedOrReadOnly])
     # def front_page(self, request):
     #     best_sellers = Product.objects.all().filter(bestSeller=True)
@@ -218,9 +220,9 @@ def payment(request):
             user = transactiondetails.user
             cart = user.cart
 
-            order = Orders.objects.create(user=user, date=transactiondetails.date, time=transactiondetails.time,
+            order = Orders.objects.create(user=user, date=transactiondetails.date, time=transactiondetails.time[0],
                                           address_id=transactiondetails.adress_id,
-                                          total=transactiondetails.total, status="preparing",)
+                                          total=transactiondetails.total, status="p",)
             order.save()
             transactiondetails.order = order
             transactiondetails.save()
