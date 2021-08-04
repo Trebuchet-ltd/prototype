@@ -58,7 +58,7 @@ class TransactionDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionDetails
         fields =[
-            'transaction_id', 'payment_status'
+            "id","payment_status",'time','payment_id'
         ]
 
 
@@ -73,18 +73,20 @@ class GetAddressSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     item = getProductSerializer(read_only=True,required=False,many=False)
+
     class Meta:
         model = OrderItem
         fields = [
             'item', 'quantity',
         ]
 
+
 class OrderSerializer(serializers.ModelSerializer):
     order_item = OrderItemSerializer(many=True, read_only=True, required=False)
     address = GetAddressSerializer(read_only=True, required=False)
-    transaction = TransactionDetailsSerializer(many=True)
+    transaction = TransactionDetailsSerializer(read_only=True,many=False,required=False)
     class Meta:
         model = Orders
         fields = [
-            'user','total', 'date', 'time','address','status','order_item','transaction'
+            'id','user','total', 'date', 'time','address','status','order_item','transaction'
         ]

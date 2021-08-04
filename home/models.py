@@ -26,6 +26,12 @@ class Product(models.Model):
     def __str__(self):
         return self.title
 
+# class ProductVarient(models.Model):
+#     product=models.ForeignKey(to=Product,related_name="variant",on_delete=models.CASCADE)
+#     weight = models.FloatField(default=1)
+#     cleaned_status = models.BooleanField(choices=((1,"cleaned"),(0,'not cleaned')))
+#     price = models.FloatField()
+
 
 class ImageModel(models.Model):
     title = models.TextField(max_length=10)
@@ -108,12 +114,13 @@ class OrderItem(models.Model):
 class TransactionDetails(models.Model):
 
     order = models.ForeignKey(Orders, related_name="transaction", on_delete=models.CASCADE,null=True,blank=True)
+    total = models.FloatField(default=0)
     # to store the random generated unique id
     transaction_id = models.CharField(max_length=10)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="transaction", on_delete=models.CASCADE)
     # to store the id returned when creating a payment link
     payment_id = models.CharField(max_length=20, default="")
-    payment_status = models.CharField(max_length=20, default="")
+    payment_status = models.CharField(max_length=20, default="failed")
     # The order date ,time ,and adress id
     date = models.DateField(blank=True,null=True)
     time = models.CharField(max_length=20, default='')

@@ -161,16 +161,16 @@ def confirmOrder(request):
             elif item.quantity < 0:
                 amount += -item.quantity * item.item.price
 
+        amount += address_obj.delivery_charge
 
-
-        amount *= 100  # converting rupees to paisa
 
         if amount > 0:
 
             transaction_id = create_new_id()
             transactionDetails = TransactionDetails(transaction_id=transaction_id, user=user,
-                                                    date=date, time=time, adress_id=address)
+                                                    date=date, time=time, adress_id=address,total=amount)
             transactionDetails.save()
+            amount *= 100  # converting rupees to paisa
             DATA = {
                 "amount": amount,
                 "currency": "INR",
@@ -214,15 +214,16 @@ def payment(request):
         try:
             transactiondetails = TransactionDetails.objects.get(transaction_id=request.GET["razorpay_payment_link_reference_id"])
             transactiondetails.payment_status=request.GET["razorpay_payment_link_status"]
-            transactiondetails.save()
+
             user = transactiondetails.user
             cart = user.cart
 
             order = Orders.objects.create(user=user, date=transactiondetails.date, time=transactiondetails.time,
                                           address_id=transactiondetails.adress_id,
-                                          total=cart.total, status="preparing")
+                                          total=transactiondetails.total, status="preparing",)
             order.save()
-
+            transactiondetails.order = order
+            transactiondetails.save()
             for item in cart.items.all():
                 order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
                 order_item.save()
