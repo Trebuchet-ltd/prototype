@@ -63,8 +63,13 @@ class CartItem(models.Model):
     weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True,
                                          help_text='1->Cleaned, 0->Not cleaned')
+
     def __str__(self):
-        return f"{self.item} - {self.quantity} "
+        if self.is_cleaned:
+            cleaned_status = 'cleaned'
+        else:
+            cleaned_status = ''
+        return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
 
 
 class MainPage(models.Model):
@@ -123,6 +128,12 @@ class OrderItem(models.Model):
     is_cleaned = models.BooleanField(default=0, blank=True, null=True,
                                          help_text='1->Cleaned, 0->Not cleaned')
 
+    def __str__(self):
+        if self.is_cleaned:
+            cleaned_status = 'cleaned'
+        else:
+            cleaned_status = ''
+        return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
 
 class TransactionDetails(models.Model):
     order = models.ForeignKey(Orders, related_name="transaction", on_delete=models.CASCADE,null=True,blank=True)

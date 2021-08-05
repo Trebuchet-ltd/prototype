@@ -3,14 +3,11 @@ from . import models
 import requests
 
 # Register your models here.
-admin.site.register(models.Product)
 admin.site.register(models.ImageModel)
 admin.site.register(models.CartModel)
 admin.site.register(models.CartItem)
 admin.site.register(models.Addresses)
-admin.site.register(models.TransactionDetails)
 admin.site.register(models.OrderItem)
-
 
 
 @admin.register(models.Orders)
@@ -23,9 +20,16 @@ class OrderAdmin(admin.ModelAdmin):
         try:
             orders = []
             for order_item in order_items:
-                orders.append(f" {str(order_item.item).title()} - {order_item.quantity}, ")
+                if order_item.is_cleaned:
+                    cleaned_status='cleaned'
+                else:
+                    cleaned_status = ''
+                orders.append(f" {str(order_item.item).title()} {cleaned_status} - {order_item.quantity * order_item.weight_variants / 1000} kg , ")
+
+            # removing the last space and comma
             orders[-1] = orders[-1][:-2]
 
+            # Return the combined string of all order items
             return "".join(orders)
 
         except Exception as e:
@@ -48,7 +52,6 @@ class OrderAdmin(admin.ModelAdmin):
     def make_not_seen(modeladmin, request, queryset):
         queryset.update(is_seen=0)
         messages.success(request, "Selected Record(s) Marked as seen Successfully !!")
-
 
 
 @admin.register(models.AvailableState)
@@ -836,3 +839,17 @@ class DistrictAdmin(admin.ModelAdmin):
         queryset.update(Available_status=0)
         messages.success(request, "Selected District(s) is not available now !!")
 
+
+@admin.register(models.Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ['title','available_stock']
+    list_filter = ['meat','bestSeller']
+
+    @admin.display(description="stock")
+    def available_stock(self,obj):
+        return f"{obj.stock} kg"
+
+@admin.register(models.TransactionDetails)
+class TransactionDetailsAdmin(admin.ModelAdmin):
+    list_display = ['user', 'transaction_id', 'payment_status', 'total']
+    search_fields = ['transaction_id']
