@@ -51,15 +51,7 @@ class CartItemViewSets(viewsets.ModelViewSet):
             else:
                 serializer.save(cart=self.request.user.cart, item_id=item)
 
-    def perform_update(self, serializer):
-        if self.request.user.cart:
-            item = self.request.data["item"]
-            items = self.request.user.cart.items.all().filter(item__id=item).first()
-            if items:
-                items.quantity = self.request.data['quantity']
-                items.save()
 
-    # transaction/?date=2021-8-2&time="morning"&selected_address=1
 
 
 @api_view(['GET'])
@@ -174,7 +166,7 @@ def confirm_order(request):
 
             try:
                 url = 'https://api.razorpay.com/v1/payment_links'
-                myobj = {
+                my_obj = {
                     "amount": amount,
                     "currency": "INR",
                     "callback_url": call_back_url,
@@ -182,7 +174,7 @@ def confirm_order(request):
                     'reference_id': transaction_id
                 }
                 x = requests.post(url,
-                                  json=myobj,
+                                  json=my_obj,
                                   headers={'Content-type': 'application/json'},
                                   auth=HTTPBasicAuth(key_id, key_secret))
                 data = x.json()
@@ -190,8 +182,8 @@ def confirm_order(request):
                 transaction_details.payment_id = data.get("id")
                 transaction_details.payment_status = data.get("status")
                 transaction_details.save()
-                paymenturl = data.get('short_url')
-                return Response({"payment_url": paymenturl})
+                payment_url = data.get('short_url')
+                return Response({"payment_url": payment_url})
             except Exception as e:
                 print(e)
                 Response(status=status.HTTP_406_NOT_ACCEPTABLE)
