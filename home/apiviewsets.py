@@ -119,13 +119,16 @@ def confirmOrder(request):
     elif date_obj.day == datetime.datetime.now().day:   # checking the date is today or not
         if time == "morning": # if the date is today morning slot is not available
             return Response({"error": "Time should be a future time"}, status=400)
-
+    for item in request.user.cart.items.all():
+        reduction_in_stock = item.weight_variants * item.quantity / 1000
+        if item.item.stock - reduction_in_stock <= 0:
+            return Response({"error": f" Item {item.item} is out of stock"}, status=400)
 
 
 
     # get the district of the pincode of user from the indian postal api
     # It returns a object that include the array of post offices in that pincode and it include the district
-
+    # print(f"{request.user.cart.item.stock}")
     district = requests.get(f'https://api.postalpincode.in/pincode/{address_obj.pincode}').json()[0].get("PostOffice")[0].get("District")
     # district obj contains the district if it is added to database else return null queryset
     district_obj = District.objects.filter(district_name=district)
@@ -159,12 +162,20 @@ def confirmOrder(request):
 
         for item in cart.items.all():
             if item.quantity > 0 :
-                amount += item.quantity * item.item.price
+                if item.can_be_cleaned:
+                    amount += item.quantity * item.item.cleaned_price * item.weight_variants / 1000
+                else:
+                    amount += item.quantity * item.item.prize * item.weight_variants / 1000
+
             elif item.quantity < 0:
-                amount += -item.quantity * item.item.price
+                if item.can_be_cleaned:
+                    amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
+                else:
+                    amount += -item.quantity * item.item.prize * item.weight_variants / 1000
 
         amount += address_obj.delivery_charge
 
+        print(f"{amount = }")
 
         if amount > 0:
 
@@ -227,10 +238,11 @@ def payment(request):
             transactiondetails.order = order
             transactiondetails.save()
             for item in cart.items.all():
-                order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order)
+                order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order
+                                                      ,weight_variants=item.weight_variants,can_be_cleaned=item.can_be_cleaned )
                 order_item.save()
-                reduction_in_stock = item.item.weight * item.quantity / 1000
-                item.item.stock-=reduction_in_stock
+                reduction_in_stock = item.weight_variants * item.quantity / 1000
+                item.item.stock -= reduction_in_stock
                 item.item.save()
                 item.delete()
             cart.total = 0
