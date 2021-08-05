@@ -1,4 +1,4 @@
-from django.urls import path,include
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .apiviewsets import *
 
@@ -9,8 +9,6 @@ router.register(r'cart_items', CartItemViewSets)
 router.register(r'cart', CartViewSets)
 router.register(r'order', OrderViewSets)
 router.register(r'address', AddressViewSets)
-
-
 
 urlpatterns = [
     path(r'', include(router.urls)),

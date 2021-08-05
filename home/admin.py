@@ -1,6 +1,5 @@
-from django.contrib import admin,messages
+from django.contrib import admin, messages
 from . import models
-import requests
 
 # Register your models here.
 admin.site.register(models.ImageModel)
@@ -12,19 +11,21 @@ admin.site.register(models.OrderItem)
 
 @admin.register(models.Orders)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ("user", "date","time", "status","address", "orders_products","seen_status")
-    list_filter = ('is_seen',"status", "user", "date",)
-    actions = ['make_seen','make_not_seen']
+    list_display = ("user", "date", "time", "status", "address", "orders_products", "seen_status")
+    list_filter = ('is_seen', "status", "user", "date",)
+    actions = ['make_seen', 'make_not_seen']
+
     def orders_products(self, obj):
         order_items = models.OrderItem.objects.filter(order=obj)
         try:
             orders = []
             for order_item in order_items:
                 if order_item.is_cleaned:
-                    cleaned_status='cleaned'
+                    cleaned_status = 'cleaned'
                 else:
                     cleaned_status = ''
-                orders.append(f" {str(order_item.item).title()} {cleaned_status} - {order_item.quantity * order_item.weight_variants / 1000} kg , ")
+                orders.append(f" {str(order_item.item).title()} {cleaned_status} - "
+                              f"{order_item.quantity * order_item.weight_variants / 1000} kg , ")
 
             # removing the last space and comma
             orders[-1] = orders[-1][:-2]

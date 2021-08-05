@@ -4,11 +4,9 @@ from rest_framework import viewsets, status, filters
 from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.decorators import api_view
-
 from rest_framework.response import Response
 from django.http import HttpResponseRedirect
 import requests
-
 from requests.auth import HTTPBasicAuth
 import datetime
 from math import sin, cos, sqrt, atan2, radians
@@ -37,7 +35,7 @@ class CartItemViewSets(viewsets.ModelViewSet):
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
     permission_classes = [permissions.IsAuthenticated]
-    http_method_names = ['get', 'patch', 'post']
+    http_method_names = ['get', 'patch', 'post', 'delete']
 
     def perform_create(self, serializer):
         # The request user is set as author automatically.
