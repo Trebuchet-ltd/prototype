@@ -26,6 +26,8 @@ razorpay_key_secret = os.environ.get('key_secret')
 webhook_call_back_url = os.environ.get('call_back_url')
 webhook_redirect_url = os.environ.get('order_url')
 
+location = (9.997795804491675, 76.26409019445995)
+
 
 # Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [

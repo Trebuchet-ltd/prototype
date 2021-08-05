@@ -17,5 +17,4 @@ urlpatterns = [
     path(r'transaction/', confirmOrder),
     path(r'payment/', payment),
     path(r'is_available_pincode/', availablePincodes),
-
-]
+    ]
