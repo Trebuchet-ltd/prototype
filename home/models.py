@@ -61,7 +61,7 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField()
     cart = models.ForeignKey(CartModel, related_name="items", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
-    can_be_cleaned = models.BooleanField(default=0, blank=True, null=True,
+    is_cleaned = models.BooleanField(default=0, blank=True, null=True,
                                          help_text='1->Cleaned, 0->Not cleaned')
     def __str__(self):
         return f"{self.item} - {self.quantity} "
@@ -82,7 +82,7 @@ class Addresses(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
     latitude = models.FloatField(null=True,blank=True)
     longitude = models.FloatField(null=True,blank=True)
-    delivery_charge = models.IntegerField(null=True,blank=True,choices=((30,30),(30,60)))
+    delivery_charge = models.IntegerField(null=True,blank=True,choices=((30,30),(60,60)))
     def __str__(self):
         return f"{self.address}, {self.state}, {self.pincode} (PIN) "
 
@@ -120,7 +120,7 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField()
     order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
-    can_be_cleaned = models.BooleanField(default=0, blank=True, null=True,
+    is_cleaned = models.BooleanField(default=0, blank=True, null=True,
                                          help_text='1->Cleaned, 0->Not cleaned')
 
 
@@ -136,7 +136,7 @@ class TransactionDetails(models.Model):
     # The order date ,time ,and adress id
     date = models.DateField(blank=True,null=True)
     time = models.CharField(max_length=20, default='')
-    adress_id = models.CharField(max_length=10, default='')
+    address_id = models.CharField(max_length=10, default='')
 
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):

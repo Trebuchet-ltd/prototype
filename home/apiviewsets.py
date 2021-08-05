@@ -162,13 +162,13 @@ def confirmOrder(request):
 
         for item in cart.items.all():
             if item.quantity > 0 :
-                if item.can_be_cleaned:
+                if item.is_cleaned:
                     amount += item.quantity * item.item.cleaned_price * item.weight_variants / 1000
                 else:
                     amount += item.quantity * item.item.prize * item.weight_variants / 1000
 
             elif item.quantity < 0:
-                if item.can_be_cleaned:
+                if item.is_cleaned:
                     amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
                 else:
                     amount += -item.quantity * item.item.prize * item.weight_variants / 1000
@@ -181,7 +181,7 @@ def confirmOrder(request):
 
             transaction_id = create_new_id()
             transactionDetails = TransactionDetails(transaction_id=transaction_id, user=user,
-                                                    date=date, time=time, adress_id=address,total=amount)
+                                                    date=date, time=time, address_id=address,total=amount)
             transactionDetails.save()
             amount *= 100  # converting rupees to paisa
             DATA = {
@@ -232,14 +232,14 @@ def payment(request):
             cart = user.cart
 
             order = Orders.objects.create(user=user, date=transactiondetails.date, time=transactiondetails.time[0],
-                                          address_id=transactiondetails.adress_id,
+                                          address_id=transactiondetails.address_id,
                                           total=transactiondetails.total, status="p",)
             order.save()
             transactiondetails.order = order
             transactiondetails.save()
             for item in cart.items.all():
                 order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order
-                                                      ,weight_variants=item.weight_variants,can_be_cleaned=item.can_be_cleaned )
+                                                      ,weight_variants=item.weight_variants,is_cleaned=item.is_cleaned )
                 order_item.save()
                 reduction_in_stock = item.weight_variants * item.quantity / 1000
                 item.item.stock -= reduction_in_stock
@@ -292,6 +292,7 @@ class AddressViewSets(viewsets.ModelViewSet):
         return self.queryset
 
     def distance_btwn(self,loc1,loc2):
+
         R = 6373.0
 
         lat1 = radians(loc1[0])
@@ -306,7 +307,7 @@ class AddressViewSets(viewsets.ModelViewSet):
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
 
         distance = R * c
-        return round(distance)
+        return distance
     def delivery_charge(self,location):
         distance = self.distance_btwn([9.997795804491675, 76.26409019445995],[location[0],location[1]])
         if distance <= 15:
@@ -327,6 +328,13 @@ class AddressViewSets(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_update(self, serializer):
+        location = self.request.data["latitude"], self.request.data["longitude"]
+        delivery_charge = self.delivery_charge(location)
+        print(f"{delivery_charge = }")
+        serializer.save(delivery_charge=delivery_charge)
+        return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
 
 
 
