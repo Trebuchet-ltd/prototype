@@ -41,7 +41,10 @@ class CartItemViewSets(viewsets.ModelViewSet):
         # The request user is set as author automatically.
         if self.request.user.cart:
             item = self.request.data['item']
-            items = self.request.user.cart.items.all().filter(item__id=item).first()
+            weight_variants = self.request.data['weight_variants']
+            is_cleaned = self.request.data['is_cleaned']
+            items = self.request.user.cart.items.all().filter(item__id=item, is_cleaned=is_cleaned,
+                                                              weight_variants=weight_variants).first()
             if items:
                 items.quantity += self.request.data['quantity']
                 items.save()
@@ -53,7 +56,6 @@ class CartItemViewSets(viewsets.ModelViewSet):
             item = self.request.data["item"]
             items = self.request.user.cart.items.all().filter(item__id=item).first()
             if items:
-                print(self.request.data['quantity'])
                 items.quantity = self.request.data['quantity']
                 items.save()
 
@@ -61,7 +63,7 @@ class CartItemViewSets(viewsets.ModelViewSet):
 
 
 @api_view(['GET'])
-def availablePincodes(request):
+def available_pin_codes(request):
     pincode = request.GET["pincode"]
     try:
 
@@ -83,7 +85,7 @@ def availablePincodes(request):
 
 
 @api_view(["POST"])
-def confirmOrder(request):
+def confirm_order(request):
 
     date = request.data["date"]
     date_str = "".join(date.split("-"))
@@ -107,7 +109,7 @@ def confirmOrder(request):
         if item.item.stock - reduction_in_stock <= 0:
             return Response({"error": f" Item {item.item} is out of stock"}, status=status.HTTP_406_NOT_ACCEPTABLE)
     try:
-        address_obj = Addresses.objects.get(id=int(address))
+        address_obj = Addresses.objects
         # get the district of the pincode of user from the indian postal api
         # It returns a object that include the array of post offices in that pincode and it include the district
         district = requests.get(f'https://api.postalpincode.in/pincode/{address_obj.pincode}')\
@@ -127,17 +129,17 @@ def confirmOrder(request):
     key_secret = settings.razorpay_key_secret
     call_back_url = settings.webhook_call_back_url
 
-    def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    def new_id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 
         """ This function generate a random string  """
         return ''.join(random.choice(chars) for _ in range(size))
 
-    def create_new_id():
+    def create_new_unique_id():
         """ This function veryfy the id for transaction """
         not_unique = True
-        unique_id = id_generator()
+        unique_id = new_id_generator()
         while not_unique:
-            unique_id = id_generator()
+            unique_id = new_id_generator()
             if not TransactionDetails.objects.filter(transaction_id=unique_id):
                 not_unique = False
         return str(unique_id)
@@ -164,10 +166,10 @@ def confirmOrder(request):
 
         if amount > 0:
 
-            transaction_id = create_new_id()
-            transactionDetails = TransactionDetails(transaction_id=transaction_id, user=user,
-                                                    date=date, time=time, address_id=address, total=amount)
-            transactionDetails.save()
+            transaction_id = create_new_unique_id()
+            transaction_details = TransactionDetails(transaction_id=transaction_id, user=user,
+                                                     date=date, time=time, address_id=address, total=amount)
+            transaction_details.save()
             amount *= 100  # converting rupees to paisa
 
             try:
@@ -185,9 +187,9 @@ def confirmOrder(request):
                                   auth=HTTPBasicAuth(key_id, key_secret))
                 data = x.json()
 
-                transactionDetails.payment_id = data.get("id")
-                transactionDetails.payment_status = data.get("status")
-                transactionDetails.save()
+                transaction_details.payment_id = data.get("id")
+                transaction_details.payment_status = data.get("status")
+                transaction_details.save()
                 paymenturl = data.get('short_url')
                 return Response({"payment_url": paymenturl})
             except Exception as e:
@@ -215,8 +217,8 @@ def payment(request):
             transactiondetails.order = order
             transactiondetails.save()
             for item in cart.items.all():
-                order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order
-                                                      , weight_variants=item.weight_variants,
+                order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order,
+                                                      weight_variants=item.weight_variants,
                                                       is_cleaned=item.is_cleaned)
                 order_item.save()
                 reduction_in_stock = item.weight_variants * item.quantity / 1000
@@ -259,6 +261,32 @@ class OrderViewSets(viewsets.ModelViewSet):
         return self.queryset
 
 
+def distance_between(loc1, loc2):
+
+    earth_radius = 6373.0
+    lat1 = radians(loc1[0])
+    lon1 = radians(loc1[1])
+    lat2 = radians(loc2[0])
+    lon2 = radians(loc2[1])
+
+    dif_lon = lon2 - lon1
+    dif_lat = lat2 - lat1
+
+    a = sin(dif_lat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dif_lon / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    distance = earth_radius * c
+    return distance
+
+
+def get_delivery_charge(location):
+    distance = distance_between(settings.location, [location[0], location[1]])
+    if distance <= 15:
+        return 30
+    else:
+        return 60
+
+
 class AddressViewSets(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsOwner]
     queryset = Addresses.objects.all()
@@ -270,36 +298,10 @@ class AddressViewSets(viewsets.ModelViewSet):
 
         return self.queryset
 
-    def distance_btwn(self, loc1, loc2):
-
-        R = 6373.0
-
-        lat1 = radians(loc1[0])
-        lon1 = radians(loc1[1])
-        lat2 = radians(loc2[0])
-        lon2 = radians(loc2[1])
-
-        dlon = lon2 - lon1
-        dlat = lat2 - lat1
-
-        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-        c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-        distance = R * c
-        return distance
-
-    def delivery_charge(self, location):
-        distance = self.distance_btwn(settings.location, [location[0], location[1]])
-        if distance <= 15:
-            return 30
-        else:
-            return 60
-
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         location = request.data["latitude"], request.data["longitude"]
-        delivery_charge = self.delivery_charge(location)
-
+        delivery_charge = get_delivery_charge(location)
         serializer.initial_data["delivery_charge"] = delivery_charge
         print(serializer.initial_data)
         serializer.is_valid(raise_exception=True)
@@ -311,7 +313,7 @@ class AddressViewSets(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         location = self.request.data["latitude"], self.request.data["longitude"]
-        delivery_charge = self.delivery_charge(location)
+        delivery_charge = get_delivery_charge(location)
         print(f"{delivery_charge = }")
         serializer.save(delivery_charge=delivery_charge)
         return Response(serializer.data, status=status.HTTP_202_ACCEPTED)

@@ -41,7 +41,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = [
-            'item', 'quantity', 'cart', 'weight_variants', 'is_cleaned'
+            'id','item', 'quantity', 'cart', 'weight_variants', 'is_cleaned'
         ]
         extra_kwargs = {
             'cart': {'read_only': True},

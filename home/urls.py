@@ -12,7 +12,7 @@ router.register(r'address', AddressViewSets)
 
 urlpatterns = [
     path(r'', include(router.urls)),
-    path(r'transaction/', confirmOrder),
+    path(r'transaction/', confirm_order),
     path(r'payment/', payment),
-    path(r'is_available_pincode/', availablePincodes),
+    path(r'is_available_pincode/', available_pin_codes),
     ]
