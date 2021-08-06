@@ -99,7 +99,7 @@ def confirm_order(request):
         if item.item.stock - reduction_in_stock <= 0:
             return Response({"error": f" Item {item.item} is out of stock"}, status=status.HTTP_406_NOT_ACCEPTABLE)
     try:
-        address_obj = Addresses.objects
+        address_obj = Addresses.objects.get(id=address)
         # get the district of the pincode of user from the indian postal api
         # It returns a object that include the array of post offices in that pincode and it include the district
         district = requests.get(f'https://api.postalpincode.in/pincode/{address_obj.pincode}')\
@@ -144,13 +144,13 @@ def confirm_order(request):
                 if item.is_cleaned:
                     amount += item.quantity * item.item.cleaned_price * item.weight_variants / 1000
                 else:
-                    amount += item.quantity * item.item.prize * item.weight_variants / 1000
+                    amount += item.quantity * item.item.price * item.weight_variants / 1000
 
             elif item.quantity < 0:
                 if item.is_cleaned:
                     amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
                 else:
-                    amount += -item.quantity * item.item.prize * item.weight_variants / 1000
+                    amount += -item.quantity * item.item.price * item.weight_variants / 1000
 
         amount += address_obj.delivery_charge
 

@@ -9,7 +9,7 @@ class GetImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageModel
         fields = [
-            'title', 'mainimage'
+            'title', 'mainimage','cleaned_image'
         ]
 
 
