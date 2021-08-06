@@ -43,7 +43,7 @@ class ImageModel(models.Model):
     title = models.TextField(max_length=10)
     mainimage = models.ImageField(upload_to="images/", null=True)
     image = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
-    cleaned_image = models.ImageField(upload_to='images/', null=True,blank=True)
+    cleaned_image = models.ImageField(upload_to='images/', null=True, blank=True)
 
     def __str__(self):
         return self.title

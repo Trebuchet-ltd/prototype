@@ -196,9 +196,9 @@ OAUTH2_PROVIDER = {
     "OIDC_RSA_PRIVATE_KEY": os.environ.get("OIDC_RSA_PRIVATE_KEY"),
     # this is the list of available scopes
     'SCOPES': {"openid": "See Profile",
-               'read': 'Read Patient Data',
-               'write': 'Add Patient Data',
-               'groups': 'Add Invites'},
+               'read': 'Read Product Details',
+               'write': 'Add and Purchase Product',
+               'groups': 'Invite friends'},
     'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore'
 }
 
