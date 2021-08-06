@@ -54,7 +54,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'em-!%*w_wa4l*e@-((blr(%8+-pkld)-78#1yibh9d3#(4=3l='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', False)
 
 ALLOWED_HOSTS = ["*"]
 
@@ -163,7 +163,7 @@ USE_L10N = True
 USE_TZ = True
 
 if not DEBUG:
-    DEPLOYMENT_URL = 'url'
+    DEPLOYMENT_URL = 'https://dreameat.in'
 
 else:
     DEPLOYMENT_URL = 'http://127.0.0.1:8000'
@@ -176,9 +176,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 # STATICFILES_DIRS = [
 #     BASE_DIR / "static",
 # ]
+if DEBUG:
+    MEDIA_ROOT = BASE_DIR / 'media'
+else:
+    MEDIA_ROOT = '/var/www/html1/media'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
 LOGIN_URL = '/login/'
