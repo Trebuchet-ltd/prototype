@@ -52,8 +52,6 @@ class CartItemViewSets(viewsets.ModelViewSet):
                 serializer.save(cart=self.request.user.cart, item_id=item)
 
 
-
-
 @api_view(['GET'])
 def available_pin_codes(request):
     pincode = request.GET["pincode"]
@@ -127,7 +125,7 @@ def confirm_order(request):
         return ''.join(random.choice(chars) for _ in range(size))
 
     def create_new_unique_id():
-        """ This function veryfy the id for transaction """
+        """ This function verify the id for transaction """
         not_unique = True
         unique_id = new_id_generator()
         while not_unique:
@@ -195,19 +193,19 @@ def confirm_order(request):
 def payment(request):
     if request.method == "GET":
         try:
-            transactiondetails = TransactionDetails.objects.get(
+            transaction_details = TransactionDetails.objects.get(
                 transaction_id=request.GET["razorpay_payment_link_reference_id"])
-            transactiondetails.payment_status = request.GET["razorpay_payment_link_status"]
+            transaction_details.payment_status = request.GET["razorpay_payment_link_status"]
 
-            user = transactiondetails.user
+            user = transaction_details.user
             cart = user.cart
 
-            order = Orders.objects.create(user=user, date=transactiondetails.date, time=transactiondetails.time[0],
-                                          address_id=transactiondetails.address_id,
-                                          total=transactiondetails.total, status="p", )
+            order = Orders.objects.create(user=user, date=transaction_details.date, time=transaction_details.time[0],
+                                          address_id=transaction_details.address_id,
+                                          total=transaction_details.total, status="p", )
             order.save()
-            transactiondetails.order = order
-            transactiondetails.save()
+            transaction_details.order = order
+            transaction_details.save()
             for item in cart.items.all():
                 order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order,
                                                       weight_variants=item.weight_variants,
