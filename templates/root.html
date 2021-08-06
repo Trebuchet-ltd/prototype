@@ -1,0 +1,22 @@
+{% extends 'auth_base.html' %}
+{% load static %}
+
+{% block css %}
+    <link href="{% static 'css/main.css' %}" rel="stylesheet"/>
+{% endblock %}
+
+{% block body %}
+
+    <div class="d-flex justify-content-center align-items-center bg-grey vh-100">
+
+        {% block form %}
+
+        {% endblock %}
+
+    </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+
+{% endblock %}

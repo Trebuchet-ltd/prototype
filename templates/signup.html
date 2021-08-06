@@ -1,0 +1,78 @@
+
+
+{% extends "root.html" %}
+{% block title %}
+    Register - Needmedi.com
+{% endblock %}
+{% block form %}
+    <div class="d-flex container flex-column  neumorphic_form p-4 align-items-center  col-md-6 col-lg-4">
+        <h1>Register</h1>
+        <form class="d-flex flex-column w-100 px-1 align-items-center flex-fill"
+              action="/signup/?{{ request.META.QUERY_STRING }}" method="POST">
+            {% csrf_token %}
+            {% if pswderr %}
+                <div class=" text-danger " align='center' role="alert">
+                    <i class="fa fa-exclamation-circle"></i> {{ pswderr }}
+                </div>
+            {% endif %}
+
+
+            <div class="form-outline my-2 flex-grow w-75">
+                <input type="text" id="form1" class="form-control" placeholder="Username" name="username">
+                <label class="form-label" for="form1">Username</label>
+            </div>
+            <div class="form-outline my-2 flex-grow w-75">
+                <input type="text" id="form2" class="form-control" placeholder="First Name" name="firstname">
+                <label class="form-label" for="form2">First Name</label>
+            </div>
+            <div class="form-outline my-2 flex-grow w-75">
+                <input type="text" id="form3" class="form-control" placeholder="Last Name" name="lastname">
+                <label class="form-label" for="form3">Last Name</label>
+            </div>
+
+            <div class="form-outline my-2 flex-grow w-75">
+                <input type="text" id="form4" class="form-control" placeholder="E-mail" name="email">
+                <label class="form-label" for="form4">E-Mail</label>
+            </div>
+
+            <div class="form-outline my-2 flex-grow w-75">
+                <input type="password" id="form5" class="form-control" placeholder="Password" name="password">
+                <label class="form-label" for="form5">Password</label>
+            </div>
+
+            <div class="form-outline my-2 flex-grow w-75">
+                <input type="password" id="form6" class="form-control" placeholder="Retype Password"
+                       name="password retype">
+                <label class="form-label" for="form6">Retype Password</label>
+            </div>
+            <div class="form-outline my-2 flex-grow w-75">
+                <input type="text" id="form6" class="form-control" placeholder="Invite Token" name="invite"
+                       value="{{ invite }}">
+                <label class="form-label" for="form6">Invite Token</label>
+            </div>
+            <label>
+                <input name="next" value="{{ request.GET.next }}" hidden>
+            </label>
+            <button class="btn w-50 input-right input-left btn-primary blue-gradient">Sign Up</button>
+            <div class="col-sm mt-2">
+                <a class="btn btn-outline-dark input-right input-left"
+                   href="https://accounts.google.com/o/oauth2/v2/auth?scope=https%3A//www.googleapis.com/auth/userinfo.profile%20https%3A//www.googleapis.com/auth/userinfo.email&include_granted_scopes=true&response_type=code&state={{ request.META.QUERY_STRING|urlencode }}&redirect_uri={{ redirect_uri }}&client_id={{ GOOGLE_CLIENT_ID }}"
+                   role="button" style="text-transform:none">
+                    <img width="20px" style="margin-bottom:3px; margin-right:5px" alt="Google sign-in"
+                         src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png"/>
+                    Login with Google
+                </a>
+            </div>
+            <div class="col-sm mt-2">
+                <a class="btn btn-outline-dark input-right input-left"
+                   href="https://www.facebook.com/v11.0/dialog/oauth?state={{ request.META.QUERY_STRING|urlencode }}&redirect_uri={{ facebook_redirect_uri }}&client_id={{ FACEBOOK_CLIENT_ID }}"
+                   role="button" style="text-transform:none">
+                    <img width="20px" style="margin-bottom:3px; margin-right:5px" alt="Facebook sign-in"
+                         src="https://image.flaticon.com/icons/png/512/124/124010.png"/>
+                    Login with Facebook
+                </a>
+            </div>
+            <p class="mt-3"><a href="/login?{{ request.META.QUERY_STRING }}">Existing User?</a>
+        </form>
+    </div>
+{% endblock %}
