@@ -84,10 +84,6 @@ def confirm_order(request):
     key_id = settings.razorpay_key_id
     date_obj = datetime.datetime.strptime(date_str, '%Y%m%d')
 
-    # checking weather the date is a future date by calculating differance between today and date from request
-    if (date_obj - datetime.datetime.now()).days < 1:
-        return Response({"error": "Date should be a future date"}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
     # checking the date is not a past date
     if date_obj.day - datetime.datetime.now().day < 0:
         return Response({"error": "Date should be a future date"}, status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -152,7 +148,8 @@ def confirm_order(request):
                 else:
                     amount += -item.quantity * item.item.price * item.weight_variants / 1000
 
-        amount += address_obj.delivery_charge
+        if amount < 500:
+            amount += address_obj.delivery_charge
 
         if amount > 0:
 
@@ -169,7 +166,13 @@ def confirm_order(request):
                     "currency": "INR",
                     "callback_url": call_back_url,
                     "callback_method": "get",
-                    'reference_id': transaction_id
+                    'reference_id': transaction_id,
+                    "customer": {
+                        "contact": address_obj.phone,
+                        "email": user.email,
+                        "name": user.username
+                    },
+
                 }
                 x = requests.post(url,
                                   json=my_obj,
