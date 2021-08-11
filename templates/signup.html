@@ -6,9 +6,7 @@
 {% block form %}
   <div  class="col-md-6 from-container ">
         <a style="" class="back" href="https://dreameat.in/"><i class="fas fa-chevron-left"> </i> back</a>
-          <div class="already-container">
-                 <p  class="already "> Already have an account? <a class="signin-link" href="/login?{{ request.META.QUERY_STRING }}">Sign in</a>
-          </div>
+
         <form action="/signup/?{{ request.META.QUERY_STRING }}" method="POST">
 
 
@@ -67,11 +65,11 @@
             <img width="20px" style="margin-bottom:3px; margin-right:5px" alt="Google sign-in"
                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png"/> login with Google
           </a>
-{#               <div>#}
-{#                                  https://accounts.google.com/o/oauth2/v2/auth?scope=https%3A//www.googleapis.com/auth/userinfo.profile%20https%3A//www.googleapis.com/auth/userinfo.email&include_granted_scopes=true&response_type=code&state={{ request.META.QUERY_STRING|urlencode }}&redirect_uri={{ redirect_uri }}&client_id={{ GOOGLE_CLIENT_ID }}#}
-{##}
-{#               </div>#}
+
            </div>
+            <div class="already-container">
+                 <p  class="already"> Already have an account? <a class="signin-link" href="/login?{{ request.META.QUERY_STRING }}">Sign in</a>
+             </div>
             </div>
         </form>
       </div>

@@ -10,17 +10,16 @@
             align-items: baseline ;
             top:0;
             position: absolute;
+            z-index: 2;
         }
         .back-icon{
             display: none;
         }
         .already-container{
-            position:relative;
-            top:0;
-            text-align: right;
-            display: block;
-            padding-right: 10px;;
+            text-align: center;
+            margin-top: 20px;
         }
+
         .new-to{
             margin-top: 40px;
         }

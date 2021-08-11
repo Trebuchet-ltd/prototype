@@ -1,0 +1,46 @@
+{% extends 'auth_base.html' %}
+{% load i18n %}
+{% block title %}
+    Authorize - Needmedi.com
+{% endblock %}
+{% block form %}
+    <div class="d-flex container flex-column  neumorphic_form p-4 align-items-center col-12 col-md-6 col-lg-4">
+        {% if not error %}
+            <form id="authorizationForm" method="post">
+                <h3 class="m-0 block-center-heading">Continue as {{ request.user.username }}</h3>
+                <p>
+                    <a class="link" href="/login/?next={{ request.get_full_path | urlencode }}">Login as a Different user</a></p>
+                <h3 class="block-center-heading">{% trans "Authorize" %} {{ application.name }}?</h3>
+                {% csrf_token %}
+
+                {% for field in form %}
+                    {% if field.is_hidden %}
+                        {{ field }}
+                    {% endif %}
+                {% endfor %}
+
+                <p>{% trans "Application requires the following permissions" %}</p>
+                <ul>
+                    {% for scope in scopes_descriptions %}
+                        <li>{{ scope }}</li>
+                    {% endfor %}
+                </ul>
+
+                {{ form.errors }}
+                {{ form.non_field_errors }}
+
+                <div class="control-group">
+                    <div class="controls">
+                        <input type="submit" class="btn btn-large" value="{% trans 'Cancel' %}"/>
+                        <input type="submit" class="btn btn-large btn-primary" name="allow"
+                               value="{% trans 'Authorize' %}"/>
+                    </div>
+                </div>
+            </form>
+
+        {% else %}
+            <h2>Error: {{ error.error }}</h2>
+            <p>{{ error.description }}</p>
+        {% endif %}
+    </div>
+{% endblock %}

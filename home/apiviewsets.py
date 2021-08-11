@@ -52,11 +52,8 @@ class CartItemViewSets(viewsets.ModelViewSet):
                 serializer.save(cart=self.request.user.cart, item_id=item)
 
 
-@api_view(['GET'])
-def available_pin_codes(request):
-    pincode = request.GET["pincode"]
+def is_availabe_district(pincode):
     try:
-
         district = requests.get(f'https://api.postalpincode.in/pincode/{pincode}').json()[0].get("PostOffice")[
             0].get("District")
         print(district)
@@ -65,19 +62,153 @@ def available_pin_codes(request):
 
         # this check whether the the district added to the database and it is available for delivery
         if not (district_obj and district_obj[0].Available_status):
-            return Response({"error": "Delivery to this address is not available"})
-        else:
-            return Response(status=200)
+            return False
+    except TypeError:
+        pass
+    else:
+        return True
 
+
+@api_view(['GET'])
+def available_pin_codes(request):
+    """ A End point to know the availability of a district """
+
+    pincode = request.GET["pincode"]
+    if is_availabe_district(pincode):
+        return Response(status=200)
+    else:
+        return Response({"error": "Delivery to this address is not available"},status=status.HTTP_406_NOT_ACCEPTABLE)
+
+
+def add_points(token):
+    """ Function to add points to user when first purchase occurs """
+
+    if not Tokens.objects.get(invite_token=token).first_purchase_done:
+        invite_token = Tokens.objects.get(private_token=token)
+        invite_token.points += 10
+        invite_token.save()
+        return True
+
+    return False
+
+
+def new_id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    """ This function generate a random string  """
+
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
+def create_new_unique_id():
+    """ This function verify the uniqueness of an id for transaction """
+
+    not_unique = True
+    unique_id = new_id_generator()
+    while not_unique:
+        unique_id = new_id_generator()
+        if not TransactionDetails.objects.filter(transaction_id=unique_id):
+            not_unique = False
+    return str(unique_id)
+
+
+def get_payment_link(user,date,time,amount,address_obj):
+    """ This Function returns thr payment url for that particular checkout """
+
+    key_secret = settings.razorpay_key_secret
+    call_back_url = settings.webhook_call_back_url
+    key_id = settings.razorpay_key_id
+    transaction_id = create_new_unique_id()
+    transaction_details = TransactionDetails(transaction_id=transaction_id, user=user,
+                                             date=date, time=time, address_id=address_obj.id, total=amount)
+    transaction_details.save()
+    amount *= 100  # converting rupees to paisa
+    try:
+        url = 'https://api.razorpay.com/v1/payment_links'
+
+        data = {
+            "amount": amount,
+            "currency": "INR",
+            "callback_url": call_back_url,
+            "callback_method": "get",
+            'reference_id': transaction_id,
+            "customer": {
+                "contact": address_obj.phone,
+                "email": user.email,
+                "name": address_obj.name
+            },
+            "options": {
+                "checkout": {
+                    "name": "DreamEat",
+                    "prefill": {
+                        "email": user.email,
+                        "contact": address_obj.phone
+                    },
+                    "readonly": {
+                        "email": True,
+                        "contact": True
+                    }
+                }
+            }
+
+        }
+        x = requests.post(url,
+                          json=data,
+                          headers={'Content-type': 'application/json'},
+                          auth=HTTPBasicAuth(key_id, key_secret))
+        data = x.json()
+        transaction_details.payment_id = data.get("id")
+        transaction_details.payment_status = data.get("status")
+        transaction_details.save()
+        payment_url = data.get('short_url')
+        return payment_url
     except Exception as e:
         print(e)
-        return Response(status=400)
+        return False
 
-# {
-# "date":"2021-09-11",
-# "time":"morning",
-# "selected_address":17
-# }
+
+def is_valid_date(date_obj, time):
+    """ This function check the user selected date and time is valid or not """
+
+    if (date_obj.date() - datetime.datetime.now().date()).days < 0:
+        return False
+    elif date_obj.date() == datetime.datetime.now().date():  # checking the date is today or not
+        if time == "morning":  # if the date is today morning slot is not available
+            return False
+    return True
+
+
+def is_out_of_stock(user):
+    """ This function checks the stock availability of the product """
+    for item in user.cart.items.all():
+        reduction_in_stock = item.weight_variants * item.quantity / 1000
+        if item.item.stock - reduction_in_stock <= 0:
+
+            return item.item
+    return False
+
+
+def total_amount(user,address_obj):
+    """ This function returns the total amount of the cart items of the user """
+
+    cart = user.cart
+    amount = 0
+
+    for item in cart.items.all():
+        if item.quantity > 0:
+            if item.is_cleaned:
+                amount += item.quantity * item.item.cleaned_price * item.weight_variants / 1000
+            else:
+                amount += item.quantity * item.item.price * item.weight_variants / 1000
+
+        elif item.quantity < 0:
+            if item.is_cleaned:
+                amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
+            else:
+                amount += -item.quantity * item.item.price * item.weight_variants / 1000
+
+    if amount < 500:
+        amount += address_obj.delivery_charge
+
+    return amount
 
 
 @api_view(["POST"])
@@ -87,137 +218,36 @@ def confirm_order(request):
     date_str = "".join(date.split("-"))
     time = request.data["time"]
     address = request.data["selected_address"]
-    key_id = settings.razorpay_key_id
     date_obj = datetime.datetime.strptime(date_str, '%Y%m%d')
 
     # checking the date is not a past date
-
-    if (date_obj.date() - datetime.datetime.now().date()).days < 0:
-
+    if not is_valid_date(date_obj, time):
         return Response({"error": "Date should be a future date"}, status=status.HTTP_406_NOT_ACCEPTABLE)
-    elif date_obj.date() == datetime.datetime.now().date():  # checking the date is today or not
-        if time == "morning":  # if the date is today morning slot is not available
-            return Response({"error": "Time should be a future time"}, status=status.HTTP_406_NOT_ACCEPTABLE)
-    for item in request.user.cart.items.all():
-        reduction_in_stock = item.weight_variants * item.quantity / 1000
-        if item.item.stock - reduction_in_stock <= 0:
-            return Response({"error": f" Item {item.item} is out of stock"}, status=status.HTTP_406_NOT_ACCEPTABLE)
-    try:
-        address_obj = Addresses.objects.get(id=address)
-        # get the district of the pincode of user from the indian postal api
-        # It returns a object that include the array of post offices in that pincode and it include the district
-        district = requests.get(f'https://api.postalpincode.in/pincode/{address_obj.pincode}')\
-            .json()[0].get("PostOffice")[0].get("District")
 
-        # district obj contains the district if it is added to database else return null queryset
-        district_obj = District.objects.filter(district_name=district)
+    # item will false when stock available otherwise this will be thw name of that particular item that is out of stock
+    item = is_out_of_stock(request.user)
+    if item:
+        return Response({"error": f" Item {item} is out of stock"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        # this check whether the the district added to the database and it is available for delivery
-        if not (district_obj and district_obj[0].Available_status):
-            return Response({"error": "Delivery to this address is not available"})
+    address_obj = Addresses.objects.get(id=address)
+    if not is_availabe_district(address_obj.pincode):
+        return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    except Exception as e:
-        print(e)
-        return Response({"error": "Invalid pincode "}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-    key_secret = settings.razorpay_key_secret
-    call_back_url = settings.webhook_call_back_url
-
-    def new_id_generator(size=6, chars=string.ascii_uppercase + string.digits):
-
-        """ This function generate a random string  """
-        return ''.join(random.choice(chars) for _ in range(size))
-
-    def create_new_unique_id():
-        """ This function verify the id for transaction """
-        not_unique = True
-        unique_id = new_id_generator()
-        while not_unique:
-            unique_id = new_id_generator()
-            if not TransactionDetails.objects.filter(transaction_id=unique_id):
-                not_unique = False
-        return str(unique_id)
-
-    try:
-        user = User.objects.get(id=request.user.id)
-        cart = user.cart
-        amount = 0
-
-        for item in cart.items.all():
-            if item.quantity > 0:
-                if item.is_cleaned:
-                    amount += item.quantity * item.item.cleaned_price * item.weight_variants / 1000
-                else:
-                    amount += item.quantity * item.item.price * item.weight_variants / 1000
-
-            elif item.quantity < 0:
-                if item.is_cleaned:
-                    amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
-                else:
-                    amount += -item.quantity * item.item.price * item.weight_variants / 1000
-
-        if amount < 500:
-            amount += address_obj.delivery_charge
-
-        if amount > 0:
-
-            transaction_id = create_new_unique_id()
-            transaction_details = TransactionDetails(transaction_id=transaction_id, user=user,
-                                                     date=date, time=time, address_id=address, total=amount)
-            transaction_details.save()
-            amount *= 100  # converting rupees to paisa
-
-            try:
-                url = 'https://api.razorpay.com/v1/payment_links'
-                my_obj = {
-                    "amount": amount,
-                    "currency": "INR",
-                    "callback_url": call_back_url,
-                    "callback_method": "get",
-                    'reference_id': transaction_id,
-                    "customer": {
-                        "contact":address_obj.phone,
-                        "email": user.email,
-                        "name": address_obj.name
-                    },
-                    "options": {
-                        "checkout": {
-                            "name":"DreamEat",
-                            "prefill": {
-                                "email": user.email,
-                                "contact": address_obj.phone
-                            },
-                            "readonly": {
-                                "email": True,
-                                "contact": True
-                            }
-                        }
-                    }
-
-                }
-                x = requests.post(url,
-                                  json=my_obj,
-                                  headers={'Content-type': 'application/json'},
-                                  auth=HTTPBasicAuth(key_id, key_secret))
-                data = x.json()
-                transaction_details.payment_id = data.get("id")
-                transaction_details.payment_status = data.get("status")
-                transaction_details.save()
-                payment_url = data.get('short_url')
-                return Response({"payment_url": payment_url})
-            except Exception as e:
-                print(e)
-                Response(status=status.HTTP_406_NOT_ACCEPTABLE)
-    except Exception as e:
-        print(e)
-        return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+    user = User.objects.get(id=request.user.id)
+    amount = total_amount(user, address_obj)
+    if amount > 0:
+        payment_url = get_payment_link(user, date, time, amount, address_obj)
+        if payment_url:
+            return Response({"payment_url": payment_url})
+        else:
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
 def payment(request):
     if request.method == "GET":
         try:
             transaction_details = TransactionDetails.objects.get(
-                transaction_id=request.GET["razorpay_payment_link_reference_id"])
+                transaction_id = request.GET["razorpay_payment_link_reference_id"])
             transaction_details.payment_status = request.GET["razorpay_payment_link_status"]
 
             user = transaction_details.user
@@ -229,6 +259,10 @@ def payment(request):
             order.save()
             transaction_details.order = order
             transaction_details.save()
+            token = Tokens.objects.get(user=user)
+            if not token.first_purchase_done:
+                add_points(token.invite_token)
+
             for item in cart.items.all():
                 order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order,
                                                       weight_variants=item.weight_variants,

@@ -173,7 +173,7 @@ class Tokens(models.Model):
     points = models.IntegerField(default=0)
     reviews = models.IntegerField(default=0)
     invite_token = models.CharField(max_length=10, blank=True, null=True)
-
+    first_purchase_done = models.BooleanField(default=False)
 
 class AvailableState(models.Model):
     states = state_choices = (
