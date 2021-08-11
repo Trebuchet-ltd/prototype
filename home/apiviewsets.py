@@ -73,6 +73,12 @@ def available_pin_codes(request):
         print(e)
         return Response(status=400)
 
+# {
+# "date":"2021-09-11",
+# "time":"morning",
+# "selected_address":17
+# }
+
 
 @api_view(["POST"])
 def confirm_order(request):
@@ -85,9 +91,11 @@ def confirm_order(request):
     date_obj = datetime.datetime.strptime(date_str, '%Y%m%d')
 
     # checking the date is not a past date
-    if date_obj.day - datetime.datetime.now().day < 0:
+
+    if (date_obj.date() - datetime.datetime.now().date()).days < 0:
+
         return Response({"error": "Date should be a future date"}, status=status.HTTP_406_NOT_ACCEPTABLE)
-    elif date_obj.day == datetime.datetime.now().day:  # checking the date is today or not
+    elif date_obj.date() == datetime.datetime.now().date():  # checking the date is today or not
         if time == "morning":  # if the date is today morning slot is not available
             return Response({"error": "Time should be a future time"}, status=status.HTTP_406_NOT_ACCEPTABLE)
     for item in request.user.cart.items.all():
@@ -168,10 +176,23 @@ def confirm_order(request):
                     "callback_method": "get",
                     'reference_id': transaction_id,
                     "customer": {
-                        "contact": address_obj.phone,
+                        "contact":address_obj.phone,
                         "email": user.email,
-                        "name": user.username
+                        "name": address_obj.name
                     },
+                    "options": {
+                        "checkout": {
+                            "name":"DreamEat",
+                            "prefill": {
+                                "email": user.email,
+                                "contact": address_obj.phone
+                            },
+                            "readonly": {
+                                "email": True,
+                                "contact": True
+                            }
+                        }
+                    }
 
                 }
                 x = requests.post(url,
@@ -179,7 +200,6 @@ def confirm_order(request):
                                   headers={'Content-type': 'application/json'},
                                   auth=HTTPBasicAuth(key_id, key_secret))
                 data = x.json()
-
                 transaction_details.payment_id = data.get("id")
                 transaction_details.payment_status = data.get("status")
                 transaction_details.save()

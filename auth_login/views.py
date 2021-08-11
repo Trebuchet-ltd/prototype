@@ -100,8 +100,9 @@ def signin(request):
     context1 = {}
     pprint(request.META['QUERY_STRING'])
     if request.method == "POST":
-        email = request.POST["username"]
+        email = request.POST["email"]
         password = request.POST["password"]
+        print(email, password)
         if not email or not password:
             context1['pswderr'] = "Text fields cannot be empty"
         user = authenticate(request, username=email, password=password)

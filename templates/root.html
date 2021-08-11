@@ -1,22 +1,26 @@
 {% extends 'auth_base.html' %}
 {% load static %}
-
 {% block css %}
     <link href="{% static 'css/main.css' %}" rel="stylesheet"/>
+    <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
 {% endblock %}
 
 {% block body %}
-
-    <div class="d-flex justify-content-center align-items-center bg-grey vh-100">
-
-        {% block form %}
+<section class="" style=" overflow-x: hidden" >
+  <div class="bg  " >
+    <div class="row d-flex align-items-center justify-content-center h-100">
+      <div class="col-md-6" >
+          <img   class="bg-image" src="../static/meadia/images/loginbg.png">
+      </div>
+         {% block form %}
 
         {% endblock %}
+    </div>
+  </div>
+</section>
 
-    </div>
-    </div>
 {% endblock %}
 
 {% block script %}
-
+<script type="text/javascript" src="../static/js/login.js"></script>
 {% endblock %}

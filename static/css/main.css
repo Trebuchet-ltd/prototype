@@ -1,0 +1,113 @@
+        body{
+            font-family:Poppins;
+
+        }
+        .back{
+            margin-top:13px;
+            font-weight:600;
+            color: #8692A6;
+            display: flex;
+            align-items: baseline ;
+            top:0;
+            position: absolute;
+        }
+        .back-icon{
+            display: none;
+        }
+        .already-container{
+            position:relative;
+            top:0;
+            text-align: right;
+            display: block;
+            padding-right: 10px;;
+        }
+        .new-to{
+            margin-top: 40px;
+        }
+        .from-container {
+            height: 100%;
+            color:#696F79;
+            padding-top: 10px
+        }
+        .text-input{
+            max-width: 347px;
+        }
+        .text-input:focus{
+            outline: none !important;
+            border-color: #DD2C00 ;
+            box-shadow: 0 0 10px #719ECE;
+            border-width: 2px;
+        }
+        .form-checkbox:checked{
+            background-color:#DD2C00 !important;
+            border:2px solid #DD2C00 ;
+        }
+        .signin-link{
+            color: #DD2C00;
+        }
+        .signin-link:active{
+            color: #DD2C00;
+        }
+         .form-checkbox:after{
+            border:2px solid #DD2C00 ;
+        }
+        .bg-image{
+            height: 100vh;
+            width: 100%;
+            object-fit:cover;
+        }
+        .password-container{
+            position: relative;
+        }
+        .password-input{
+            padding-right: 54px !important;
+        }
+        .visibility{
+            cursor: pointer;
+            color: #0c0c0c;
+            position: absolute;
+            margin-top: 22px;
+            margin-right: 14px;
+            top: 0;
+            right: 0;
+        }
+        .input-fields{
+            padding: 10px;
+        }
+        .submit-btn{
+            background-color: #DD2C00;
+            color: white;
+            height: 64px;
+            width: 348px ;
+            text-transform: none;
+            font-size: 1.2rem
+
+        }
+        .submit-btn:hover{
+            color: white;
+            height: 64px;
+            box-shadow: 0 0 10px #719ECE;
+        }
+
+        @media only screen and (max-width: 768px) {
+            /* For small devices: */
+                .bg-image {
+                   display: none;
+                    }
+                .back{
+                    display: none;
+                }
+                .back-icon{
+                    display: inline;
+                    align-items: baseline;
+                    margin-left: 10px;
+                    float: left;
+                    position: relative;
+                    color: #0c0c0c;
+                    height:12px ;
+                    }
+                    }
+        .heading{
+            text-align: center;
+            color:red;
+        }

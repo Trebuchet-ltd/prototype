@@ -163,7 +163,7 @@ USE_L10N = True
 USE_TZ = True
 
 if not DEBUG:
-    DEPLOYMENT_URL = 'https://dreameat.in'
+    DEPLOYMENT_URL = 'https://api.dreameat.in'
 
 else:
     DEPLOYMENT_URL = 'http://127.0.0.1:8000'
@@ -172,10 +172,12 @@ else:
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-# ]
+# STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 if DEBUG:
     MEDIA_ROOT = BASE_DIR / 'media'
 else:
