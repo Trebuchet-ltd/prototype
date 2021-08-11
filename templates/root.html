@@ -10,7 +10,7 @@
   <div class="bg  " >
     <div class="row d-flex align-items-center justify-content-center h-100">
       <div class="col-md-6" >
-          <img   class="bg-image" src="../static/meadia/images/loginbg.png">
+          <img   class="bg-image" src="{% static 'meadia/images/loginbg.png' %}">
       </div>
          {% block form %}
 
@@ -22,5 +22,7 @@
 {% endblock %}
 
 {% block script %}
-<script type="text/javascript" src="../static/js/login.js"></script>
+
+<script type="text/javascript" src="{% static 'js/login.js' %}"></script>
+
 {% endblock %}
