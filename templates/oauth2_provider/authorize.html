@@ -17,16 +17,9 @@
                     <h2 class="main-head"> Choose an Account </h2>
                     <h3  class="sub-head">to continue to <a class="signin-link" href="https://dreameat.in/" > dreameat.in </a></h3>
                     {% csrf_token %}
-
                  {% for field in form %}
                     {% if field.is_hidden %}
-                      <div class="select-account ">
-                            <div class=" d-flex flex-row">
-                                <div class="details-container justify-content-center d-flex flex-column" >
-                                {{ field }}
-                                </div>
-                            </div>
-                        </div>
+                        {{ field }}
                     {% endif %}
                 {% endfor %}
                     <div class="select-account ">
