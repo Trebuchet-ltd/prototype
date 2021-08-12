@@ -1,47 +1,63 @@
 {% extends 'auth_base.html' %}
 {% load i18n %}
 {% block title %}
-    Authorize
+    Authorize to DreamEat
 {% endblock %}
+{% load static %}
+{% block css %}
+    <link href="{% static 'css/main.css' %}" rel="stylesheet"/>
+    <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+{% endblock %}
+
 {% block body %}
-    <div class="d-flex container flex-column  neumorphic_form p-4 align-items-center col-12 col-md-6 col-lg-4">
+    <div style="height: 100vh" class="d-flex  flex-column align-items-center justify-content-center">
+    <div  class="d-flex  fa-border  auth-container container flex-column justify-content-center  p-4 align-items-center ">
         {% if not error %}
-            <form id="authorizationForm" method="post">
-                <h3 class="m-0 block-center-heading">Continue as {{ request.user.username }}</h3>
-                <p>
-                    <a class="link" href="/login/?next={{ request.get_full_path  | urlencode }}">Login as a Different user</a></p>
-                <h3 class="block-center-heading">{% trans "Authorize" %} {{ application.name }}?</h3>
-                {% csrf_token %}
+             <form class="form-container d-flex flex-column justify-content-center items-center" id="authorizationForm" method="post">
+                    <h2 class="main-head"> Choose an Account </h2>
+                    <h3  class="sub-head">to continue to <a class="signin-link" href="https://dreameat.in/" > dreameat.in </a></h3>
+                    {% csrf_token %}
+                    <div class="select-account ">
+                        <div class=" d-flex flex-row">
 
-                {% for field in form %}
-                    {% if field.is_hidden %}
-                        {{ field }}
-                    {% endif %}
-                {% endfor %}
-
-                <p>{% trans "Application requires the following permissions" %}</p>
-                <ul>
-                    {% for scope in scopes_descriptions %}
-                        <li>{{ scope }}</li>
-                    {% endfor %}
-                </ul>
-
-                {{ form.errors }}
-                {{ form.non_field_errors }}
-
-                <div class="control-group">
-                    <div class="controls">
-                        <input type="submit" class="btn btn-large" value="{% trans 'Cancel' %}"/>
-                        <input type="submit" class="btn btn-large btn-primary" name="allow"
-                               value="{% trans 'Authorize' %}"/>
+                        <i class="fas user-logo fa-user"></i>
+                        <div class="details-container justify-content-center d-flex flex-column" >
+                            <input type="submit" class="username-text"
+                               value= "{{ request.user.username }}"/>
+                             <input type="submit" class="username-text hidden" name="allow"
+                               value="{% trans "Authorize" %}"/>
+{#                            <h6 class="username-text" >{{ request.user.username }}</h6>#}
+                            <h7 class="email-text">{{ request.user.email}} </h7>
+                        </div>
                     </div>
-                </div>
-            </form>
+                    </div>
+                    <hr class="line">
+                    <div class="select-account  ">
 
+                        <div class=" d-flex flex-row">
+
+                        <i class="far user-logo fa-user-circle"></i>
+                        <div class="details-container justify-content-center d-flex flex-column" >
+
+
+                            <a class="username-text" href="/login/?next={{ request.get_full_path  | urlencode }}">Choose another account</a>
+
+                        </div>
+                    </div>
+                    </div>
+                     <hr class="line">
+                     <input type="submit"  class="username-text" value="{% trans 'Cancel' %}"/>
+
+             </form>
         {% else %}
             <h2>Error: {{ error.error }}</h2>
             <p>{{ error.description }}</p>
         {% endif %}
 
+    </div>
+    <ul class="list-group  list-group-horizontal">
+      <li class="list-group-item list">help</li>
+      <li class="list-group-item list">terms</li>
+   </ul>
     </div>
 {% endblock %}
