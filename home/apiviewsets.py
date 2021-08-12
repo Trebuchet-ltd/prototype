@@ -328,7 +328,7 @@ def distance_between(loc1, loc2):
 
 def get_delivery_charge(location):
     distance = distance_between(settings.location, [location[0], location[1]])
-    if distance <= 15:
+    if distance <= 10:
         return 30
     else:
         return 60
@@ -338,7 +338,7 @@ class AddressViewSets(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsOwner]
     queryset = Addresses.objects.all()
     serializer_class = GetAddressSerializer
-    http_method_names = ['get', 'post', 'patch']
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_queryset(self):
         self.queryset = Addresses.objects.filter(user=self.request.user)
