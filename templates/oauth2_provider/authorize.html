@@ -27,9 +27,8 @@
 
                         <i class="fas user-logo fa-user"></i>
                         <div class="details-container justify-content-center d-flex flex-column" >
-                            <input type="submit" class="username-text"
-                               value= "{{ request.user.username }}"/>
-                             <input type="submit" class="username-text hidden" name="allow"
+                            <button type="submit" class="username-text"> {{ request.user.username }}</button>
+                             <input type="text" class="username-text hidden" name="allow"
                                value="{% trans "Authorize" %}"/>
 {#                            <h6 class="username-text" >{{ request.user.username }}</h6>#}
                             <h7 class="email-text">{{ request.user.email}} </h7>
@@ -51,7 +50,7 @@
                     </div>
                     </div>
                      <hr class="line">
-                     <input type="submit"  class="username-text" value="{% trans 'Cancel' %}"/>
+                 <button type="submit"  class="username-text">{% trans 'Cancel' %}</button>
 
              </form>
         {% else %}
