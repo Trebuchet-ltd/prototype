@@ -22,8 +22,6 @@ class GetProductSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'short_description', 'price', 'stock',
             'meat', 'images', 'bestSeller', "weight", 'rating',
             'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price',
-
-
         ]
 
 
