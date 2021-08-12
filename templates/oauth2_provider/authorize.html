@@ -12,7 +12,7 @@
 {% block body %}
     <div style="height: 100vh" class="d-flex  flex-column align-items-center justify-content-center">
     <div  class="d-flex  fa-border  auth-container container flex-column justify-content-center  p-4 align-items-center ">
-        {% if not                                                                                                                                                                                                                    error %}
+        {% if not error %}                                                                                                                                                                                                           error %}
              <form class="form-container d-flex flex-column justify-content-center items-center" id="authorizationForm" method="post">
                     <h2 class="main-head"> Choose an Account </h2>
                     <h3  class="sub-head">to continue to <a class="signin-link" href="https://dreameat.in/" > dreameat.in </a></h3>
@@ -24,9 +24,9 @@
                         <div class="details-container justify-content-center d-flex flex-column" >
                             <input type="submit" class="username-text"
                                value="{% trans request.user.username %}"/>
-                             <input type="submit" class="username-text hidden" name="allow"
+                             <input type="hidden" class="username-text " name="allow"
                                value="{% trans "Authorize" %}"/>
-{#                            <h6 class="username-text" >{{ request.user.username }}</h6>#}
+
                             <h7 class="email-text">{{ request.user.email}} </h7>
                         </div>
                     </div>
@@ -47,7 +47,14 @@
                     </div>
                      <hr class="line">
                      <input type="submit"  class="username-text" value="{% trans 'Cancel' %}"/>
+                        <div class="control-group">
 
+                            <div class="controls mt-5">
+                                <input type="submit" class="btn btn-large" value="{% trans 'Cancel' %}"/>
+                                <input type="submit" class="btn btn-large btn-primary" name="allow"
+                                       value="{% trans 'Authorize' %}"/>
+                            </div>
+                        </div>
              </form>
         {% else %}
             <h2>Error: {{ error.error }}</h2>
