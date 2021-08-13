@@ -245,6 +245,7 @@ def Google_login(request):
         if access_token:
             user = AccessToken.objects.get(token=access_token).user
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            CartModel.objects.get_or_create(user=user)
             try:
 
                 token_of_user, _ = Tokens.objects.get_or_create(user=user)
