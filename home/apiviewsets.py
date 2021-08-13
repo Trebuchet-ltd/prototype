@@ -9,11 +9,11 @@ from django.http import HttpResponseRedirect
 import requests
 from requests.auth import HTTPBasicAuth
 import datetime
-from math import sin, cos, sqrt, atan2, radians
 from authentication.permissions import IsOwner
 from home.serializers import *
 from .models import *
 import prototype.settings as settings
+from django.contrib.gis.geos import GEOSGeometry
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -309,20 +309,9 @@ class OrderViewSets(viewsets.ModelViewSet):
 
 
 def distance_between(loc1, loc2):
-
-    earth_radius = 6373.0
-    lat1 = radians(loc1[0])
-    lon1 = radians(loc1[1])
-    lat2 = radians(loc2[0])
-    lon2 = radians(loc2[1])
-
-    dif_lon = lon2 - lon1
-    dif_lat = lat2 - lat1
-
-    a = sin(dif_lat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dif_lon / 2) ** 2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-
-    distance = earth_radius * c
+    pnt1 = GEOSGeometry(f"POINT ({loc1[0]} {loc1[1]})")
+    pnt2 = GEOSGeometry(f"POINT ({loc2[0]} {loc2[1]})")
+    distance = pnt1.distance(pnt2)*100
     return distance
 
 
