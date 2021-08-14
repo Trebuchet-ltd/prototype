@@ -204,6 +204,8 @@ def total_amount(user,address_obj):
                 amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
             else:
                 amount += -item.quantity * item.item.price * item.weight_variants / 1000
+    if amount <= 0:
+        return 0
 
     if amount < 500:
         amount += address_obj.delivery_charge
@@ -241,6 +243,8 @@ def confirm_order(request):
             return Response({"payment_url": payment_url})
         else:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+    else:
+        return Response({"error": "total amount must be positive "}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
 def payment(request):
