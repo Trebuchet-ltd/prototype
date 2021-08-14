@@ -233,11 +233,20 @@ def is_valid_coupon(user, coupon_code, amount):
     return [True]
 
 
-def apply_coupon(coupon_code, amount):
+def apply_coupon(user, coupon_code, amount):
     """
     This function apply the coupon code and
     """
     coupon_obj = Coupon.objects.get(code=coupon_code)
+    if is_valid_coupon(user, coupon_code, amount)[0]:
+        if coupon_obj.discount_type == 0: # constant type coupon
+            amount -= coupon_obj.discount_value
+            return amount
+        else:   # percentage type
+            amount *= coupon_obj.discount_value/100
+            return amount
+    return amount
+
 
 # {
 # "date":"2021-11-05",
@@ -246,15 +255,15 @@ def apply_coupon(coupon_code, amount):
 # }
 
 
-def total_amount(user, address_obj):
+def total_amount(user, address_obj, coupon_code):
     """
     This function returns the total amount of the cart items of the user
     Return 0 if the amount is zero
     return amount + delivery charge if amount less than 500
     return amount if amount more than 500
+    If any coupon code is present it will apply before adding the delivery charge if any
 
     """
-
     cart = user.cart
     amount = 0
 
@@ -270,11 +279,18 @@ def total_amount(user, address_obj):
                 amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
             else:
                 amount += -item.quantity * item.item.price * item.weight_variants / 1000
-    if amount <= 0:
-        return 0
 
-    if amount < 500:
+    if amount <= 0:     # if the amount is 0 then it should not add the delivery charge
+        return 0
+    print(f"before adding coupon {amount = }")
+    if amount < 500:    # if amount lee than 500 it will apply the coupon if any and add delivery charge
+        if coupon_code:
+            print("amount is now lt 500")
+            amount = apply_coupon(user, coupon_code, amount)
         amount += address_obj.delivery_charge
+    else:
+        amount = apply_coupon(user, coupon_code, amount)
+    print(f"before adding coupon {amount = }")
     return amount
 
 
@@ -287,9 +303,9 @@ def confirm_order(request):
     address = request.data["selected_address"]
     date_obj = datetime.datetime.strptime(date_str, '%Y%m%d')
     coupon_code = ''
-    if hasattr(request.data, "coupon_code"):  # if coupon code is applied the coupon_code will be that string
-        coupon_code = request.POST["coupon_code"]
-
+    # if hasattr(request.data, "coupon_code"):  # if coupon code is applied the coupon_code will be that string
+    coupon_code = request.data["coupon_code"]
+    print(f"{coupon_code = }")
     # checking the date is not a past date
     if not is_valid_date(date_obj, time):
         return Response({"error": "Date should be a future date"}, status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -304,7 +320,7 @@ def confirm_order(request):
         return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     user = User.objects.get(id=request.user.id)
-    amount = total_amount(user, address_obj)
+    amount = total_amount(user, address_obj, coupon_code)
     if amount > 0:
         [payment_url, payment_id] = get_payment_link(user, date, time, amount, address_obj)
         if payment_url:
