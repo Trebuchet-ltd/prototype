@@ -28,3 +28,15 @@ class IsOwner(permissions.BasePermission):
         if hasattr(obj, 'user'):
             return obj.user == request.user
         return obj == request.user
+
+
+class IsMyCartItem(permissions.BasePermission):
+    """
+    Custom permission to only allow to  access  the owner's cart item
+    """
+
+    def has_object_permission(self, request, view, obj):
+        if hasattr(obj, 'cart'):
+            return obj.cart.user == request.user
+        return obj == request.user
+

@@ -9,7 +9,7 @@ from django.http import HttpResponseRedirect
 import requests
 from requests.auth import HTTPBasicAuth
 import datetime
-from authentication.permissions import IsOwner
+from authentication.permissions import IsOwner, IsMyCartItem
 from home.serializers import *
 from .models import *
 import prototype.settings as settings
@@ -34,8 +34,16 @@ class CartItemViewSets(viewsets.ModelViewSet):
     """
     queryset = CartItem.objects.all()
     serializer_class = CartItemSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsMyCartItem]
     http_method_names = ['get', 'patch', 'post', 'delete']
+
+    def get_queryset(self):
+        self.queryset = CartItem.objects.filter(cart=self.request.user.cart)
+        if self.queryset:
+            return self.queryset
+        else:
+            self.queryset = CartItem.objects.none()
+            return self.queryset
 
     def perform_create(self, serializer):
         # The request user is set as author automatically.

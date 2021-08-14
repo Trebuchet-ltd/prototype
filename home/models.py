@@ -93,7 +93,7 @@ class Addresses(models.Model):
     delivery_charge = models.IntegerField(null=True, blank=True, choices=((0, 0), (30, 30), (60, 60)))
 
     def __str__(self):
-        return f"{self.address}, {self.state}, {self.pincode} (PIN) "
+        return f"{self.name} - {self.address}, {self.state}, {self.pincode} (PIN) "
 
 
 class Orders(models.Model):
