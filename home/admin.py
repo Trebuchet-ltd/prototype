@@ -854,3 +854,8 @@ class ProductAdmin(admin.ModelAdmin):
 class TransactionDetailsAdmin(admin.ModelAdmin):
     list_display = ['user', 'transaction_id', 'payment_status', 'total']
     search_fields = ['transaction_id']
+
+
+@admin.register(models.Coupon)
+class CouponsAdmin(admin.ModelAdmin):
+    list_display = ['code', 'discount_type', 'discount_value', 'expired']

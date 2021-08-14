@@ -152,6 +152,23 @@ class TransactionDetails(models.Model):
     address_id = models.CharField(max_length=10, default='')
 
 
+class TempOrder(models.Model):
+    coupon = models.CharField(max_length=20, default='')
+    payment_id = models.CharField(max_length=20, default="")
+    date = models.DateField(blank=True, null=True)
+    time = models.CharField(max_length=20, default='')
+    address_id = models.CharField(max_length=10, default='')
+
+
+class TempItem(models.Model):
+    item = models.ForeignKey(Product, related_name="temp_item", on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    order = models.ForeignKey(TempOrder, related_name="temp_item", on_delete=models.CASCADE)
+    weight_variants = models.IntegerField(blank=True, null=True, default=0)
+    is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
+
+
+
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
@@ -540,3 +557,29 @@ class District(models.Model):
 
     def __str__(self):
         return self.district_name
+
+
+def code_generator(size=10, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+
+def create_new_code():
+    not_unique = True
+    unique_code = code_generator()
+    while not_unique:
+        unique_code = code_generator()
+        if not Coupon.objects.filter(code=unique_code):
+            not_unique = False
+    return str(unique_code)
+
+
+class Coupon(models.Model):
+    code = models.CharField(max_length=20, default=create_new_code, unique=True)
+    user_specific_status = models.BooleanField(default=False)
+    specific_user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,blank=True,null=True,
+                                      help_text="Please provide the user name for user specific coupons else left blank")
+    minimum_price = models.IntegerField(default=0, help_text="Please provide the minimum prize to apply this coupons ")
+    discount_type = models.IntegerField(help_text='0-> constant,1-> percentage,',
+                                        choices=((1, 'percentage'), (0, 'constant')))
+    discount_value = models.FloatField()
+    expired = models.BooleanField(default=False)

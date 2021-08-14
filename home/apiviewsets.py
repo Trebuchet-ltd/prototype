@@ -90,8 +90,8 @@ def available_pin_codes(request):
 
 def add_points(token):
     """ Function to add points to user when first purchase occurs """
-
-    if not Tokens.objects.get(invite_token=token).first_purchase_done:
+    purchase_done = Tokens.objects.get(invite_token=token).first_purchase_done
+    if not purchase_done:
         invite_token = Tokens.objects.get(private_token=token)
         invite_token.points += 10
         invite_token.save()
@@ -118,16 +118,35 @@ def create_new_unique_id():
     return str(unique_id)
 
 
-def get_payment_link(user,date,time,amount,address_obj):
-    """ This Function returns thr payment url for that particular checkout """
+def create_temp_order(cart, payment_id, date,time,address_obj, coupon_code):
+    """
+    This will create an intermediate object of order and order items for storing the current cart items ans details
+
+    """
+
+    order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
+                                     address_id=address_obj.id, coupon=coupon_code)
+    order.save()
+    for item in cart.items.all():
+        temp_item = TempItem.objects.create(item=item.item, quantity=item.quantity, order=order,
+                                            weight_variants=item.weight_variants,
+                                            is_cleaned=item.is_cleaned)
+        temp_item.save()
+
+
+def get_payment_link(user, date, time, amount, address_obj):
+    """
+    This Function returns thr payment url for that particular checkout
+    Returns a list with payment link and payment id created by razorpay
+    """
 
     key_secret = settings.razorpay_key_secret
     call_back_url = settings.webhook_call_back_url
     key_id = settings.razorpay_key_id
     transaction_id = create_new_unique_id()
-    transaction_details = TransactionDetails(transaction_id=transaction_id, user=user,
-                                             date=date, time=time, address_id=address_obj.id, total=amount)
+    transaction_details = TransactionDetails(transaction_id=transaction_id, user=user, total=amount)
     transaction_details.save()
+
     amount *= 100  # converting rupees to paisa
     try:
         url = 'https://api.razorpay.com/v1/payment_links'
@@ -167,7 +186,7 @@ def get_payment_link(user,date,time,amount,address_obj):
         transaction_details.payment_status = data.get("status")
         transaction_details.save()
         payment_url = data.get('short_url')
-        return payment_url
+        return [payment_url, transaction_details.payment_id]
     except Exception as e:
         print(e)
         return False
@@ -194,8 +213,47 @@ def is_out_of_stock(user):
     return False
 
 
-def total_amount(user,address_obj):
-    """ This function returns the total amount of the cart items of the user """
+def is_valid_coupon(user, coupon_code, amount):
+    """
+    This function validates the specified coupon applicable or not
+    Returns a list with first element will be the status (boolean) second element is the error if not valid
+    Returns [True] if the coupon is valid
+    """
+    coupon_obj = Coupon.objects.get(code=coupon_code)
+    if coupon_code is None:  # checks the coupon is existing one
+        return [False, "coupon code does not exist"]
+    if coupon_obj.expired:  # check the coupon expired or not
+        return [False, "coupon code does not exist"]
+    if coupon_obj.user_specific_status:     # checks the coupon is user specific or not
+        if coupon_obj.specific_user != user:    # check the specific user is not the requested user
+            return [False, "coupon code does not exist"]
+    if coupon_obj.minimum_price > amount:   # checks the minimum price condition
+        return [False, f"This coupon is applicable to the amount greater than {coupon_obj.minimum_price} "]
+
+    return [True]
+
+
+def apply_coupon(coupon_code, amount):
+    """
+    This function apply the coupon code and
+    """
+    coupon_obj = Coupon.objects.get(code=coupon_code)
+
+# {
+# "date":"2021-11-05",
+# "time":"morning",
+# "selected_address":17
+# }
+
+
+def total_amount(user, address_obj):
+    """
+    This function returns the total amount of the cart items of the user
+    Return 0 if the amount is zero
+    return amount + delivery charge if amount less than 500
+    return amount if amount more than 500
+
+    """
 
     cart = user.cart
     amount = 0
@@ -217,7 +275,6 @@ def total_amount(user,address_obj):
 
     if amount < 500:
         amount += address_obj.delivery_charge
-
     return amount
 
 
@@ -225,10 +282,13 @@ def total_amount(user,address_obj):
 def confirm_order(request):
 
     date = request.data["date"]
-    date_str = "".join(date.split("-"))
+    date_str = "".join(date.split("-"))  # converting '2017-05-05' to '20170505'
     time = request.data["time"]
     address = request.data["selected_address"]
     date_obj = datetime.datetime.strptime(date_str, '%Y%m%d')
+    coupon_code = ''
+    if hasattr(request.data, "coupon_code"):  # if coupon code is applied the coupon_code will be that string
+        coupon_code = request.POST["coupon_code"]
 
     # checking the date is not a past date
     if not is_valid_date(date_obj, time):
@@ -246,8 +306,11 @@ def confirm_order(request):
     user = User.objects.get(id=request.user.id)
     amount = total_amount(user, address_obj)
     if amount > 0:
-        payment_url = get_payment_link(user, date, time, amount, address_obj)
+        [payment_url, payment_id] = get_payment_link(user, date, time, amount, address_obj)
         if payment_url:
+            # creating a temporary order for saving the current details of cart
+            create_temp_order(user.cart, payment_id, date, time, address_obj, coupon_code)
+
             return Response({"payment_url": payment_url})
         else:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -255,37 +318,54 @@ def confirm_order(request):
         return Response({"error": "total amount must be positive "}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
+def create_order_items(cart, temp_items, order):
+
+    for item in temp_items.all():
+        order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order,
+                                              weight_variants=item.weight_variants,
+                                              is_cleaned=item.is_cleaned)
+        order_item.save()
+        reduction_in_stock = item.weight_variants * item.quantity / 1000
+        item.item.stock -= reduction_in_stock
+        item.item.save()
+        CartItem.objects.filter(item=item.item, weight_variants=item.weight_variants,
+                                is_cleaned=item.is_cleaned).delete()
+
+    cart.total = 0
+    cart.save()
+
+
+@api_view()
 def payment(request):
     if request.method == "GET":
         try:
             transaction_details = TransactionDetails.objects.get(
-                transaction_id = request.GET["razorpay_payment_link_reference_id"])
+                transaction_id=request.GET["razorpay_payment_link_reference_id"])
             transaction_details.payment_status = request.GET["razorpay_payment_link_status"]
 
+            #   temp order will have the intermediate  order details between checkout and payment
+            #   the items added after checkout will not be in temp order
+
+            temp_order = TempOrder.objects.get(payment_id=transaction_details.payment_id)
+            temp_items = TempItem.objects.filter(order=temp_order)
             user = transaction_details.user
             cart = user.cart
 
-            order = Orders.objects.create(user=user, date=transaction_details.date, time=transaction_details.time[0],
-                                          address_id=transaction_details.address_id,
+            order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
+                                          address_id=temp_order.address_id,
                                           total=transaction_details.total, status="p", )
             order.save()
             transaction_details.order = order
             transaction_details.save()
             token = Tokens.objects.get(user=user)
             if not token.first_purchase_done:
-                add_points(token.invite_token)
+                if token.invite_token:  # All user may not be invite token that's why this check is here
+                    add_points(token.invite_token)  # Thi function add points if token is valid
+                    token.first_purchase_done = True    # after first purchase this will executed and make is True
+                    token.save()
 
-            for item in cart.items.all():
-                order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order,
-                                                      weight_variants=item.weight_variants,
-                                                      is_cleaned=item.is_cleaned)
-                order_item.save()
-                reduction_in_stock = item.weight_variants * item.quantity / 1000
-                item.item.stock -= reduction_in_stock
-                item.item.save()
-                item.delete()
-            cart.total = 0
-            cart.save()
+            create_order_items(cart, temp_items, order)
+
         except Exception as ex:
             print(ex)
     return HttpResponseRedirect(settings.webhook_redirect_url)
