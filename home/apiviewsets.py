@@ -118,20 +118,39 @@ def create_new_unique_id():
     return str(unique_id)
 
 
-def create_temp_order(cart, payment_id, date,time,address_obj, coupon_code):
+def create_temp_order(cart, payment_id, date,time,address_obj, coupon_code=''):
     """
     This will create an intermediate object of order and order items for storing the current cart items ans details
 
     """
-
-    order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                     address_id=address_obj.id, coupon=coupon_code)
-    order.save()
+    coupon_obj = Coupon.objects.filter(code=coupon_code).first()
+    if coupon_obj:
+        order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
+                                         address_id=address_obj.id, coupon=coupon_obj)
+        order.save()
+    else:
+        order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
+                                         address_id=address_obj.id)
+        order.save()
     for item in cart.items.all():
         temp_item = TempItem.objects.create(item=item.item, quantity=item.quantity, order=order,
                                             weight_variants=item.weight_variants,
                                             is_cleaned=item.is_cleaned)
         temp_item.save()
+
+
+def cancel_last_payment_links(user):
+    print("This is called")
+    transaction_details = TransactionDetails.objects.filter(user=user, payment_status="created")
+    key_secret = settings.razorpay_key_secret
+    key_id = settings.razorpay_key_id
+    for transaction in transaction_details:
+        url = f'https://api.razorpay.com/v1/payment_links/{transaction.payment_id}/cancel'
+        print(f"canceling  {transaction.payment_id}")
+        requests.post(url,
+                      headers={'Content-type': 'application/json'},
+                      auth=HTTPBasicAuth(key_id, key_secret))
+        transaction.delete()
 
 
 def get_payment_link(user, date, time, amount, address_obj):
@@ -143,6 +162,7 @@ def get_payment_link(user, date, time, amount, address_obj):
     key_secret = settings.razorpay_key_secret
     call_back_url = settings.webhook_call_back_url
     key_id = settings.razorpay_key_id
+    cancel_last_payment_links(user)
     transaction_id = create_new_unique_id()
     transaction_details = TransactionDetails(transaction_id=transaction_id, user=user, total=amount)
     transaction_details.save()
@@ -219,8 +239,14 @@ def is_valid_coupon(user, coupon_code, amount):
     Returns a list with first element will be the status (boolean) second element is the error if not valid
     Returns [True] if the coupon is valid
     """
-    coupon_obj = Coupon.objects.get(code=coupon_code)
-    if coupon_code is None:  # checks the coupon is existing one
+    coupon_obj = Coupon.objects.filter(code=coupon_code).first()
+
+    if not coupon_obj:
+        return [False,"coupon code does not exist"]
+    if not coupon_code:  # checks the coupon is existing one
+        return [False, "coupon code does not exist"]
+    order_with_same_cpn = Orders.objects.filter(user__exact=user, coupon=coupon_obj)
+    if order_with_same_cpn:
         return [False, "coupon code does not exist"]
     if coupon_obj.expired:  # check the coupon expired or not
         return [False, "coupon code does not exist"]
@@ -237,21 +263,29 @@ def apply_coupon(user, coupon_code, amount):
     """
     This function apply the coupon code and
     """
-    coupon_obj = Coupon.objects.get(code=coupon_code)
-    if is_valid_coupon(user, coupon_code, amount)[0]:
-        if coupon_obj.discount_type == 0: # constant type coupon
-            amount -= coupon_obj.discount_value
-            return amount
-        else:   # percentage type
-            amount *= coupon_obj.discount_value/100
-            return amount
+
+    coupon_obj = Coupon.objects.filter(code=coupon_code).first()
+
+    if coupon_obj:
+        if is_valid_coupon(user, coupon_code, amount)[0]:
+            print("valid")
+            if coupon_obj.discount_type == 0: # constant type coupon
+                amount -= coupon_obj.discount_value
+
+                return [amount]
+            else:   # percentage type
+                amount *= coupon_obj.discount_value/100
+
+                return amount
+
     return amount
 
-
+#
 # {
 # "date":"2021-11-05",
 # "time":"morning",
-# "selected_address":17
+# "selected_address":1,
+# "coupon_code":"ME7WCW4S0K"
 # }
 
 
@@ -282,15 +316,15 @@ def total_amount(user, address_obj, coupon_code):
 
     if amount <= 0:     # if the amount is 0 then it should not add the delivery charge
         return 0
-    print(f"before adding coupon {amount = }")
+
     if amount < 500:    # if amount lee than 500 it will apply the coupon if any and add delivery charge
         if coupon_code:
-            print("amount is now lt 500")
+
             amount = apply_coupon(user, coupon_code, amount)
         amount += address_obj.delivery_charge
     else:
         amount = apply_coupon(user, coupon_code, amount)
-    print(f"before adding coupon {amount = }")
+
     return amount
 
 
@@ -302,10 +336,9 @@ def confirm_order(request):
     time = request.data["time"]
     address = request.data["selected_address"]
     date_obj = datetime.datetime.strptime(date_str, '%Y%m%d')
-    coupon_code = ''
-    # if hasattr(request.data, "coupon_code"):  # if coupon code is applied the coupon_code will be that string
-    coupon_code = request.data["coupon_code"]
-    print(f"{coupon_code = }")
+    print(request.data)
+    coupon_code = request.data.get("coupon_code")
+
     # checking the date is not a past date
     if not is_valid_date(date_obj, time):
         return Response({"error": "Date should be a future date"}, status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -325,8 +358,10 @@ def confirm_order(request):
         [payment_url, payment_id] = get_payment_link(user, date, time, amount, address_obj)
         if payment_url:
             # creating a temporary order for saving the current details of cart
-            create_temp_order(user.cart, payment_id, date, time, address_obj, coupon_code)
-
+            if is_valid_coupon(user, coupon_code, amount)[0]:
+                create_temp_order(user.cart, payment_id, date, time, address_obj, coupon_code)
+            else:
+                create_temp_order(user.cart, payment_id, date, time, address_obj)
             return Response({"payment_url": payment_url})
         else:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -366,10 +401,14 @@ def payment(request):
             temp_items = TempItem.objects.filter(order=temp_order)
             user = transaction_details.user
             cart = user.cart
-
-            order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
-                                          address_id=temp_order.address_id,
-                                          total=transaction_details.total, status="p", )
+            if temp_order.coupon:
+                order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
+                                              address_id=temp_order.address_id,
+                                              total=transaction_details.total, status="p", coupon=temp_order.coupon )
+            else:
+                order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
+                                              address_id=temp_order.address_id,
+                                              total=transaction_details.total, status="p")
             order.save()
             transaction_details.order = order
             transaction_details.save()

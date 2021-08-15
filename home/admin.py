@@ -859,3 +859,8 @@ class TransactionDetailsAdmin(admin.ModelAdmin):
 @admin.register(models.Coupon)
 class CouponsAdmin(admin.ModelAdmin):
     list_display = ['code', 'discount_type', 'discount_value', 'expired']
+
+
+@admin.register(models.TempOrder)
+class CouponsAdmin(admin.ModelAdmin):
+    pass
