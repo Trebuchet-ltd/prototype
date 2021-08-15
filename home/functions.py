@@ -295,10 +295,10 @@ def create_order_items(cart, temp_items, order):
 
 
 def distance_between(loc1, loc2):
-    pnt1 = GEOSGeometry(f"POINT ({loc1[0]} {loc1[1]})")
-    pnt2 = GEOSGeometry(f"POINT ({loc2[0]} {loc2[1]})")
+    pnt1 = GEOSGeometry(f"POINT ({loc1[1]} {loc1[0]})", srid=4326)
+    pnt2 = GEOSGeometry(f"POINT ({loc2[1]} {loc2[0]})", srid=4326)
     distance = pnt1.distance(pnt2) * 100
-    return distance
+    return distance*1.45
 
 
 def get_delivery_charge(location):
