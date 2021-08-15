@@ -60,7 +60,7 @@ class CartItemViewSets(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 def available_pin_codes(request):
-    """ A End point to know the availability of a district """
+    """ A End point to know the availability of a district  """
 
     pincode = request.GET["pincode"]
     if is_available_district(pincode):
@@ -168,7 +168,8 @@ def payment(request):
                                               total=transaction_details.total, status="p",
                                               used_points=temp_order.used_points)
             order.save()
-            reduce_points(user)
+            if order.used_points:
+                reduce_points(user)
             transaction_details.order = order
             transaction_details.save()
             token = user.tokens
