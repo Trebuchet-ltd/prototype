@@ -95,6 +95,7 @@ class Addresses(models.Model):
     def __str__(self):
         return f"{self.name} - {self.address}, {self.state}, {self.pincode} (PIN) "
 
+
 def code_generator(size=10, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
@@ -112,7 +113,7 @@ def create_new_code():
 class Coupon(models.Model):
     code = models.CharField(max_length=20, default=create_new_code, unique=True)
     user_specific_status = models.BooleanField(default=False)
-    specific_user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,blank=True,null=True,
+    specific_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True,
                                       help_text="Please provide the user name for user specific coupons else left blank")
     minimum_price = models.IntegerField(default=0, help_text="Please provide the minimum prize to apply this coupons ")
     discount_type = models.IntegerField(help_text='0-> constant,1-> percentage,',
@@ -141,7 +142,8 @@ class Orders(models.Model):
     date = models.DateField()
     time = models.CharField(max_length=10, choices=order_time)
     status = models.CharField(max_length=10, choices=order_status, default='preparing')
-    coupon = models.ForeignKey(Coupon,related_name="orders" ,on_delete=models.CASCADE, blank=True, null=True)
+    coupon = models.ForeignKey(Coupon, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
+    used_points = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user} , date-{self.date} , status -{self.status} "
@@ -184,6 +186,7 @@ class TempOrder(models.Model):
     date = models.DateField(blank=True, null=True)
     time = models.CharField(max_length=20, default='')
     address_id = models.CharField(max_length=10, default='')
+    used_points = models.IntegerField(default=0)
 
 
 class TempItem(models.Model):
@@ -583,5 +586,3 @@ class District(models.Model):
 
     def __str__(self):
         return self.district_name
-
-

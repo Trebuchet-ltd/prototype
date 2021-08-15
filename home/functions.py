@@ -207,9 +207,7 @@ def apply_coupon(user, coupon_code, amount):
     return amount
 
 
-
-
-def total_amount(user, address_obj, coupon_code, without_coupon=False):
+def total_amount(user, address_obj, coupon_code='', without_coupon=False):
     """
     This function returns the total amount of the cart items of the user
     Return 0 if the amount is zero
@@ -247,12 +245,30 @@ def total_amount(user, address_obj, coupon_code, without_coupon=False):
     return amount
 
 
+def is_valid_point(user, points):
+    token = user.tokens
+    if token.points - points < 0:
+        return [False, "not enough points "]
+    return [True]
+
+
+def use_points(user,amount,points):
+    if is_valid_point(user, points)[0]:
+        amount = amount - points
+    return amount
+
+
+def reduce_points(user, points):
+    user.tokens.points -= points
+    user.tokens.points.save()
+
+
 def add_points(token):
     """ Function to add points to user when first purchase occurs """
     purchase_done = Tokens.objects.get(invite_token=token).first_purchase_done
     if not purchase_done:
         invite_token = Tokens.objects.get(private_token=token)
-        invite_token.points += 10
+        invite_token.points += 40
         invite_token.save()
         return True
 

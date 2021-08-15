@@ -21,7 +21,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filteret_fields = ['bestSeller', 'meat']
+    filterset_fields = ['bestSeller', 'meat']
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'short_description', 'description', 'can_be_cleaned', 'weight_variants']
 
@@ -87,9 +87,28 @@ def get_coupon(request):
     print(f"{amount = }")
     if coupon_status[0]:
         discount = amount - apply_coupon(user, coupon_code, amount)
-        return Response({"discount": discount},status=status.HTTP_202_ACCEPTED)
+        return Response({"discount": discount}, status=status.HTTP_202_ACCEPTED)
     else:
         return Response({"error": coupon_status[1]}, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+
+@api_view(["POST"])
+def check_points(request):
+    """
+    {
+    "points":number,
+    "selected_address":1
+    }
+    """
+    user = request.user
+    cart = user.cart
+    points = request.data["points"]
+    address = request.data["selected_address"]
+    address_obj = Addresses.objects.get(id=address)
+    amount = total_amount(user, address_obj, without_coupon=True)
+    amount = use_points(user, amount, points)
+
+    return Response({"amount": amount})
 
 
 @api_view(["POST"])
@@ -111,6 +130,7 @@ def confirm_order(request):
     address = request.data["selected_address"]
     date_obj = datetime.datetime.strptime(date_str, '%Y%m%d')
     coupon_code = request.data.get("coupon_code")
+    points = request.data.get("points")
 
     # checking the date is not a past date
     if not is_valid_date(date_obj, time):
@@ -211,6 +231,8 @@ class OrderViewSets(viewsets.ModelViewSet):
     def get_queryset(self):
         self.queryset = Orders.objects.filter(user=self.request.user)
         return self.queryset
+
+
 
 
 class AddressViewSets(viewsets.ModelViewSet):

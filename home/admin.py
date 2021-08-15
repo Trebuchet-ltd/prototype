@@ -825,9 +825,10 @@ class StatesAdmin(admin.ModelAdmin):
 
 @admin.register(models.District)
 class DistrictAdmin(admin.ModelAdmin):
-    list_display = ("district_name","state", "Available_status")
-    list_filter =['state','Available_status']
-    actions = ['make_available','make_not_Available']
+    list_display = ("district_name", "state", "Available_status")
+    list_filter =['state', 'Available_status']
+    actions = ['make_available', 'make_not_Available']
+
     def available_status(self,obj):
         return obj.Available_status == True
     available_status.boolean = True
@@ -864,3 +865,9 @@ class CouponsAdmin(admin.ModelAdmin):
 @admin.register(models.TempOrder)
 class CouponsAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(models.Tokens)
+class CouponsAdmin(admin.ModelAdmin):
+    pass
+
