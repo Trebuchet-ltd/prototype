@@ -268,6 +268,7 @@ def add_points(token):
     purchase_done = Tokens.objects.get(invite_token=token).first_purchase_done
     if not purchase_done:
         invite_token = Tokens.objects.get(private_token=token)
+        invite_token.total_points_yet += 40
         invite_token.points += 40
         invite_token.save()
         return True

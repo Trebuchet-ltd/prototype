@@ -121,8 +121,6 @@ def confirm_order(request):
     "selected_address":id,
     "coupon_code":"<code>"
     }
-
-
     """
     date = request.data["date"]
     date_str = "".join(date.split("-"))  # converting '2017-05-05' to '20170505'
@@ -150,6 +148,7 @@ def confirm_order(request):
     print(f"{amount = }")
     if amount > 0:
         [payment_url, payment_id] = get_payment_link(user, amount, address_obj)
+
         if payment_url:
             # creating a temporary order for saving the current details of cart
             if is_valid_coupon(user, coupon_code, amount)[0]:
@@ -189,12 +188,12 @@ def payment(request):
             order.save()
             transaction_details.order = order
             transaction_details.save()
-            token = Tokens.objects.get(user=user)
+            token = user.tokens
             if not token.first_purchase_done:
                 if token.invite_token:  # All user may not be invite token that's why this check is here
                     add_points(token.invite_token)  # Thi function add points if token is valid
-                    token.first_purchase_done = True  # after first purchase this will executed and make is True
-                    token.save()
+                token.first_purchase_done = True  # after first purchase this will executed and make is True
+                token.save()
 
             create_order_items(cart, temp_items, order)
 
@@ -231,8 +230,6 @@ class OrderViewSets(viewsets.ModelViewSet):
     def get_queryset(self):
         self.queryset = Orders.objects.filter(user=self.request.user)
         return self.queryset
-
-
 
 
 class AddressViewSets(viewsets.ModelViewSet):

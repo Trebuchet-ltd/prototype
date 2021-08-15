@@ -29,7 +29,7 @@ class GetTokensSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tokens
         fields = [
-            'user', 'private_token', 'invite_token', 'invited', 'points', 'reviews',
+            'user', 'private_token', 'invite_token', 'invited', 'points', 'reviews', 'total_points_yet'
         ]
 
 
@@ -39,7 +39,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = [
-            'id','item', 'quantity', 'cart', 'weight_variants', 'is_cleaned'
+            'id', 'item', 'quantity', 'cart', 'weight_variants', 'is_cleaned'
         ]
         extra_kwargs = {
             'cart': {'read_only': True},
