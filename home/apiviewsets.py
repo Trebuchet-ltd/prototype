@@ -6,14 +6,12 @@ from rest_framework.decorators import action
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.http import HttpResponseRedirect
-import requests
-from requests.auth import HTTPBasicAuth
-import datetime
 from authentication.permissions import IsOwner, IsMyCartItem
 from home.serializers import *
-from .models import *
+
 import prototype.settings as settings
-from django.contrib.gis.geos import GEOSGeometry
+
+from .functions import *
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -23,7 +21,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ['bestSeller', 'meat']
+    filteret_fields = ['bestSeller', 'meat']
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'short_description', 'description', 'can_be_cleaned', 'weight_variants']
 
@@ -60,283 +58,58 @@ class CartItemViewSets(viewsets.ModelViewSet):
                 serializer.save(cart=self.request.user.cart, item_id=item)
 
 
-def is_availabe_district(pincode):
-    try:
-        district = requests.get(f'https://api.postalpincode.in/pincode/{pincode}').json()[0].get("PostOffice")[
-            0].get("District")
-        print(district)
-        # district obj contains the district if it is added to database else return null queryset
-        district_obj = District.objects.filter(district_name=district)
-
-        # this check whether the the district added to the database and it is available for delivery
-        if not (district_obj and district_obj[0].Available_status):
-            return False
-    except TypeError:
-        pass
-    else:
-        return True
-
-
 @api_view(['GET'])
 def available_pin_codes(request):
     """ A End point to know the availability of a district """
 
     pincode = request.GET["pincode"]
-    if is_availabe_district(pincode):
+    if is_available_district(pincode):
         return Response(status=200)
     else:
-        return Response({"error": "Delivery to this address is not available"},status=status.HTTP_406_NOT_ACCEPTABLE)
+        return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
-def add_points(token):
-    """ Function to add points to user when first purchase occurs """
-    purchase_done = Tokens.objects.get(invite_token=token).first_purchase_done
-    if not purchase_done:
-        invite_token = Tokens.objects.get(private_token=token)
-        invite_token.points += 10
-        invite_token.save()
-        return True
-
-    return False
-
-
-def new_id_generator(size=6, chars=string.ascii_uppercase + string.digits):
-    """ This function generate a random string  """
-
-    return ''.join(random.choice(chars) for _ in range(size))
-
-
-def create_new_unique_id():
-    """ This function verify the uniqueness of an id for transaction """
-
-    not_unique = True
-    unique_id = new_id_generator()
-    while not_unique:
-        unique_id = new_id_generator()
-        if not TransactionDetails.objects.filter(transaction_id=unique_id):
-            not_unique = False
-    return str(unique_id)
-
-
-def create_temp_order(cart, payment_id, date,time,address_obj, coupon_code=''):
+@api_view(["POST"])
+def get_coupon(request):
     """
-    This will create an intermediate object of order and order items for storing the current cart items ans details
-
+    {
+    "coupon_code":"<code>",
+    "selected_address":id
+    }
     """
-    coupon_obj = Coupon.objects.filter(code=coupon_code).first()
-    if coupon_obj:
-        order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                         address_id=address_obj.id, coupon=coupon_obj)
-        order.save()
-    else:
-        order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                         address_id=address_obj.id)
-        order.save()
-    for item in cart.items.all():
-        temp_item = TempItem.objects.create(item=item.item, quantity=item.quantity, order=order,
-                                            weight_variants=item.weight_variants,
-                                            is_cleaned=item.is_cleaned)
-        temp_item.save()
-
-
-def cancel_last_payment_links(user):
-    print("This is called")
-    transaction_details = TransactionDetails.objects.filter(user=user, payment_status="created")
-    key_secret = settings.razorpay_key_secret
-    key_id = settings.razorpay_key_id
-    for transaction in transaction_details:
-        url = f'https://api.razorpay.com/v1/payment_links/{transaction.payment_id}/cancel'
-        print(f"canceling  {transaction.payment_id}")
-        requests.post(url,
-                      headers={'Content-type': 'application/json'},
-                      auth=HTTPBasicAuth(key_id, key_secret))
-        transaction.delete()
-
-
-def get_payment_link(user, date, time, amount, address_obj):
-    """
-    This Function returns thr payment url for that particular checkout
-    Returns a list with payment link and payment id created by razorpay
-    """
-
-    key_secret = settings.razorpay_key_secret
-    call_back_url = settings.webhook_call_back_url
-    key_id = settings.razorpay_key_id
-    cancel_last_payment_links(user)
-    transaction_id = create_new_unique_id()
-    transaction_details = TransactionDetails(transaction_id=transaction_id, user=user, total=amount)
-    transaction_details.save()
-
-    amount *= 100  # converting rupees to paisa
-    try:
-        url = 'https://api.razorpay.com/v1/payment_links'
-
-        data = {
-            "amount": amount,
-            "currency": "INR",
-            "callback_url": call_back_url,
-            "callback_method": "get",
-            'reference_id': transaction_id,
-            "customer": {
-                "contact": address_obj.phone,
-                "email": user.email,
-                "name": address_obj.name
-            },
-            "options": {
-                "checkout": {
-                    "name": "DreamEat",
-                    "prefill": {
-                        "email": user.email,
-                        "contact": address_obj.phone
-                    },
-                    "readonly": {
-                        "email": True,
-                        "contact": True
-                    }
-                }
-            }
-
-        }
-        x = requests.post(url,
-                          json=data,
-                          headers={'Content-type': 'application/json'},
-                          auth=HTTPBasicAuth(key_id, key_secret))
-        data = x.json()
-        transaction_details.payment_id = data.get("id")
-        transaction_details.payment_status = data.get("status")
-        transaction_details.save()
-        payment_url = data.get('short_url')
-        return [payment_url, transaction_details.payment_id]
-    except Exception as e:
-        print(e)
-        return False
-
-
-def is_valid_date(date_obj, time):
-    """ This function check the user selected date and time is valid or not """
-
-    if (date_obj.date() - datetime.datetime.now().date()).days < 0:
-        return False
-    elif date_obj.date() == datetime.datetime.now().date():  # checking the date is today or not
-        if time == "morning":  # if the date is today morning slot is not available
-            return False
-    return True
-
-
-def is_out_of_stock(user):
-    """ This function checks the stock availability of the product """
-    for item in user.cart.items.all():
-        reduction_in_stock = item.weight_variants * item.quantity / 1000
-        if item.item.stock - reduction_in_stock <= 0:
-
-            return item.item
-    return False
-
-
-def is_valid_coupon(user, coupon_code, amount):
-    """
-    This function validates the specified coupon applicable or not
-    Returns a list with first element will be the status (boolean) second element is the error if not valid
-    Returns [True] if the coupon is valid
-    """
-    coupon_obj = Coupon.objects.filter(code=coupon_code).first()
-
-    if not coupon_obj:
-        return [False,"coupon code does not exist"]
-    if not coupon_code:  # checks the coupon is existing one
-        return [False, "coupon code does not exist"]
-    order_with_same_cpn = Orders.objects.filter(user__exact=user, coupon=coupon_obj)
-    if order_with_same_cpn:
-        return [False, "coupon code does not exist"]
-    if coupon_obj.expired:  # check the coupon expired or not
-        return [False, "coupon code does not exist"]
-    if coupon_obj.user_specific_status:     # checks the coupon is user specific or not
-        if coupon_obj.specific_user != user:    # check the specific user is not the requested user
-            return [False, "coupon code does not exist"]
-    if coupon_obj.minimum_price > amount:   # checks the minimum price condition
-        return [False, f"This coupon is applicable to the amount greater than {coupon_obj.minimum_price} "]
-
-    return [True]
-
-
-def apply_coupon(user, coupon_code, amount):
-    """
-    This function apply the coupon code and
-    """
-
-    coupon_obj = Coupon.objects.filter(code=coupon_code).first()
-
-    if coupon_obj:
-        if is_valid_coupon(user, coupon_code, amount)[0]:
-            print("valid")
-            if coupon_obj.discount_type == 0: # constant type coupon
-                amount -= coupon_obj.discount_value
-
-                return [amount]
-            else:   # percentage type
-                amount *= coupon_obj.discount_value/100
-
-                return amount
-
-    return amount
-
-#
-# {
-# "date":"2021-11-05",
-# "time":"morning",
-# "selected_address":1,
-# "coupon_code":"ME7WCW4S0K"
-# }
-
-
-def total_amount(user, address_obj, coupon_code):
-    """
-    This function returns the total amount of the cart items of the user
-    Return 0 if the amount is zero
-    return amount + delivery charge if amount less than 500
-    return amount if amount more than 500
-    If any coupon code is present it will apply before adding the delivery charge if any
-
-    """
+    user = request.user
     cart = user.cart
-    amount = 0
-
-    for item in cart.items.all():
-        if item.quantity > 0:
-            if item.is_cleaned:
-                amount += item.quantity * item.item.cleaned_price * item.weight_variants / 1000
-            else:
-                amount += item.quantity * item.item.price * item.weight_variants / 1000
-
-        elif item.quantity < 0:
-            if item.is_cleaned:
-                amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
-            else:
-                amount += -item.quantity * item.item.price * item.weight_variants / 1000
-
-    if amount <= 0:     # if the amount is 0 then it should not add the delivery charge
-        return 0
-
-    if amount < 500:    # if amount lee than 500 it will apply the coupon if any and add delivery charge
-        if coupon_code:
-
-            amount = apply_coupon(user, coupon_code, amount)
-        amount += address_obj.delivery_charge
+    coupon_code = request.data["coupon_code"]
+    address = request.data["selected_address"]
+    address_obj = Addresses.objects.get(id=address)
+    amount = total_amount(user, address_obj, coupon_code, without_coupon=True)
+    coupon_status = is_valid_coupon(user, coupon_code, amount)
+    print(f"{amount = }")
+    if coupon_status[0]:
+        discount = amount - apply_coupon(user, coupon_code, amount)
+        return Response({"discount": discount},status=status.HTTP_202_ACCEPTED)
     else:
-        amount = apply_coupon(user, coupon_code, amount)
-
-    return amount
+        return Response({"error": coupon_status[1]}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
 @api_view(["POST"])
 def confirm_order(request):
+    """
 
+    {
+    "date":"2021-11-05",
+    "time":"evening",
+    "selected_address":id,
+    "coupon_code":"<code>"
+    }
+
+
+    """
     date = request.data["date"]
     date_str = "".join(date.split("-"))  # converting '2017-05-05' to '20170505'
     time = request.data["time"]
     address = request.data["selected_address"]
     date_obj = datetime.datetime.strptime(date_str, '%Y%m%d')
-    print(request.data)
     coupon_code = request.data.get("coupon_code")
 
     # checking the date is not a past date
@@ -349,13 +122,14 @@ def confirm_order(request):
         return Response({"error": f" Item {item} is out of stock"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     address_obj = Addresses.objects.get(id=address)
-    if not is_availabe_district(address_obj.pincode):
+    if not is_available_district(address_obj.pincode):
         return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     user = User.objects.get(id=request.user.id)
     amount = total_amount(user, address_obj, coupon_code)
+    print(f"{amount = }")
     if amount > 0:
-        [payment_url, payment_id] = get_payment_link(user, date, time, amount, address_obj)
+        [payment_url, payment_id] = get_payment_link(user, amount, address_obj)
         if payment_url:
             # creating a temporary order for saving the current details of cart
             if is_valid_coupon(user, coupon_code, amount)[0]:
@@ -367,23 +141,6 @@ def confirm_order(request):
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
     else:
         return Response({"error": "total amount must be positive "}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-
-def create_order_items(cart, temp_items, order):
-
-    for item in temp_items.all():
-        order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order,
-                                              weight_variants=item.weight_variants,
-                                              is_cleaned=item.is_cleaned)
-        order_item.save()
-        reduction_in_stock = item.weight_variants * item.quantity / 1000
-        item.item.stock -= reduction_in_stock
-        item.item.save()
-        CartItem.objects.filter(item=item.item, weight_variants=item.weight_variants,
-                                is_cleaned=item.is_cleaned).delete()
-
-    cart.total = 0
-    cart.save()
 
 
 @api_view()
@@ -404,7 +161,7 @@ def payment(request):
             if temp_order.coupon:
                 order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
                                               address_id=temp_order.address_id,
-                                              total=transaction_details.total, status="p", coupon=temp_order.coupon )
+                                              total=transaction_details.total, status="p", coupon=temp_order.coupon)
             else:
                 order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
                                               address_id=temp_order.address_id,
@@ -416,7 +173,7 @@ def payment(request):
             if not token.first_purchase_done:
                 if token.invite_token:  # All user may not be invite token that's why this check is here
                     add_points(token.invite_token)  # Thi function add points if token is valid
-                    token.first_purchase_done = True    # after first purchase this will executed and make is True
+                    token.first_purchase_done = True  # after first purchase this will executed and make is True
                     token.save()
 
             create_order_items(cart, temp_items, order)
@@ -454,21 +211,6 @@ class OrderViewSets(viewsets.ModelViewSet):
     def get_queryset(self):
         self.queryset = Orders.objects.filter(user=self.request.user)
         return self.queryset
-
-
-def distance_between(loc1, loc2):
-    pnt1 = GEOSGeometry(f"POINT ({loc1[0]} {loc1[1]})")
-    pnt2 = GEOSGeometry(f"POINT ({loc2[0]} {loc2[1]})")
-    distance = pnt1.distance(pnt2)*100
-    return distance
-
-
-def get_delivery_charge(location):
-    distance = distance_between(settings.location, [location[0], location[1]])
-    if distance <= 10:
-        return 30
-    else:
-        return 60
 
 
 class AddressViewSets(viewsets.ModelViewSet):
