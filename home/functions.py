@@ -16,20 +16,28 @@ def is_available_district(pincode):
     returns true if available else false
 
     """
-    try:
-        district = requests.get(f'https://api.postalpincode.in/pincode/{pincode}').json()[0].get("PostOffice")[
-            0].get("District")
-        print(district)
-        # district obj contains the district if it is added to database else return null queryset
-        district_obj = District.objects.filter(district_name=district)
 
-        # this check whether the the district added to the database and it is available for delivery
-        if not (district_obj and district_obj[0].Available_status):
-            return False
-    except TypeError:
-        pass
+    pincode_obj = Pincodes.objects.filter(pincode__exact=pincode).first()
+    if pincode_obj:
+        print("Req not sent")
+        return pincode_obj.district.Available_status
+
     else:
-        return True
+        print("fn called")
+        try:
+            district = requests.get(f'https://api.postalpincode.in/pincode/{pincode}').json()[0].get("PostOffice")[0].get("District")
+            print("Req sent")
+            # district obj contains the district if it is added to database else return null queryset
+            district_obj = District.objects.filter(district_name=district).first()
+
+            # this check whether the the district added to the database and it is available for delivery
+            Pincodes.objects.create(pincode=pincode, district=district_obj)
+            if not (district_obj and district_obj.Available_status):
+                return False
+        except TypeError:
+            pass
+        else:
+            return True
 
 
 def new_id_generator(size=6, chars=string.ascii_uppercase + string.digits):

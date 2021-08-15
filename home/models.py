@@ -590,3 +590,8 @@ class District(models.Model):
 
     def __str__(self):
         return self.district_name
+
+
+class Pincodes(models.Model):
+    pincode = models.CharField(max_length=10,)
+    district = models.ForeignKey(District, related_name="pincode", on_delete=models.CASCADE)

@@ -851,6 +851,7 @@ class ProductAdmin(admin.ModelAdmin):
     def available_stock(self,obj):
         return f"{obj.stock} kg"
 
+
 @admin.register(models.TransactionDetails)
 class TransactionDetailsAdmin(admin.ModelAdmin):
     list_display = ['user', 'transaction_id', 'payment_status', 'total']
@@ -870,4 +871,8 @@ class CouponsAdmin(admin.ModelAdmin):
 @admin.register(models.Tokens)
 class CouponsAdmin(admin.ModelAdmin):
     list_display = ['user','private_token','points',]
+
+@admin.register(models.Pincodes)
+class CouponsAdmin(admin.ModelAdmin):
+    list_display = ['pincode','district']
 
