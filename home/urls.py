@@ -16,5 +16,4 @@ urlpatterns = [
     path(r'payment/', payment),
     path(r'is_available_pincode/', available_pin_codes),
     path(r'get_coupon/', get_coupon),
-    path(r'get_points/', check_points),
     ]

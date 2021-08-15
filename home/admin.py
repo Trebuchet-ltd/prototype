@@ -869,5 +869,5 @@ class CouponsAdmin(admin.ModelAdmin):
 
 @admin.register(models.Tokens)
 class CouponsAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['user','private_token','points',]
 

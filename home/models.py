@@ -221,6 +221,10 @@ class Tokens(models.Model):
     first_purchase_done = models.BooleanField(default=False)
     total_points_yet = models.IntegerField(default=0)
 
+    def __str__(self):
+        return f"{self.user} "
+
+
 class AvailableState(models.Model):
     states = state_choices = (
         (None, 'State'),

@@ -93,33 +93,15 @@ def get_coupon(request):
 
 
 @api_view(["POST"])
-def check_points(request):
-    """
-    {
-    "points":number,
-    "selected_address":1
-    }
-    """
-    user = request.user
-    cart = user.cart
-    points = request.data["points"]
-    address = request.data["selected_address"]
-    address_obj = Addresses.objects.get(id=address)
-    amount = total_amount(user, address_obj, without_coupon=True)
-    amount = use_points(user, amount, points)
-
-    return Response({"amount": amount})
-
-
-@api_view(["POST"])
 def confirm_order(request):
     """
-
     {
     "date":"2021-11-05",
     "time":"evening",
     "selected_address":id,
-    "coupon_code":"<code>"
+    "coupon_code":"<code>",
+    "points":num
+
     }
     """
     date = request.data["date"]
@@ -144,17 +126,15 @@ def confirm_order(request):
         return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     user = User.objects.get(id=request.user.id)
-    amount = total_amount(user, address_obj, coupon_code)
+    amount = total_amount(user, address_obj, coupon_code, points)
+
     print(f"{amount = }")
     if amount > 0:
         [payment_url, payment_id] = get_payment_link(user, amount, address_obj)
 
         if payment_url:
             # creating a temporary order for saving the current details of cart
-            if is_valid_coupon(user, coupon_code, amount)[0]:
-                create_temp_order(user.cart, payment_id, date, time, address_obj, coupon_code)
-            else:
-                create_temp_order(user.cart, payment_id, date, time, address_obj)
+            create_temp_order(user,payment_id,date,time,address_obj,coupon_code,points)
             return Response({"payment_url": payment_url})
         else:
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -180,12 +160,15 @@ def payment(request):
             if temp_order.coupon:
                 order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
                                               address_id=temp_order.address_id,
-                                              total=transaction_details.total, status="p", coupon=temp_order.coupon)
+                                              total=transaction_details.total,
+                                              status="p", coupon=temp_order.coupon, used_points=temp_order.used_points)
             else:
                 order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
                                               address_id=temp_order.address_id,
-                                              total=transaction_details.total, status="p")
+                                              total=transaction_details.total, status="p",
+                                              used_points=temp_order.used_points)
             order.save()
+            reduce_points(user)
             transaction_details.order = order
             transaction_details.save()
             token = user.tokens

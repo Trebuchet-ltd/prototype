@@ -9,7 +9,7 @@ class GetImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageModel
         fields = [
-            'title', 'mainimage','cleaned_image'
+            'title', 'mainimage', 'cleaned_image'
         ]
 
 
@@ -29,7 +29,8 @@ class GetTokensSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tokens
         fields = [
-            'user', 'private_token', 'invite_token', 'invited', 'points', 'reviews', 'total_points_yet'
+            'user', 'private_token', 'invite_token', 'invited', 'points',
+            'reviews', 'total_points_yet', 'first_purchase_done'
         ]
 
 
@@ -91,5 +92,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orders
         fields = [
-            'id', 'user', 'total', 'date', 'time', 'address', 'status', 'order_item', 'transaction'
+            'id', 'user', 'total', 'date', 'time',
+            'address', 'status', 'order_item',
+            'transaction','used_points'
         ]

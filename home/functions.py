@@ -50,21 +50,25 @@ def create_new_unique_id():
     return str(unique_id)
 
 
-def create_temp_order(cart, payment_id, date, time, address_obj, coupon_code=''):
+def create_temp_order(user, payment_id, date, time, address_obj, coupon_code='', points=0):
     """
     This will create an intermediate object of order and order items for storing the current cart items ans details
 
     """
+
+    if points:
+        points = user.tokens.points
+
     coupon_obj = Coupon.objects.filter(code=coupon_code).first()
     if coupon_obj:
         order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                         address_id=address_obj.id, coupon=coupon_obj)
+                                         address_id=address_obj.id, coupon=coupon_obj,used_points=points)
         order.save()
     else:
         order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                         address_id=address_obj.id)
+                                         address_id=address_obj.id,used_points=points)
         order.save()
-    for item in cart.items.all():
+    for item in user.cart.items.all():
         temp_item = TempItem.objects.create(item=item.item, quantity=item.quantity, order=order,
                                             weight_variants=item.weight_variants,
                                             is_cleaned=item.is_cleaned)
@@ -164,6 +168,28 @@ def is_out_of_stock(user):
     return False
 
 
+def use_points(user, amount):
+    return amount - user.tokens.points
+
+
+def reduce_points(user):
+    user.tokens.points = 0
+    user.tokens.save()
+
+
+def add_points(token):
+    """ Function to add points to user when first purchase occurs """
+    purchase_done = Tokens.objects.get(invite_token=token).first_purchase_done
+    if not purchase_done:
+        invite_token = Tokens.objects.get(private_token=token)
+        invite_token.total_points_yet += 40
+        invite_token.points += 40
+        invite_token.save()
+        return True
+
+    return False
+
+
 def is_valid_coupon(user, coupon_code, amount):
     """
     This function validates the specified coupon applicable or not
@@ -194,7 +220,6 @@ def apply_coupon(user, coupon_code, amount):
     """
     This function apply the coupon code and
     """
-
     coupon_obj = Coupon.objects.filter(code=coupon_code).first()
 
     if coupon_obj:
@@ -207,14 +232,13 @@ def apply_coupon(user, coupon_code, amount):
     return amount
 
 
-def total_amount(user, address_obj, coupon_code='', without_coupon=False):
+def total_amount(user, address_obj, coupon_code='', points=False, without_coupon=False):
     """
     This function returns the total amount of the cart items of the user
     Return 0 if the amount is zero
     return amount + delivery charge if amount less than 500
     return amount if amount more than 500
     If any coupon code is present it will apply before adding the delivery charge if any
-
     """
     cart = user.cart
     amount = 0
@@ -237,43 +261,13 @@ def total_amount(user, address_obj, coupon_code='', without_coupon=False):
 
     if not without_coupon:
         if coupon_code:
-            print(amount)
             amount = apply_coupon(user, coupon_code, amount)
 
     if amount < 500:  # if amount lee than 500 it will apply the coupon if any and add delivery charge
         amount += address_obj.delivery_charge
+    if points:
+        amount = use_points(user, amount)
     return amount
-
-
-def is_valid_point(user, points):
-    token = user.tokens
-    if token.points - points < 0:
-        return [False, "not enough points "]
-    return [True]
-
-
-def use_points(user,amount,points):
-    if is_valid_point(user, points)[0]:
-        amount = amount - points
-    return amount
-
-
-def reduce_points(user, points):
-    user.tokens.points -= points
-    user.tokens.points.save()
-
-
-def add_points(token):
-    """ Function to add points to user when first purchase occurs """
-    purchase_done = Tokens.objects.get(invite_token=token).first_purchase_done
-    if not purchase_done:
-        invite_token = Tokens.objects.get(private_token=token)
-        invite_token.total_points_yet += 40
-        invite_token.points += 40
-        invite_token.save()
-        return True
-
-    return False
 
 
 def create_order_items(cart, temp_items, order):
