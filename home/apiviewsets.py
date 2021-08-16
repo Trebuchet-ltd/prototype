@@ -8,10 +8,8 @@ from rest_framework.response import Response
 from django.http import HttpResponseRedirect
 from authentication.permissions import IsOwner, IsMyCartItem
 from home.serializers import *
-
-import prototype.settings as settings
-
 from .functions import *
+import logging
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -104,6 +102,7 @@ def confirm_order(request):
 
     }
     """
+
     date = request.data["date"]
     date_str = "".join(date.split("-"))  # converting '2017-05-05' to '20170505'
     time = request.data["time"]
@@ -111,53 +110,63 @@ def confirm_order(request):
     date_obj = datetime.datetime.strptime(date_str, '%Y%m%d')
     coupon_code = request.data.get("coupon_code")
     points = request.data.get("points")
-
+    logging.info(f"{request.user.username} requested for checkout ... ")
     # checking the date is not a past date
     if not is_valid_date(date_obj, time):
+        logging.info("checkout cancelled because of invalid date ")
         return Response({"error": "Date should be a future date"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     # item will false when stock available otherwise this will be thw name of that particular item that is out of stock
     item = is_out_of_stock(request.user)
     if item:
+        logging.info("Request not accepted due to out of stock")
         return Response({"error": f" Item {item} is out of stock"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    address_obj = Addresses.objects.get(id=address)
+    address_obj = Addresses.objects.filter(id=address).first()
     if not is_available_district(address_obj.pincode):
+        logging.info("Request not accepted because pincode is not available ")
         return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     user = User.objects.get(id=request.user.id)
+
     amount = total_amount(user, address_obj, coupon_code, points)
 
-    print(f"{amount = }")
+    logging.info(f"Total amount = {amount} ")
     if amount > 0:
         [payment_url, payment_id] = get_payment_link(user, amount, address_obj)
-
         if payment_url:
             # creating a temporary order for saving the current details of cart
-            create_temp_order(user,payment_id,date,time,address_obj,coupon_code,points)
+            create_temp_order(user, payment_id, date,time, address_obj, coupon_code, points)
+            logging.info("sent the payment link successfully")
             return Response({"payment_url": payment_url})
         else:
+            logging.warning("payment link not sent")
             return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
     else:
-        return Response({"error": "total amount must be positive "}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        logging.info("Cart is empty request canceled ")
+        return Response({"error": "Cart is empty "}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
 
-@api_view()
+@api_view(["GET"])
 def payment(request):
-    if request.method == "GET":
+    print(request)
+    logging.info("Webhook from razorpay called ...")
+    if verify_signature(request):
         try:
             transaction_details = TransactionDetails.objects.get(
                 transaction_id=request.GET["razorpay_payment_link_reference_id"])
             transaction_details.payment_status = request.GET["razorpay_payment_link_status"]
-
+            logging.info(f"payment status {transaction_details.payment_status}")
             #   temp order will have the intermediate  order details between checkout and payment
             #   the items added after checkout will not be in temp order
-
+            logging.info("collecting data  from temporary order ")
             temp_order = TempOrder.objects.get(payment_id=transaction_details.payment_id)
             temp_items = TempItem.objects.filter(order=temp_order)
             user = transaction_details.user
+            logging.info(f"user - {user.username}")
             cart = user.cart
             if temp_order.coupon:
+                logging.info(f"Payment done by using coupon {temp_order.coupon.code}")
                 order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
                                               address_id=temp_order.address_id,
                                               total=transaction_details.total,
@@ -167,6 +176,7 @@ def payment(request):
                                               address_id=temp_order.address_id,
                                               total=transaction_details.total, status="p",
                                               used_points=temp_order.used_points)
+            logging.info("creating order ")
             order.save()
             if order.used_points:
                 reduce_points(user)
@@ -174,15 +184,22 @@ def payment(request):
             transaction_details.save()
             token = user.tokens
             if not token.first_purchase_done:
+                logging.info("first purchase ")
                 if token.invite_token:  # All user may not be invite token that's why this check is here
-                    add_points(token.invite_token)  # Thi function add points if token is valid
+                    logging.info(f"{user.name} is invited by {token.invite_token} token")
+                    add_points(token.invite_token)  # This function add points if token is valid
                 token.first_purchase_done = True  # after first purchase this will executed and make is True
                 token.save()
 
             create_order_items(cart, temp_items, order)
-
+            temp_order.delete()
+            logging.info("order creation completed")
+        except TempOrder.DoesNotExist:
+            logging.warning("Temporary order does not exist  already created an order from this")
         except Exception as ex:
-            print(ex)
+            logging.warning(f"order not created exception {ex} ")
+    else:
+        return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
     return HttpResponseRedirect(settings.webhook_redirect_url)
 
 

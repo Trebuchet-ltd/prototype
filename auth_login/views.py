@@ -20,30 +20,6 @@ from home.models import Tokens, CartModel
 logger = logging.getLogger('v2')
 
 
-def give_points(personal_token, option):
-    """
-     Throws Error if the invite code is invalid
-    @param personal_token: str
-    @type option: str
-    """
-
-    if personal_token and personal_token != 'null':
-        invited = Tokens.objects.get(private_token=personal_token)
-        if option == 'invite':
-            invited.invited += 1
-            invited.points += 10
-        elif option == 'review':
-            invited.reviews += 1
-            invited.points += 5
-        elif option == 'report':
-            invited.reports += 1
-            invited.points += 1
-        elif option == 'image':
-            invited.images += 1
-            invited.points += 5
-        invited.save()
-
-
 def parse_url_next(next_loc):
     parsed = parse.parse_qs(next_loc)
     try:
@@ -92,7 +68,6 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
 
     return ip
-
 
 
 @ensure_csrf_cookie
@@ -146,11 +121,10 @@ def signup(request):
             if passwrd2 == password:
                 try:
                     inv = request.POST.get('invite', '')
-                    give_points(inv, 'invite')
                     user = User.objects.create_user(email=email, password=password, username=username,
                                                     first_name=firstname, last_name=lastname)
                     token,_ = Tokens.objects.get_or_create(user=user)
-                    token.invite_token=inv
+                    token.invite_token = inv
                     token.save()
                     CartModel.objects.get_or_create(user=user)
                     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -185,7 +159,6 @@ def log_out(request):
     logout(request)
     url = '/?' + request.META['QUERY_STRING']
     return HttpResponseRedirect(url)
-
 
 
 def request_google(auth_code, redirect_uri):
@@ -254,10 +227,6 @@ def Google_login(request):
                 token_of_user.save()
             except:
                 logger.exception('failed to create token')
-            try:
-                give_points(invite_token, 'invite')
-            except Exception:
-                logger.exception('tokens point giving failure')
 
         return HttpResponseRedirect(next_loc)
     return HttpResponseRedirect('/login/')
@@ -343,10 +312,5 @@ def Facebook_login(request):
                 token.save()
             except:
                 logger.exception('failed to create token')
-            try:
-                give_points(invite_token, 'invite')
-            except Exception:
-                logger.exception('tokens')
-
         return HttpResponseRedirect(next_loc)
     return HttpResponseRedirect('/login/')

@@ -2,12 +2,16 @@
 This file contains all the supporting functions needed for api view sets
 
 """
+import logging
+
 import requests
 from .models import *
 from django.contrib.gis.geos import GEOSGeometry
 from requests.auth import HTTPBasicAuth
 import datetime
 import prototype.settings as settings
+import hmac
+import hashlib
 
 
 def is_available_district(pincode):
@@ -16,28 +20,35 @@ def is_available_district(pincode):
     returns true if available else false
 
     """
-
+    logging.info("Checking the availability of  district")
     pincode_obj = Pincodes.objects.filter(pincode__exact=pincode).first()
     if pincode_obj:
-        print("Req not sent")
+        logging.info("requested pincode is found in database ")
         return pincode_obj.district.Available_status
 
     else:
-        print("fn called")
+        logging.info("requested pincode is not present in database")
         try:
-            district = requests.get(f'https://api.postalpincode.in/pincode/{pincode}').json()[0].get("PostOffice")[0].get("District")
-            print("Req sent")
-            # district obj contains the district if it is added to database else return null queryset
-            district_obj = District.objects.filter(district_name=district).first()
+            res = requests.get(f'https://api.postalpincode.in/pincode/{pincode}').json()
+            try:
+                district = res[0].get("PostOffice")[0].get("District")
 
-            # this check whether the the district added to the database and it is available for delivery
-            Pincodes.objects.create(pincode=pincode, district=district_obj)
-            if not (district_obj and district_obj.Available_status):
-                return False
-        except TypeError:
-            pass
+                logging.info("district found from postal api ")
+                # district obj contains the district if it is added to database else return null queryset
+                district_obj = District.objects.filter(district_name=district).first()
+
+                # this check whether the the district added to the database and it is available for delivery
+                Pincodes.objects.create(pincode=pincode, district=district_obj)
+                logging.info(f"Pincode {pincode} added to database successfully ")
+
+                if not (district_obj and district_obj.Available_status):
+                    return False
+            except TypeError:
+                logging.warning(f"{pincode} not found in post api ")
+        except Exception as e:
+            logging.warning(e)
         else:
-            return True
+            return False
 
 
 def new_id_generator(size=6, chars=string.ascii_uppercase + string.digits):
@@ -61,16 +72,17 @@ def create_new_unique_id():
 def create_temp_order(user, payment_id, date, time, address_obj, coupon_code='', points=0):
     """
     This will create an intermediate object of order and order items for storing the current cart items ans details
-
     """
-
+    logging.info("Creating temporary order")
     if points:
         points = user.tokens.points
+    else:
+        points = 0
 
     coupon_obj = Coupon.objects.filter(code=coupon_code).first()
     if coupon_obj:
         order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                         address_id=address_obj.id, coupon=coupon_obj,used_points=points)
+                                         address_id=address_obj.id, coupon=coupon_obj, used_points=points)
         order.save()
     else:
         order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
@@ -84,13 +96,13 @@ def create_temp_order(user, payment_id, date, time, address_obj, coupon_code='',
 
 
 def cancel_last_payment_links(user):
-    print("This is called")
+    logging.info("Cancelling last payment links")
     transaction_details = TransactionDetails.objects.filter(user=user, payment_status="created")
     key_secret = settings.razorpay_key_secret
     key_id = settings.razorpay_key_id
     for transaction in transaction_details:
         url = f'https://api.razorpay.com/v1/payment_links/{transaction.payment_id}/cancel'
-        print(f"canceling  {transaction.payment_id}")
+        logging.info(f"canceling  {transaction.payment_id}")
         requests.post(url,
                       headers={'Content-type': 'application/json'},
                       auth=HTTPBasicAuth(key_id, key_secret))
@@ -102,7 +114,7 @@ def get_payment_link(user, amount, address_obj):
     This Function returns thr payment url for that particular checkout
     Returns a list with payment link and payment id created by razorpay
     """
-
+    logging.info("Requesting to get payment link ")
     key_secret = settings.razorpay_key_secret
     call_back_url = settings.webhook_call_back_url
     key_id = settings.razorpay_key_id
@@ -110,7 +122,7 @@ def get_payment_link(user, amount, address_obj):
     transaction_id = create_new_unique_id()
     transaction_details = TransactionDetails(transaction_id=transaction_id, user=user, total=amount)
     transaction_details.save()
-
+    logging.info("created transaction details object")
     amount *= 100  # converting rupees to paisa
     try:
         url = 'https://api.razorpay.com/v1/payment_links'
@@ -139,59 +151,78 @@ def get_payment_link(user, amount, address_obj):
                     }
                 }
             }
-
         }
         x = requests.post(url,
                           json=data,
                           headers={'Content-type': 'application/json'},
                           auth=HTTPBasicAuth(key_id, key_secret))
-        data = x.json()
-        transaction_details.payment_id = data.get("id")
-        transaction_details.payment_status = data.get("status")
-        transaction_details.save()
-        payment_url = data.get('short_url')
-        return [payment_url, transaction_details.payment_id]
+        res = x.json()
+        try:
+            logging.info(f"Razorpay response object {res} ")
+            transaction_details.payment_id = res.get("id")
+            logging.info(f" Transaction id {res.get('id')} ,  status = {res.get('status')}")
+            transaction_details.payment_status = res.get("status")
+            transaction_details.save()
+            payment_url = res.get('short_url')
+            logging.info(f"payment url - {payment_url}")
+            return [payment_url, transaction_details.payment_id]
+        except KeyError:
+            logging.warning(f"payment link creation failed ... {res} ")
+            return [False, False]
     except Exception as e:
-        print(e)
-        return False
+        logging.warning(e)
+        return [False, False]
 
 
 def is_valid_date(date_obj, time):
     """ This function check the user selected date and time is valid or not """
-
+    logging.info("Validating the date")
     if (date_obj.date() - datetime.datetime.now().date()).days < 0:
+        logging.info("date is a past date")
+        logging.info(date_obj.date)
         return False
     elif date_obj.date() == datetime.datetime.now().date():  # checking the date is today or not
+        logging.info("the date is today")
         if time == "morning":  # if the date is today morning slot is not available
+            logging.info("morning is not possible for today")
             return False
+    logging.info("date validation completed successfully")
     return True
 
 
 def is_out_of_stock(user):
     """ This function checks the stock availability of the product """
+    logging.info("checking availability of stocks ....")
     for item in user.cart.items.all():
         reduction_in_stock = item.weight_variants * item.quantity / 1000
         if item.item.stock - reduction_in_stock <= 0:
+            logging.warning(f"{item.item} is out of stock")
             return item.item
+    logging.info("checking completed all items are available ")
     return False
 
 
 def use_points(user, amount):
+    logging.info(f"{user.username} requested to use points {user.tokens.points} ")
     return amount - user.tokens.points
 
 
 def reduce_points(user):
+    logging.info("user used points to checkout making points zero")
     user.tokens.points = 0
     user.tokens.save()
 
 
 def add_points(token):
     """ Function to add points to user when first purchase occurs """
+    logging.info("performing  adding points")
     purchase_done = Tokens.objects.get(invite_token=token).first_purchase_done
     if not purchase_done:
         invite_token = Tokens.objects.get(private_token=token)
+        logging.info(f"user is invited by {invite_token.user.name}, adding 40 points... ")
         invite_token.total_points_yet += 40
         invite_token.points += 40
+        logging.info("points adding completed")
         invite_token.save()
         return True
 
@@ -228,15 +259,20 @@ def apply_coupon(user, coupon_code, amount):
     """
     This function apply the coupon code and
     """
+    logging.info(f"Requested to apply the coupon  {coupon_code}")
     coupon_obj = Coupon.objects.filter(code=coupon_code).first()
-
     if coupon_obj:
+        logging.info("Found coupon corresponding to requested coupon ")
         if is_valid_coupon(user, coupon_code, amount)[0]:
-            print("valid")
+            logging.info("Requested coupon is a valid coupon ")
+            logging.info(f"amount before applying coupon is {amount} ")
             if coupon_obj.discount_type == 0:  # constant type coupon
                 amount -= coupon_obj.discount_value
+                logging.info(f"amount before applying coupon is {amount} ")
             else:  # percentage type
                 amount *= (100 - coupon_obj.discount_value) / 100
+                logging.info(f"amount before applying coupon is {amount} ")
+
     return amount
 
 
@@ -248,6 +284,7 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
     return amount if amount more than 500
     If any coupon code is present it will apply before adding the delivery charge if any
     """
+    logging.info("calculating total amount")
     cart = user.cart
     amount = 0
 
@@ -263,22 +300,51 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
                 amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
             else:
                 amount += -item.quantity * item.item.price * item.weight_variants / 1000
-
+    logging.info(f"Amount calculated before adding delivery charge is {amount}")
     if amount <= 0:  # if the amount is 0 then it should not add the delivery charge
         return 0
 
     if not without_coupon:
+
         if coupon_code:
+
             amount = apply_coupon(user, coupon_code, amount)
 
     if amount < 500:  # if amount lee than 500 it will apply the coupon if any and add delivery charge
+        logging.info("Adding delivery charge .... ")
         amount += address_obj.delivery_charge
     if points:
         amount = use_points(user, amount)
+        logging.info(f"applied coupon ! Now the amount is {amount} ")
     return amount
 
 
+def verify_signature(request):
+    logging.info("Signature verification taking place")
+    try:
+        signature_payload = request.GET['razorpay_payment_link_id'] + '|' +\
+            request.GET['razorpay_payment_link_reference_id']+ '|' +\
+            request.GET['razorpay_payment_link_status'] + '|' +\
+            request.GET['razorpay_payment_id']
+        signature_payload = bytes(signature_payload, 'utf-8')
+        byte_key = bytes(settings.razorpay_key_secret, 'utf-8')
+        generated_signature = hmac.new(byte_key, signature_payload, hashlib.sha256).hexdigest()
+        if generated_signature == request.GET["razorpay_signature"]:
+            logging.info("Signature verification successfully completed")
+            return True
+        else:
+            logging.warning("signature verification failed")
+            return False
+    except ValueError:
+        logging.warning("signature verification failed value error")
+        return False
+    except Exception as e:
+        logging.warning("signature verification failed")
+        logging.warning(e)
+
+
 def create_order_items(cart, temp_items, order):
+    logging.info("creating order items")
     for item in temp_items.all():
         order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order,
                                               weight_variants=item.weight_variants,
@@ -289,6 +355,7 @@ def create_order_items(cart, temp_items, order):
         item.item.save()
         CartItem.objects.filter(item=item.item, weight_variants=item.weight_variants,
                                 is_cleaned=item.is_cleaned).delete()
+        item.delete()
 
     cart.total = 0
     cart.save()
