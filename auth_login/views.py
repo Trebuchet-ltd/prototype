@@ -106,8 +106,6 @@ def signup(request):
         password = request.POST.get("password")
         passwrd2 = request.POST.get("password retype")
         username = request.POST.get("username", '')
-        firstname = request.POST.get("firstname", "")
-        lastname = request.POST.get("lastname", "")
         if not email:
             context1['pswderr'] = 'Email cannot be empty'
             logger.info('Email was empty')
@@ -122,7 +120,7 @@ def signup(request):
                 try:
                     inv = request.POST.get('invite', '')
                     user = User.objects.create_user(email=email, password=password, username=username,
-                                                    first_name=firstname, last_name=lastname)
+                                                    first_name=username)
                     token,_ = Tokens.objects.get_or_create(user=user)
                     token.invite_token = inv
                     token.save()
