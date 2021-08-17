@@ -16,6 +16,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     """
     API end point to get all product details
     """
+    http_method_names = ['get']
     queryset = Product.objects.all()
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -123,7 +124,10 @@ def confirm_order(request):
         logging.info("Request not accepted due to out of stock")
         return Response({"error": f" Item {item} is out of stock"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    address_obj = Addresses.objects.filter(id=address).first()
+    address_obj = Addresses.objects.filter(id=address,user__exact=request.user).first()
+    if not address_obj:
+        logging.info("User requested address is not exist ")
+        return Response({"error": "Delivery  address not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
     if not is_available_district(address_obj.pincode):
         logging.info("Request not accepted because pincode is not available ")
         return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -137,7 +141,7 @@ def confirm_order(request):
         [payment_url, payment_id] = get_payment_link(user, amount, address_obj)
         if payment_url:
             # creating a temporary order for saving the current details of cart
-            create_temp_order(user, payment_id, date,time, address_obj, coupon_code, points)
+            create_temp_order(user, payment_id, date, time, address_obj, coupon_code, points)
             logging.info("sent the payment link successfully")
             return Response({"payment_url": payment_url})
         else:
@@ -211,13 +215,14 @@ class CartViewSets(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsOwner]
     queryset = CartModel.objects.all()
     serializer_class = CartSerializer
+    http_method_names = ['get']
 
     def list(self, request, *args, **kwargs):
         if not request.user.is_superuser:
             self.queryset = self.queryset.filter(user=request.user)
         return viewsets.ModelViewSet.list(self, request, *args, **kwargs)
 
-    @action(detail=False, methods=["get", "post", 'delete'], url_path='me')
+    @action(detail=False, methods=["get", "post"], url_path='me')
     def me(self, request, *args, **kwargs):
         self.queryset = self.queryset.filter(user=request.user)
         return viewsets.ModelViewSet.list(self, request, *args, **kwargs)

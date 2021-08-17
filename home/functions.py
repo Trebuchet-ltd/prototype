@@ -82,11 +82,11 @@ def create_temp_order(user, payment_id, date, time, address_obj, coupon_code='',
     coupon_obj = Coupon.objects.filter(code=coupon_code).first()
     if coupon_obj:
         order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                         address_id=address_obj.id, coupon=coupon_obj, used_points=points)
+                                         address_id=address_obj.id, coupon=coupon_obj, used_points=points,user=user)
         order.save()
     else:
         order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                         address_id=address_obj.id,used_points=points)
+                                         address_id=address_obj.id,used_points=points,user=user)
         order.save()
     for item in user.cart.items.all():
         temp_item = TempItem.objects.create(item=item.item, quantity=item.quantity, order=order,
@@ -194,8 +194,12 @@ def is_out_of_stock(user):
     """ This function checks the stock availability of the product """
     logging.info("checking availability of stocks ....")
     for item in user.cart.items.all():
-        reduction_in_stock = item.weight_variants * item.quantity / 1000
-        if item.item.stock - reduction_in_stock <= 0:
+
+        if item.item.type_of_quantity:
+            reduction_in_stock = item.weight_variants * item.quantity / 1000
+        else:
+            reduction_in_stock = item.quantity
+        if item.item.stock - reduction_in_stock < 0:
             logging.warning(f"{item.item} is out of stock")
             return item.item
     logging.info("checking completed all items are available ")
@@ -259,7 +263,7 @@ def apply_coupon(user, coupon_code, amount):
     This function apply the coupon code and
     """
     logging.info(f"Requested to apply the coupon  {coupon_code}")
-    coupon_obj = Coupon.objects.filter(code=coupon_code).first()
+    coupon_obj = Coupon.objects.filter(code=coupon_code.upper()).first()
     if coupon_obj:
         logging.info("Found coupon corresponding to requested coupon ")
         if is_valid_coupon(user, coupon_code, amount)[0]:
@@ -292,21 +296,24 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
             if item.is_cleaned:
                 amount += item.quantity * item.item.cleaned_price * item.weight_variants / 1000
             else:
-                amount += item.quantity * item.item.price * item.weight_variants / 1000
-
+                if item.item.type_of_quantity:
+                    amount += item.quantity * item.item.price * item.weight_variants / 1000
+                else:
+                    amount += item.quantity * item.item.price
         elif item.quantity < 0:
             if item.is_cleaned:
                 amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
             else:
-                amount += -item.quantity * item.item.price * item.weight_variants / 1000
+                if item.item.type_of_quantity:
+                    amount -= item.quantity * item.item.price * item.weight_variants / 1000
+                else:
+                    amount -= item.quantity * item.item.price
     logging.info(f"Amount calculated before adding delivery charge is {amount}")
     if amount <= 0:  # if the amount is 0 then it should not add the delivery charge
         return 0
 
     if not without_coupon:
-
         if coupon_code:
-
             amount = apply_coupon(user, coupon_code, amount)
 
     if amount < 500:  # if amount lee than 500 it will apply the coupon if any and add delivery charge
@@ -349,7 +356,10 @@ def create_order_items(cart, temp_items, order):
                                               weight_variants=item.weight_variants,
                                               is_cleaned=item.is_cleaned)
         order_item.save()
-        reduction_in_stock = item.weight_variants * item.quantity / 1000
+        if item.item.type_of_quantity:
+            reduction_in_stock = item.weight_variants * item.quantity / 1000
+        else:
+            reduction_in_stock = item.quantity
         item.item.stock -= reduction_in_stock
         item.item.save()
         CartItem.objects.filter(item=item.item, weight_variants=item.weight_variants,

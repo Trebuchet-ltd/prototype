@@ -17,15 +17,20 @@ class OrderAdmin(admin.ModelAdmin):
 
     def orders_products(self, obj):
         order_items = models.OrderItem.objects.filter(order=obj)
+        print(f"{order_items = }")
         try:
             orders = []
             for order_item in order_items:
+
                 if order_item.is_cleaned:
                     cleaned_status = 'cleaned'
                 else:
                     cleaned_status = ''
-                orders.append(f" {str(order_item.item).title()} {cleaned_status} - "
-                              f"{order_item.quantity * order_item.weight_variants / 1000} kg , ")
+                if order_item.item.type_of_quantity:
+                    orders.append(f" {str(order_item.item).title()} {cleaned_status} "
+                                  f"{order_item.quantity * order_item.weight_variants / 1000} kg , ")
+                else:
+                    orders.append(f" {str(order_item.item).title()} {order_item.quantity } items , ")
 
             # removing the last space and comma
             orders[-1] = orders[-1][:-2]
@@ -34,9 +39,10 @@ class OrderAdmin(admin.ModelAdmin):
             return "".join(orders)
 
         except Exception as e:
-            print(e)
+            print(f"{e = }")
             try:
                 return f"{order_items.item} - {order_items.quantity}"
+
             except:
                 return "Null"
 
@@ -813,14 +819,14 @@ class StatesAdmin(admin.ModelAdmin):
             "Uttar Dinajpur (North Dinajpur)"]
 
     }
-    def save_model(self, request, obj, form, change):
 
-            super().save_model(request, obj, form, change)
-            state = models.AvailableState.objects.get(state_name=obj.state_name)
-            print(state)
-            print(self.districts.get(str(state)))
-            for district in self.districts.get(str(state)):
-                models.District.objects.create(district_name=district,state=state)
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        state = models.AvailableState.objects.get(state_name=obj.state_name)
+        print(state)
+        print(self.districts.get(str(state)))
+        for district in self.districts.get(str(state)):
+            models.District.objects.create(district_name=district,state=state)
 
 
 @admin.register(models.District)
@@ -865,7 +871,7 @@ class CouponsAdmin(admin.ModelAdmin):
 
 @admin.register(models.TempOrder)
 class CouponsAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['user', 'payment_id', 'used_points', 'address_id']
 
 
 @admin.register(models.Tokens)

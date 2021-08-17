@@ -26,6 +26,7 @@ class Product(models.Model):
     meat = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, null=True)
     bestSeller = models.BooleanField(default=False)
     rating = models.IntegerField(default=0)
+    type_of_quantity = models.IntegerField(default=1, choices=[(1, "weight"), (0, "piece")])
     weight = models.FloatField(default=1)
     pieces = models.IntegerField(default=1)
     serves = models.IntegerField(default=4)
@@ -72,7 +73,9 @@ class CartItem(models.Model):
             cleaned_status = 'cleaned'
         else:
             cleaned_status = ''
-        return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
+        if self.weight_variants:
+            return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
+        return f"{self.item}  - {self.quantity } items "
 
 
 class MainPage(models.Model):
@@ -162,7 +165,9 @@ class OrderItem(models.Model):
             cleaned_status = 'cleaned'
         else:
             cleaned_status = ''
-        return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
+        if self.item.type_of_quantity:
+            return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
+        return f"{self.item} - {self.quantity } items "
 
 
 class TransactionDetails(models.Model):
@@ -187,6 +192,9 @@ class TempOrder(models.Model):
     time = models.CharField(max_length=20, default='')
     address_id = models.CharField(max_length=10, default='')
     used_points = models.IntegerField(default=0, blank=True, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="temp_order",
+                             on_delete=models.CASCADE, blank=True, null=True)
+
 
 
 class TempItem(models.Model):
