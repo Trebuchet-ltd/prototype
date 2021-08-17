@@ -23,7 +23,7 @@ class Product(models.Model):
     description = models.TextField(max_length=2048, )
     price = models.FloatField()
     stock = models.IntegerField()
-    meat = models.CharField(max_length=10,blank=True, null=True)
+    meat = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, null=True)
     bestSeller = models.BooleanField(default=False)
     rating = models.IntegerField(default=0)
     weight = models.FloatField(default=1)
