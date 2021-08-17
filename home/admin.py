@@ -872,7 +872,13 @@ class CouponsAdmin(admin.ModelAdmin):
 class CouponsAdmin(admin.ModelAdmin):
     list_display = ['user','private_token','points',]
 
+
 @admin.register(models.Pincodes)
 class CouponsAdmin(admin.ModelAdmin):
     list_display = ['pincode','district']
+
+
+@admin.register(models.Category)
+class CouponsAdmin(admin.ModelAdmin):
+    list_display = ['name', 'code']
 

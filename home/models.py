@@ -8,22 +8,22 @@ from django.contrib.postgres.fields import ArrayField
 # Create your models here.
 
 
-class Product(models.Model):
-    meat_type = (
-        ('c', 'chicken'),
-        ('b', 'beef'),
-        ('m', 'mutton'),
-        ('p', 'pork'),
-        ('f', 'fish'),
-    )
-    weight_choice = ((250, 250), (500, 500), (1000, 1000))
+class Category(models.Model):
+    name = models.CharField(max_length=20, unique=True)
+    code = models.CharField(max_length=3,primary_key=True)
 
+    def __str__(self):
+        return self.name
+
+
+class Product(models.Model):
+    weight_choice = ((250, 250), (500, 500), (1000, 1000))
     title = models.CharField(max_length=255)
     short_description = models.TextField(max_length=2048, default='')
     description = models.TextField(max_length=2048, )
     price = models.FloatField()
     stock = models.IntegerField()
-    meat = models.CharField(max_length=1, choices=meat_type)
+    meat = models.CharField(max_length=10,blank=True, null=True)
     bestSeller = models.BooleanField(default=False)
     rating = models.IntegerField(default=0)
     weight = models.FloatField(default=1)
