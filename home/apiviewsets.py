@@ -61,6 +61,8 @@ def available_pin_codes(request):
     """ A End point to know the availability of a district  """
 
     pincode = request.GET["pincode"]
+    if not pincode.isdigit() or len(pincode) != 6:
+        return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
     if is_available_district(pincode):
         return Response(status=200)
     else:
@@ -76,7 +78,6 @@ def get_coupon(request):
     }
     """
     user = request.user
-    cart = user.cart
     coupon_code = request.data["coupon_code"]
     address = request.data["selected_address"]
     address_obj = Addresses.objects.get(id=address)

@@ -235,8 +235,7 @@ def is_valid_coupon(user, coupon_code, amount):
     Returns a list with first element will be the status (boolean) second element is the error if not valid
     Returns [True] if the coupon is valid
     """
-    coupon_obj = Coupon.objects.filter(code=coupon_code).first()
-
+    coupon_obj = Coupon.objects.filter(code=coupon_code.upper()).first()
     if not coupon_obj:
         return [False, "coupon code does not exist"]
     if not coupon_code:  # checks the coupon is existing one
