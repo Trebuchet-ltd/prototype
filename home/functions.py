@@ -18,12 +18,11 @@ def is_available_district(pincode):
     """
     This function find the district of corresponding pincode and check the  district is available for delivery
     returns true if available else false
-
     """
-    logging.info("Checking the availability of  district")
-    pincode_obj = Pincodes.objects.filter(pincode__exact=pincode).first()
+    logging.info("Checking the availability of  district ")
+    pincode_obj = Pincodes.objects.filter(pincode=pincode).first()
     if pincode_obj:
-        logging.info("requested pincode is found in database ")
+        logging.info(f"requested pincode is found in database returning {pincode_obj.district.Available_status}")
         return pincode_obj.district.Available_status
 
     else:
@@ -114,7 +113,7 @@ def get_payment_link(user, amount, address_obj):
     This Function returns thr payment url for that particular checkout
     Returns a list with payment link and payment id created by razorpay
     """
-    logging.info("Requesting to get payment link ")
+    logging.info(f"{user} Requesting to get payment link ")
     key_secret = settings.razorpay_key_secret
     call_back_url = settings.webhook_call_back_url
     key_id = settings.razorpay_key_id
@@ -122,7 +121,7 @@ def get_payment_link(user, amount, address_obj):
     transaction_id = create_new_unique_id()
     transaction_details = TransactionDetails(transaction_id=transaction_id, user=user, total=amount)
     transaction_details.save()
-    logging.info("created transaction details object")
+    logging.info(f"created transaction details object for {user}")
     amount *= 100  # converting rupees to paisa
     try:
         url = 'https://api.razorpay.com/v1/payment_links'
@@ -163,6 +162,7 @@ def get_payment_link(user, amount, address_obj):
             logging.info(f" Transaction id {res.get('id')} ,  status = {res.get('status')}")
             transaction_details.payment_status = res.get("status")
             transaction_details.save()
+            logging.info(f"now created transaction details is {transaction_details}")
             payment_url = res.get('short_url')
             logging.info(f"payment url - {payment_url}")
             return [payment_url, transaction_details.payment_id]
@@ -178,7 +178,7 @@ def is_valid_date(date_obj, time):
     """ This function check the user selected date and time is valid or not """
     logging.info("Validating the date")
     if (date_obj.date() - datetime.datetime.now().date()).days < 0:
-        logging.info("date is a past date")
+        logging.info(f"date is a past date ")
         logging.info(date_obj.date)
         return False
     elif date_obj.date() == datetime.datetime.now().date():  # checking the date is today or not
@@ -192,7 +192,7 @@ def is_valid_date(date_obj, time):
 
 def is_out_of_stock(user):
     """ This function checks the stock availability of the product """
-    logging.info("checking availability of stocks ....")
+    logging.info(f"checking availability of stocks .... for user {user}")
     for item in user.cart.items.all():
 
         if item.item.type_of_quantity:
@@ -202,7 +202,7 @@ def is_out_of_stock(user):
         if item.item.stock - reduction_in_stock < 0:
             logging.warning(f"{item.item} is out of stock")
             return item.item
-    logging.info("checking completed all items are available ")
+    logging.info(f"checking completed all items are available for user {user} ")
     return False
 
 
@@ -262,7 +262,7 @@ def apply_coupon(user, coupon_code, amount):
     """
     This function apply the coupon code and
     """
-    logging.info(f"Requested to apply the coupon  {coupon_code}")
+    logging.info(f"{user} Requested to apply the coupon  {coupon_code}")
     coupon_obj = Coupon.objects.filter(code=coupon_code.upper()).first()
     if coupon_obj:
         logging.info("Found coupon corresponding to requested coupon ")
@@ -271,10 +271,10 @@ def apply_coupon(user, coupon_code, amount):
             logging.info(f"amount before applying coupon is {amount} ")
             if coupon_obj.discount_type == 0:  # constant type coupon
                 amount -= coupon_obj.discount_value
-                logging.info(f"amount before applying coupon is {amount} ")
+                logging.info(f"amount after applying coupon is {amount} ")
             else:  # percentage type
                 amount *= (100 - coupon_obj.discount_value) / 100
-                logging.info(f"amount before applying coupon is {amount} ")
+                logging.info(f"amount after applying coupon is {amount} ")
 
     return amount
 
@@ -287,7 +287,7 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
     return amount if amount more than 500
     If any coupon code is present it will apply before adding the delivery charge if any
     """
-    logging.info("calculating total amount")
+    logging.info(f"calculating total amount for user {user},address-obj ={address_obj}  coupon-{coupon_code} points-{points}")
     cart = user.cart
     amount = 0
 
@@ -317,7 +317,7 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
             amount = apply_coupon(user, coupon_code, amount)
 
     if amount < 500:  # if amount lee than 500 it will apply the coupon if any and add delivery charge
-        logging.info("Adding delivery charge .... ")
+        logging.info(f"Adding delivery charge .... for amount {amount} ")
         amount += address_obj.delivery_charge
     if points:
         amount = use_points(user, amount)

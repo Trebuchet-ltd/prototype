@@ -81,7 +81,12 @@ def get_coupon(request):
     user = request.user
     coupon_code = request.data["coupon_code"]
     address = request.data["selected_address"]
-    address_obj = Addresses.objects.get(id=address)
+    logging.info(f"{request.user} checking for coupon request data ={request.data} ")
+    address_obj = Addresses.objects.filter(id=address, user=request.user).first()
+    logging.info(f"address_obj is {address_obj} ")
+    if not address_obj:
+        logging.info(f"User requested address is not exist for {request.user} ")
+        return Response({"error": "Delivery  address not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
     amount = total_amount(user, address_obj, coupon_code, without_coupon=True)
     coupon_status = is_valid_coupon(user, coupon_code, amount)
     print(f"{amount = }")
@@ -113,9 +118,10 @@ def confirm_order(request):
     coupon_code = request.data.get("coupon_code")
     points = request.data.get("points")
     logging.info(f"{request.user.username} requested for checkout ... ")
+    logging.info(f"requested data {request.data} ")
     # checking the date is not a past date
     if not is_valid_date(date_obj, time):
-        logging.info("checkout cancelled because of invalid date ")
+        logging.info(f"checkout cancelled because of invalid date for user {request.user} ")
         return Response({"error": "Date should be a future date"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     # item will false when stock available otherwise this will be thw name of that particular item that is out of stock
@@ -124,15 +130,16 @@ def confirm_order(request):
         logging.info("Request not accepted due to out of stock")
         return Response({"error": f" Item {item} is out of stock"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    address_obj = Addresses.objects.filter(id=address,user__exact=request.user).first()
+    address_obj = Addresses.objects.filter(id=address, user=request.user).first()
+    logging.info(f"address_obj is {address_obj} ")
     if not address_obj:
-        logging.info("User requested address is not exist ")
+        logging.info(f"User requested address is not exist for {request.user} ")
         return Response({"error": "Delivery  address not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
     if not is_available_district(address_obj.pincode):
         logging.info("Request not accepted because pincode is not available ")
         return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    user = User.objects.get(id=request.user.id)
+    user = request.user
 
     amount = total_amount(user, address_obj, coupon_code, points)
 
