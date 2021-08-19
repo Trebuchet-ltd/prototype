@@ -189,7 +189,7 @@ def payment(request):
                                               address_id=temp_order.address_id,
                                               total=transaction_details.total, status="p",
                                               used_points=temp_order.used_points)
-            logger.info("creating order ")
+            logger.info("creating order")
             order.save()
             if order.used_points:
                 reduce_points(user)
@@ -199,7 +199,7 @@ def payment(request):
             if not token.first_purchase_done:
                 logger.info("first purchase ")
                 if token.invite_token:  # All user may not be invite token that's why this check is here
-                    logger.info(f"{user.name} is invited by {token.invite_token} token")
+                    logger.info(f"{user.username} is invited by {token.invite_token} token")
                     add_points(token.invite_token)  # This function add points if token is valid
                 token.first_purchase_done = True  # after first purchase this will executed and make is True
                 token.save()
