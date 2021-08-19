@@ -889,6 +889,6 @@ class CouponsAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.TempItem)
-class CouponsAdmin(admin.ModelAdmin):
+class TempItemAdmin(admin.ModelAdmin):
     list_display = ["item","quantity","order","weight_variants",'is_cleaned']
 
