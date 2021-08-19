@@ -39,16 +39,18 @@ def is_available_district(pincode):
                 district_obj = District.objects.filter(district_name=district).first()
 
                 # this check whether the the district added to the database and it is available for delivery
-                Pincodes.objects.create(pincode=pincode, district=district_obj)
-                logger.info(f"Pincode {pincode} added to database successfully ")
-
-                if not (district_obj and district_obj.Available_status):
+                if district_obj:
+                    Pincodes.objects.create(pincode=pincode, district=district_obj)
+                    logger.info(f"Pincode {pincode} added to database successfully ")
+                    return district_obj.Available_status
+                else:
+                    logger.info(f"district not found in database district name is {district}")
                     return False
             except TypeError:
                 logger.warning(f"{pincode} not found in post api ")
+                return False
         except Exception as e:
             logger.warning(e)
-        else:
             return False
 
 
@@ -80,7 +82,7 @@ def create_temp_order(user, payment_id, date, time, address_obj, coupon_code='',
     else:
         points = 0
 
-    coupon_obj = Coupon.objects.filter(code=coupon_code.upper()).first()
+    coupon_obj = Coupon.objects.filter(code__iexact=coupon_code).first()
     logger.info(f"coupon object = {coupon_obj}")
     if coupon_obj:
         logger.info("coupon object found adding to temporary order")
@@ -98,6 +100,7 @@ def create_temp_order(user, payment_id, date, time, address_obj, coupon_code='',
                                             is_cleaned=item.is_cleaned)
         temp_item.save()
     logger.info(f"created temporary order {order}")
+
 
 def cancel_last_payment_links(user):
     logger.info("Cancelling last payment links")
@@ -244,7 +247,7 @@ def is_valid_coupon(user, coupon_code, amount):
     Returns a list with first element will be the status (boolean) second element is the error if not valid
     Returns [True] if the coupon is valid
     """
-    coupon_obj = Coupon.objects.filter(code=coupon_code.upper()).first()
+    coupon_obj = Coupon.objects.filter(code__iexact=coupon_code).first()
     if not coupon_obj:
         return [False, "coupon code does not exist"]
     if not coupon_code:  # checks the coupon is existing one
@@ -268,7 +271,7 @@ def apply_coupon(user, coupon_code, amount):
     This function apply the coupon code and
     """
     logger.info(f"{user} Requested to apply the coupon  {coupon_code}")
-    coupon_obj = Coupon.objects.filter(code=coupon_code.upper()).first()
+    coupon_obj = Coupon.objects.filter(code__iexact=coupon_code).first()
     print(coupon_obj)
     if coupon_obj:
         logger.info("Found coupon corresponding to requested coupon ")

@@ -870,7 +870,7 @@ class CouponsAdmin(admin.ModelAdmin):
 
 @admin.register(models.TempOrder)
 class CouponsAdmin(admin.ModelAdmin):
-    list_display = ['user', 'payment_id', 'used_points', 'address_id']
+    list_display = ['user', 'payment_id', 'used_points', 'coupon', 'address_id']
 
 
 @admin.register(models.Tokens)
