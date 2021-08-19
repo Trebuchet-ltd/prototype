@@ -89,7 +89,7 @@ class Addresses(models.Model):
     address = models.TextField(max_length=3000)
     pincode = models.CharField(max_length=6)
     state = models.TextField(max_length=100)
-    phone = models.CharField(max_length=12)
+    phone = models.CharField(max_length=15)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
@@ -124,6 +124,8 @@ class Coupon(models.Model):
     discount_value = models.FloatField()
     expired = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.code
 
 class Orders(models.Model):
     order_status = (
@@ -194,7 +196,6 @@ class TempOrder(models.Model):
     used_points = models.IntegerField(default=0, blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="temp_order",
                              on_delete=models.CASCADE, blank=True, null=True)
-
 
 
 class TempItem(models.Model):

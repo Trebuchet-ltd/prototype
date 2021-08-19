@@ -17,7 +17,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     def orders_products(self, obj):
         order_items = models.OrderItem.objects.filter(order=obj)
-        print(f"{order_items = }")
+
         try:
             orders = []
             for order_item in order_items:
@@ -48,7 +48,6 @@ class OrderAdmin(admin.ModelAdmin):
 
     def seen_status(self, obj):
         return obj.is_seen == True
-
 
     seen_status.boolean = True
 
@@ -823,7 +822,7 @@ class StatesAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         state = models.AvailableState.objects.get(state_name=obj.state_name)
-        print(state)
+
         print(self.districts.get(str(state)))
         for district in self.districts.get(str(state)):
             models.District.objects.create(district_name=district,state=state)
@@ -887,4 +886,9 @@ class CouponsAdmin(admin.ModelAdmin):
 @admin.register(models.Category)
 class CouponsAdmin(admin.ModelAdmin):
     list_display = ['name', 'code']
+
+
+@admin.register(models.TempItem)
+class CouponsAdmin(admin.ModelAdmin):
+    list_display = ["item","quantity","order","weight_variants",'is_cleaned']
 
