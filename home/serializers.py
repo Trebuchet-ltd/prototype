@@ -30,7 +30,7 @@ class GetTokensSerializer(serializers.ModelSerializer):
         model = Tokens
         fields = [
             'user', 'private_token', 'invite_token', 'invited', 'points',
-            'reviews', 'total_points_yet', 'first_purchase_done'
+            'reviews', 'total_points_yet', 'first_purchase_done', 'amount_saved'
         ]
 
 

@@ -44,7 +44,7 @@ def is_available_district(pincode):
                     logger.info(f"Pincode {pincode} added to database successfully ")
                     return district_obj.Available_status
                 else:
-                    logger.info(f"district not found in database district name is {district}")
+                    logger.info(f"district not found in database. district name is {district}")
                     return False
             except TypeError:
                 logger.warning(f"{pincode} not found in post api ")
@@ -72,13 +72,15 @@ def create_new_unique_id():
     return str(unique_id)
 
 
-def create_temp_order(user, payment_id, date, time, address_obj, coupon_code='', points=0):
+def create_temp_order(user, payment_id, date, time, address_obj, amount_saved, coupon_code='', points=0):
     """
     This will create an intermediate object of order and order items for storing the current cart items ans details
     """
     logger.info("Creating temporary order")
     if points:
+
         points = user.tokens.points
+        logger.info(f"Adding {points} -points to temp order")
     else:
         points = 0
 
@@ -87,17 +89,21 @@ def create_temp_order(user, payment_id, date, time, address_obj, coupon_code='',
     if coupon_obj:
         logger.info("coupon object found adding to temporary order")
         order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                         address_id=address_obj.id, coupon=coupon_obj, used_points=points, user=user)
-
+                                         address_id=address_obj.id, coupon=coupon_obj,
+                                         used_points=points, user=user, amount_saved=amount_saved)
+        logger.info(order)
         order.save()
     else:
         order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                         address_id=address_obj.id,used_points=points,user=user)
+                                         address_id=address_obj.id,used_points=points,
+                                         user=user, amount_saved=amount_saved)
         order.save()
     for item in user.cart.items.all():
+        logger.info(f"Adding {item.item}-{item.quantity} -{item.weight_variants} -variant cleaned status {item.is_cleaned} ")
         temp_item = TempItem.objects.create(item=item.item, quantity=item.quantity, order=order,
                                             weight_variants=item.weight_variants,
                                             is_cleaned=item.is_cleaned)
+
         temp_item.save()
     logger.info(f"created temporary order {order}")
 
@@ -265,6 +271,7 @@ def is_valid_coupon(user, coupon_code, amount):
         if coupon_obj.specific_user != user:  # check the specific user is not the requested user
             return [False, "coupon code does not exist"]
     if coupon_obj.minimum_price > amount:  # checks the minimum price condition
+        logger.info(f"This coupon is applicable to the amount greater than {coupon_obj.minimum_price}")
         return [False, f"This coupon is applicable to the amount greater than {coupon_obj.minimum_price} "]
 
     return [True]
@@ -276,7 +283,7 @@ def apply_coupon(user, coupon_code, amount):
     """
     logger.info(f"{user} Requested to apply the coupon  {coupon_code}")
     coupon_obj = Coupon.objects.filter(code__iexact=coupon_code).first()
-    print(coupon_obj)
+
     if coupon_obj:
         logger.info("Found coupon corresponding to requested coupon ")
         if is_valid_coupon(user, coupon_code, amount)[0]:
@@ -303,33 +310,33 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
     logger.info(f"calculating total amount for user {user},address-obj ={address_obj}  coupon-{coupon_code} points-{points}")
     cart = user.cart
     amount = 0
-
+    actual_amount = 0
     for item in cart.items.all():
         if item.quantity > 0:
             if item.is_cleaned:
-                amount += (item.quantity * item.item.cleaned_price * item.weight_variants / 1000) \
-                          * (100-item.item.discount)/100
+                actual_amount += (item.quantity * item.item.cleaned_price * item.weight_variants / 1000)
+                amount = actual_amount * (100-item.item.discount)/100
             else:
                 if item.item.type_of_quantity:
-                    amount += item.quantity * item.item.price * item.weight_variants / 1000\
-                          * (100-item.item.discount)/100
+                    actual_amount += item.quantity * item.item.price * item.weight_variants / 1000
+                    amount = actual_amount * (100 - item.item.discount) / 100
                 else:
-                    amount += item.quantity * item.item.price\
-                          * (100-item.item.discount)/100
+                    actual_amount += item.quantity * item.item.price
+                    amount = actual_amount * (100 - item.item.discount) / 100
         elif item.quantity < 0:
             if item.is_cleaned:
-                amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000\
-                          * (100-item.item.discount)/100
+                actual_amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
+                amount = actual_amount * (100 - item.item.discount) / 100
             else:
                 if item.item.type_of_quantity:
-                    amount -= item.quantity * item.item.price * item.weight_variants / 1000\
-                          * (100-item.item.discount)/100
+                    actual_amount -= item.quantity * item.item.price * item.weight_variants / 1000
+                    amount = actual_amount * (100 - item.item.discount) / 100
                 else:
-                    amount -= item.quantity * item.item.price\
-                          * (100-item.item.discount)/100
+                    actual_amount -= item.quantity * item.item.price
+                    amount = actual_amount * (100 - item.item.discount) / 100
     logger.info(f"Amount calculated before adding delivery charge is {amount}")
     if amount <= 0:  # if the amount is 0 then it should not add the delivery charge
-        return 0
+        return 0, 0
 
     if not without_coupon:
         if coupon_code:
@@ -338,10 +345,13 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
     if amount < 500:  # if amount lee than 500 it will apply the coupon if any and add delivery charge
         logger.info(f"Adding delivery charge .... for amount {amount} ")
         amount += address_obj.delivery_charge
+    else:
+        actual_amount += address_obj.delivery_charge
     if points:
         amount = use_points(user, amount)
         logger.info(f"applied coupon ! Now the amount is {amount} ")
-    return amount
+    logger.info(f"total amount adding all charges and offers {amount}  actual amount {actual_amount}")
+    return amount, actual_amount
 
 
 def verify_signature(request):

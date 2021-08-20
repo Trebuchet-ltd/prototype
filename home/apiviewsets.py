@@ -86,7 +86,7 @@ def get_coupon(request):
     if not address_obj:
         logger.info(f"User requested address is not exist for {request.user} ")
         return Response({"error": "Delivery  address not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
-    amount = total_amount(user, address_obj, coupon_code, without_coupon=True)
+    amount, actual_amount = total_amount(user, address_obj, coupon_code, without_coupon=True)
     coupon_status = is_valid_coupon(user, coupon_code, amount)
     logger.info(amount)
     if coupon_status[0]:
@@ -140,14 +140,15 @@ def confirm_order(request):
 
     user = request.user
 
-    amount = total_amount(user, address_obj, coupon_code, points)
+    amount, actual_amount = total_amount(user, address_obj, coupon_code, points)
+    amount_saved = actual_amount - amount
 
-    logger.info(f"Total amount = {amount} ")
+    logger.info(f"Total amount = {amount} amount saved = {amount_saved} ")
     if amount > 0:
         [payment_url, payment_id] = get_payment_link(user, amount, address_obj)
         if payment_url:
             # creating a temporary order for saving the current details of cart
-            create_temp_order(user, payment_id, date, time, address_obj, coupon_code, points)
+            create_temp_order(user, payment_id, date, time, address_obj,amount_saved, coupon_code, points)
             logger.info("sent the payment link successfully")
             return Response({"payment_url": payment_url})
         else:
@@ -195,14 +196,16 @@ def payment(request):
                 reduce_points(user)
             transaction_details.order = order
             transaction_details.save()
+
             token = user.tokens
+            token.amount_saved+=temp_order.amount_saved
             if not token.first_purchase_done:
                 logger.info("first purchase ")
                 if token.invite_token:  # All user may not be invite token that's why this check is here
                     logger.info(f"{user.username} is invited by {token.invite_token} token")
                     add_points(token.invite_token)  # This function add points if token is valid
                 token.first_purchase_done = True  # after first purchase this will executed and make is True
-                token.save()
+            token.save()
 
             create_order_items(cart, temp_items, order)
             temp_order.delete()

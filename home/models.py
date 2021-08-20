@@ -201,6 +201,7 @@ class TempOrder(models.Model):
     used_points = models.IntegerField(default=0, blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="temp_order",
                              on_delete=models.CASCADE, blank=True, null=True)
+    amount_saved = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user} address-{self.address_id}"
@@ -237,6 +238,7 @@ class Tokens(models.Model):
     invite_token = models.CharField(max_length=10, blank=True, null=True)
     first_purchase_done = models.BooleanField(default=False)
     total_points_yet = models.IntegerField(default=0)
+    amount_saved = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user} "
