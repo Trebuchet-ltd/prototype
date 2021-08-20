@@ -35,6 +35,7 @@ class Product(models.Model):
     cleaned_price = models.FloatField(blank=True, null=True, )
     weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0,
                                                      choices=weight_choice), default=list)
+    discount = models.FloatField(default=0, help_text='discount in percentage')
 
     def __str__(self):
         return self.title
@@ -127,6 +128,10 @@ class Coupon(models.Model):
     def __str__(self):
         return self.code
 
+
+
+
+
 class Orders(models.Model):
     order_status = (
         ('r', 'received'),
@@ -196,6 +201,9 @@ class TempOrder(models.Model):
     used_points = models.IntegerField(default=0, blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="temp_order",
                              on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user} address-{self.address_id}"
 
 
 class TempItem(models.Model):

@@ -21,7 +21,7 @@ class GetProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'short_description', 'price', 'stock',
             'meat', 'images', 'bestSeller', "weight", 'rating',
-            'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price',
+            'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price', "discount"
         ]
 
 

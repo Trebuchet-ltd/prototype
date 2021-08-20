@@ -247,13 +247,17 @@ def is_valid_coupon(user, coupon_code, amount):
     Returns a list with first element will be the status (boolean) second element is the error if not valid
     Returns [True] if the coupon is valid
     """
-    coupon_obj = Coupon.objects.filter(code__iexact=coupon_code).first()
-    if not coupon_obj:
-        return [False, "coupon code does not exist"]
+    logger.info(f"validating coupon {coupon_code} with amount {amount}")
     if not coupon_code:  # checks the coupon is existing one
         return [False, "coupon code does not exist"]
+    coupon_obj = Coupon.objects.filter(code__iexact=coupon_code).first()
+    if not coupon_obj:
+        logger.info("coupon does not exist")
+        return [False, "coupon code does not exist"]
+    logger.info(f"found coupon object {coupon_obj}")
     order_with_same_cpn = Orders.objects.filter(user__exact=user, coupon=coupon_obj)
     if order_with_same_cpn:
+        logger.info(f" already applied {coupon_code} for order {order_with_same_cpn} ")
         return [False, "coupon code does not exist"]
     if coupon_obj.expired:  # check the coupon expired or not
         return [False, "coupon code does not exist"]
@@ -303,20 +307,26 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
     for item in cart.items.all():
         if item.quantity > 0:
             if item.is_cleaned:
-                amount += item.quantity * item.item.cleaned_price * item.weight_variants / 1000
+                amount += (item.quantity * item.item.cleaned_price * item.weight_variants / 1000) \
+                          * (100-item.item.discount)/100
             else:
                 if item.item.type_of_quantity:
-                    amount += item.quantity * item.item.price * item.weight_variants / 1000
+                    amount += item.quantity * item.item.price * item.weight_variants / 1000\
+                          * (100-item.item.discount)/100
                 else:
-                    amount += item.quantity * item.item.price
+                    amount += item.quantity * item.item.price\
+                          * (100-item.item.discount)/100
         elif item.quantity < 0:
             if item.is_cleaned:
-                amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
+                amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000\
+                          * (100-item.item.discount)/100
             else:
                 if item.item.type_of_quantity:
-                    amount -= item.quantity * item.item.price * item.weight_variants / 1000
+                    amount -= item.quantity * item.item.price * item.weight_variants / 1000\
+                          * (100-item.item.discount)/100
                 else:
-                    amount -= item.quantity * item.item.price
+                    amount -= item.quantity * item.item.price\
+                          * (100-item.item.discount)/100
     logger.info(f"Amount calculated before adding delivery charge is {amount}")
     if amount <= 0:  # if the amount is 0 then it should not add the delivery charge
         return 0
