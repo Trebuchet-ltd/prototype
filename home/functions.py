@@ -234,17 +234,12 @@ def reduce_points(user):
 def add_points(token):
     """ Function to add points to user when first purchase occurs """
     logger.info("performing  adding points")
-    purchase_done = Tokens.objects.get(invite_token=token).first_purchase_done
-    if not purchase_done:
-        invite_token = Tokens.objects.get(private_token=token)
-        logger.info(f"user is invited by {invite_token.user.name}, adding 40 points... ")
-        invite_token.total_points_yet += 40
-        invite_token.points += 40
-        logger.info("points adding completed")
-        invite_token.save()
-        return True
-
-    return False
+    invite_token = Tokens.objects.get(private_token=token)
+    logger.info(f"user is invited by {invite_token.user.username}, adding 40 points... ")
+    invite_token.total_points_yet += 40
+    invite_token.points += 40
+    logger.info("points adding completed")
+    invite_token.save()
 
 
 def is_valid_coupon(user, coupon_code, amount):
