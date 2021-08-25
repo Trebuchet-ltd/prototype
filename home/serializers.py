@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import ImageModel, CartModel
 from .models import Product
-from .models import Tokens, CartItem, TransactionDetails, Orders, OrderItem, Addresses
+from .models import Tokens, CartItem, TransactionDetails,\
+    Orders, OrderItem, Addresses,RecipeBox
 
 
 class GetImageSerializer(serializers.ModelSerializer):
@@ -21,7 +22,17 @@ class GetProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'short_description', 'price', 'stock',
             'meat', 'images', 'bestSeller', "weight", 'rating',
-            'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price', "discount"
+            'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price', "discount", 'recipe_box'
+        ]
+
+
+class GetRecipeBoxSerializer(serializers.ModelSerializer):
+    products = GetProductSerializer(many=True, read_only=True,)
+
+    class Meta:
+        model = RecipeBox
+        fields = [
+            'products', 'video_url',
         ]
 
 

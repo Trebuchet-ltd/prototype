@@ -892,3 +892,7 @@ class CouponsAdmin(admin.ModelAdmin):
 class TempItemAdmin(admin.ModelAdmin):
     list_display = ["item","quantity","order","weight_variants",'is_cleaned']
 
+
+@admin.register(models.RecipeBox)
+class RecipeBoxAdmin(admin.ModelAdmin):
+    pass

@@ -36,9 +36,16 @@ class Product(models.Model):
     weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0,
                                                      choices=weight_choice), default=list)
     discount = models.FloatField(default=0, help_text='discount in percentage')
+    icon = models.ImageField(upload_to='images/', null=True, blank=True,help_text="Upload the icon ")
+    recipe_box = models.ForeignKey('RecipeBox', on_delete=models.CASCADE,null=True, blank=True, related_name='product')
 
     def __str__(self):
         return self.title
+
+
+class RecipeBox(models.Model):
+    products = models.ManyToManyField(Product, help_text="enter the products")
+    video_url = models.CharField(max_length=500)
 
 
 class ImageModel(models.Model):
@@ -63,7 +70,7 @@ class CartModel(models.Model):
 
 class CartItem(models.Model):
     weight_choice = ((250, 250), (500, 500), (1000, 1000))
-    item = models.ForeignKey(Product, related_name="cart_item", on_delete=models.CASCADE)
+    item = models.ForeignKey(Product, related_name="cart_item", on_delete=models.CASCADE, blank=True, null=True)
     quantity = models.PositiveIntegerField()
     cart = models.ForeignKey(CartModel, related_name="items", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
@@ -76,7 +83,7 @@ class CartItem(models.Model):
             cleaned_status = ''
         if self.weight_variants:
             return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
-        return f"{self.item}  - {self.quantity } items "
+        return f"{self.item}  - {self.quantity} items "
 
 
 class MainPage(models.Model):
@@ -118,7 +125,8 @@ class Coupon(models.Model):
     code = models.CharField(max_length=20, default=create_new_code, unique=True)
     user_specific_status = models.BooleanField(default=False)
     specific_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True,
-                                      help_text="Please provide the user name for user specific coupons else left blank")
+                                      help_text="Please provide the user name for user"
+                                                " specific coupons else left blank")
     minimum_price = models.IntegerField(default=0, help_text="Please provide the minimum prize to apply this coupons ")
     discount_type = models.IntegerField(help_text='0-> constant,1-> percentage,',
                                         choices=((1, 'percentage'), (0, 'constant')))
@@ -127,9 +135,6 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.code
-
-
-
 
 
 class Orders(models.Model):
@@ -163,7 +168,7 @@ class OrderItem(models.Model):
     weight_choice = ((250, 250), (500, 500), (1000, 1000))
     item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
-    order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE)
+    order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE,blank=True, null=True,)
     weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
 
@@ -208,7 +213,7 @@ class TempOrder(models.Model):
 
 
 class TempItem(models.Model):
-    item = models.ForeignKey(Product, related_name="temp_item", on_delete=models.CASCADE)
+    item = models.ForeignKey(Product,related_name="temp_item", on_delete=models.CASCADE,blank=True,null=True)
     quantity = models.PositiveIntegerField()
     order = models.ForeignKey(TempOrder, related_name="temp_item", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
@@ -612,5 +617,5 @@ class District(models.Model):
 
 
 class Pincodes(models.Model):
-    pincode = models.CharField(max_length=10,)
+    pincode = models.CharField(max_length=10)
     district = models.ForeignKey(District, related_name="pincode", on_delete=models.CASCADE)

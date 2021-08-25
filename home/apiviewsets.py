@@ -24,6 +24,18 @@ class ProductViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'short_description', 'description', 'can_be_cleaned', 'weight_variants']
 
 
+class RecipeBoxViewSet(viewsets.ModelViewSet):
+    """
+    API end point to get all Recipe Box details
+    """
+    http_method_names = ['get']
+    queryset = RecipeBox.objects.all()
+    serializer_class = GetRecipeBoxSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
+    search_fields = ['title', 'description', ]
+
+
 class CartItemViewSets(viewsets.ModelViewSet):
     """
     Api end point to get cart items
@@ -198,7 +210,7 @@ def payment(request):
             transaction_details.save()
 
             token = user.tokens
-            token.amount_saved+=temp_order.amount_saved
+            token.amount_saved += temp_order.amount_saved
             if not token.first_purchase_done:
                 logger.info("first purchase ")
                 if token.invite_token:  # All user may not be invite token that's why this check is here

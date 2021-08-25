@@ -1,6 +1,5 @@
         body{
             font-family:Poppins;
-
         }
         .back{
             margin-top:13px;
@@ -48,7 +47,7 @@
             color: #DD2C00;
         }
          .form-checkbox:after{
-            border:2px solid #DD2C00 ;
+            /*border:2px solid #DD2C00 ;*/
         }
         .bg-image{
             height: 100vh;
