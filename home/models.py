@@ -7,10 +7,18 @@ from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
 
+class MainCategory(models.Model):
+    name = models.CharField(max_length=25)
 
-class Category(models.Model):
+    def __str__(self):
+        return self.name
+
+
+class SubCategory(models.Model):
     name = models.CharField(max_length=20, unique=True)
     code = models.CharField(max_length=3,primary_key=True)
+    category = models.ForeignKey(MainCategory, related_name="subcategory",
+                                 on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -23,7 +31,7 @@ class Product(models.Model):
     description = models.TextField(max_length=2048, )
     price = models.FloatField()
     stock = models.IntegerField()
-    meat = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, null=True)
+    meat = models.ForeignKey(SubCategory, on_delete=models.CASCADE, blank=True, null=True)
     bestSeller = models.BooleanField(default=False)
     rating = models.IntegerField(default=0)
     type_of_quantity = models.IntegerField(default=1, choices=[(1, "weight"), (0, "piece")])
