@@ -340,8 +340,7 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
     if amount < 500:  # if amount lee than 500 it will apply the coupon if any and add delivery charge
         logger.info(f"Adding delivery charge .... for amount {amount} ")
         amount += address_obj.delivery_charge
-    else:
-        actual_amount += address_obj.delivery_charge
+    actual_amount += address_obj.delivery_charge
     if points:
         amount = use_points(user, amount)
         logger.info(f"applied coupon ! Now the amount is {amount} ")
