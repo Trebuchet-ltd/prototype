@@ -847,10 +847,20 @@ class DistrictAdmin(admin.ModelAdmin):
         messages.success(request, "Selected District(s) is not available now !!")
 
 
+class NutritionQuantity(admin.TabularInline):
+    model = models.NutritionQuantity
+
+
+@admin.register(models.Nutrition)
+class ProductAdmin(admin.ModelAdmin):
+    pass
+
+
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['title','available_stock']
     list_filter = ['meat','bestSeller']
+    inlines = [NutritionQuantity]
 
     @admin.display(description="stock")
     def available_stock(self,obj):

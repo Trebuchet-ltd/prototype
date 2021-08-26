@@ -45,6 +45,7 @@ class Product(models.Model):
                                                      choices=weight_choice), default=list)
     discount = models.FloatField(default=0, help_text='discount in percentage')
     icon = models.ImageField(upload_to='images/', null=True, blank=True,help_text="Upload the icon ")
+    nutritions = models.ManyToManyField('Nutrition', through='NutritionQuantity')
 
     def __str__(self):
         return self.title
@@ -57,9 +58,10 @@ class RecipeBox(models.Model):
 
 
 class Quantity(models.Model):
+    """ for saving the quantity of each items in recipe box  """
     product = models.ForeignKey(Product, related_name='product', on_delete=models.CASCADE)
     quantity = models.FloatField()
-    recipe_box = models.ForeignKey(RecipeBox,related_name='items', on_delete=models.CASCADE)
+    recipe_box = models.ForeignKey(RecipeBox, related_name='items', on_delete=models.CASCADE)
 
 
 class ImageModel(models.Model):
@@ -70,6 +72,16 @@ class ImageModel(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Nutrition(models.Model):
+    name = models.CharField(max_length=40)
+
+
+class NutritionQuantity(models.Model):
+    quantity = models.FloatField()
+    nutrition = models.ForeignKey(Nutrition, on_delete=models.CASCADE,related_name='nutrition')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='nutrition')
 
 
 class CartModel(models.Model):

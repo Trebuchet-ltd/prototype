@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import ImageModel, CartModel
 from .models import Product
 from .models import Tokens, CartItem, TransactionDetails,\
-    Orders, OrderItem, Addresses,RecipeBox,Quantity
+    Orders, OrderItem, Addresses,RecipeBox,Quantity,NutritionQuantity,Nutrition
 
 
 class GetImageSerializer(serializers.ModelSerializer):
@@ -14,15 +14,31 @@ class GetImageSerializer(serializers.ModelSerializer):
         ]
 
 
+class GetNutritionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Nutrition
+        fields = ['name']
+
+
+class GetNutritionQuantitySerializer(serializers.ModelSerializer):
+    nutrition = GetNutritionSerializer(many=False)
+
+    class Meta:
+        model = NutritionQuantity
+        fields = ['quantity', 'nutrition']
+
+
 class GetProductSerializer(serializers.ModelSerializer):
     images = GetImageSerializer(many=True, required=False)
+    nutrition = GetNutritionQuantitySerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
         fields = [
             'id', 'title', 'description', 'short_description', 'price', 'stock',
             'meat', 'images', 'bestSeller', "weight", 'rating',
-            'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price', "discount", 'recipe_box'
+            'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price', "discount", 'recipe_box','nutrition'
         ]
 
 
