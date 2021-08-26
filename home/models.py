@@ -45,15 +45,21 @@ class Product(models.Model):
                                                      choices=weight_choice), default=list)
     discount = models.FloatField(default=0, help_text='discount in percentage')
     icon = models.ImageField(upload_to='images/', null=True, blank=True,help_text="Upload the icon ")
-    recipe_box = models.ForeignKey('RecipeBox', on_delete=models.CASCADE,null=True, blank=True, related_name='product')
 
     def __str__(self):
         return self.title
 
 
 class RecipeBox(models.Model):
-    products = models.ManyToManyField(Product, help_text="enter the products")
+    products = models.ManyToManyField(Product, through='Quantity', help_text="enter the products")
     video_url = models.CharField(max_length=500)
+    shadow_product = models.OneToOneField(Product, related_name='recipe_box',on_delete=models.CASCADE,blank=True,null=True)
+
+
+class Quantity(models.Model):
+    product = models.ForeignKey(Product, related_name='product', on_delete=models.CASCADE)
+    quantity = models.FloatField()
+    recipe_box = models.ForeignKey(RecipeBox,related_name='items', on_delete=models.CASCADE)
 
 
 class ImageModel(models.Model):

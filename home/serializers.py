@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import ImageModel, CartModel
 from .models import Product
 from .models import Tokens, CartItem, TransactionDetails,\
-    Orders, OrderItem, Addresses,RecipeBox
+    Orders, OrderItem, Addresses,RecipeBox,Quantity
 
 
 class GetImageSerializer(serializers.ModelSerializer):
@@ -26,13 +26,48 @@ class GetProductSerializer(serializers.ModelSerializer):
         ]
 
 
+class GetShadowProductSerializer(serializers.ModelSerializer):
+    images = GetImageSerializer(many=True, required=False)
+
+    class Meta:
+        model = Product
+        fields = [
+            'id', 'title', 'description', 'short_description', 'price', 'stock',
+            'meat', 'images', 'bestSeller', 'rating',
+            "discount",
+        ]
+
+
+class GetRecipeProductSerializer(serializers.ModelSerializer):
+    images = GetImageSerializer(many=True, required=False)
+
+    class Meta:
+        model = Product
+        fields = [
+             'title', 'description', 'short_description',
+             'meat', 'images', 'bestSeller','rating',
+
+        ]
+
+
+class GetQuantitySerializer(serializers.ModelSerializer):
+    product = GetRecipeProductSerializer(many=False, read_only=True, )
+
+    class Meta:
+        model = Quantity
+        fields = [
+            'product', 'quantity'
+        ]
+
+
 class GetRecipeBoxSerializer(serializers.ModelSerializer):
-    products = GetProductSerializer(many=True, read_only=True,)
+    items = GetQuantitySerializer(many=True, read_only=True)
+    shadow_product = GetShadowProductSerializer(many=False, read_only=True)
 
     class Meta:
         model = RecipeBox
         fields = [
-            'products', 'video_url',
+            'shadow_product','video_url', 'items',
         ]
 
 

@@ -898,6 +898,12 @@ class TempItemAdmin(admin.ModelAdmin):
     list_display = ["item","quantity","order","weight_variants",'is_cleaned']
 
 
+class QuantityAdmin(admin.TabularInline):
+    model = models.Quantity
+
+
 @admin.register(models.RecipeBox)
 class RecipeBoxAdmin(admin.ModelAdmin):
-    pass
+    inlines = (QuantityAdmin,)
+
+

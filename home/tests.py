@@ -64,7 +64,7 @@ class HandlePaymentTestCase(TestCase):
     def setUp(self) -> None:
         self.old_user = User.objects.create_user(email='old@gmail.com', password='password', username='old',
                                                  first_name='old')
-        token,_ = Tokens.objects.get_or_create(user=self.old_user)
+        token, _ = Tokens.objects.get_or_create(user=self.old_user)
 
         self.user = User.objects.create_user(email='test@gmail.com', password='password', username='test',
                                              first_name='test')
@@ -144,7 +144,7 @@ class HandlePaymentTestCase(TestCase):
         tran = TransactionDetails.objects.get(payment_id=self.payment_id)
         handle_payment(tran.transaction_id, 'paid')
         points = Tokens.objects.get(user=self.user).points
-        self.assertEqual(points, 0, msg="Points not reduced ")
+        self.assertEqual(points, 0, msg="Points not reduced")
 
 
 
