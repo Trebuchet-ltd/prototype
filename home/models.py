@@ -193,16 +193,14 @@ class OrderItem(models.Model):
 class TransactionDetails(models.Model):
     order = models.ForeignKey(Orders, related_name="transaction", on_delete=models.CASCADE, null=True, blank=True)
     total = models.FloatField(default=0)
+    amount_saved = models.IntegerField(default=0)
     # to store the random generated unique id
     transaction_id = models.CharField(max_length=10)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="transaction", on_delete=models.CASCADE)
     # to store the id returned when creating a payment link
     payment_id = models.CharField(max_length=20, default="")
     payment_status = models.CharField(max_length=20, default="failed")
-    # The order date ,time ,and address id
-    date = models.DateField(blank=True, null=True)
-    time = models.CharField(max_length=20, default='')
-    address_id = models.CharField(max_length=10, default='')
+    date = models.DateField(auto_now=True, blank=True, null=True)
 
 
 class TempOrder(models.Model):
@@ -214,7 +212,6 @@ class TempOrder(models.Model):
     used_points = models.IntegerField(default=0, blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="temp_order",
                              on_delete=models.CASCADE, blank=True, null=True)
-    amount_saved = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.user} address-{self.address_id}"

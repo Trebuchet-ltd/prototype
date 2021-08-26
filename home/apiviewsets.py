@@ -157,10 +157,10 @@ def confirm_order(request):
 
     logger.info(f"Total amount = {amount} amount saved = {amount_saved} ")
     if amount > 0:
-        [payment_url, payment_id] = get_payment_link(user, amount, address_obj)
+        [payment_url, payment_id] = get_payment_link(user, amount,amount_saved, address_obj)
         if payment_url:
             # creating a temporary order for saving the current details of cart
-            create_temp_order(user, payment_id, date, time, address_obj,amount_saved, coupon_code, points)
+            create_temp_order(user, payment_id, date, time, address_obj, coupon_code, points)
             logger.info("sent the payment link successfully")
             return Response({"payment_url": payment_url})
         else:
@@ -176,56 +176,9 @@ def payment(request):
     print(request)
     logger.info("Webhook from razorpay called ...")
     if verify_signature(request):
-        try:
-            transaction_details = TransactionDetails.objects.get(
-                transaction_id=request.GET["razorpay_payment_link_reference_id"])
-            transaction_details.payment_status = request.GET["razorpay_payment_link_status"]
-            logger.info(f"payment status {transaction_details.payment_status}")
-            #   temp order will have the intermediate  order details between checkout and payment
-            #   the items added after checkout will not be in temp order
-            logger.info("collecting data  from temporary order ")
-            temp_order = TempOrder.objects.get(payment_id=transaction_details.payment_id)
-            temp_items = TempItem.objects.filter(order=temp_order)
-            user = transaction_details.user
-            logger.info(f"user - {user.username}")
-            cart = user.cart
-            if temp_order.coupon:
-                coupon_obj = Coupon.objects.filter(code=temp_order.coupon)
-                print(coupon_obj, temp_order.coupon)
-                logger.info(f"Payment done by using coupon {temp_order.coupon.code}")
-                order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
-                                              address_id=temp_order.address_id,
-                                              total=transaction_details.total,
-                                              status="p", coupon=temp_order.coupon, used_points=temp_order.used_points)
-            else:
-                order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
-                                              address_id=temp_order.address_id,
-                                              total=transaction_details.total, status="p",
-                                              used_points=temp_order.used_points)
-            logger.info("creating order")
-            order.save()
-            if order.used_points:
-                reduce_points(user)
-            transaction_details.order = order
-            transaction_details.save()
-
-            token = user.tokens
-            token.amount_saved += temp_order.amount_saved
-            if not token.first_purchase_done:
-                logger.info("first purchase ")
-                if token.invite_token:  # All user may not be invite token that's why this check is here
-                    logger.info(f"{user.username} is invited by {token.invite_token} token")
-                    add_points(token.invite_token)  # This function add points if token is valid
-                token.first_purchase_done = True  # after first purchase this will executed and make is True
-            token.save()
-
-            create_order_items(cart, temp_items, order)
-            temp_order.delete()
-            logger.info("order creation completed")
-        except TempOrder.DoesNotExist:
-            logger.warning("Temporary order does not exist  already created an order from this")
-        except Exception as ex:
-            logger.warning(f"order not created exception {ex} ")
+        transaction_id = request.GET["razorpay_payment_link_reference_id"]
+        payment_status = request.GET["razorpay_payment_link_status"]
+        handle_payment(transaction_id, payment_status)
     else:
         return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
     return HttpResponseRedirect(settings.webhook_redirect_url)

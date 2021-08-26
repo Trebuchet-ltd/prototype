@@ -72,7 +72,7 @@ def create_new_unique_id():
     return str(unique_id)
 
 
-def create_temp_order(user, payment_id, date, time, address_obj, amount_saved, coupon_code='', points=0):
+def create_temp_order(user, payment_id, date, time, address_obj, coupon_code='', points=False):
     """
     This will create an intermediate object of order and order items for storing the current cart items ans details
     """
@@ -90,16 +90,17 @@ def create_temp_order(user, payment_id, date, time, address_obj, amount_saved, c
         logger.info("coupon object found adding to temporary order")
         order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
                                          address_id=address_obj.id, coupon=coupon_obj,
-                                         used_points=points, user=user, amount_saved=amount_saved)
+                                         used_points=points, user=user, )
         logger.info(order)
         order.save()
     else:
         order = TempOrder.objects.create(payment_id=payment_id, date=date, time=time,
-                                         address_id=address_obj.id,used_points=points,
-                                         user=user, amount_saved=amount_saved)
+                                         address_id=address_obj.id, used_points=points,
+                                         user=user, )
         order.save()
     for item in user.cart.items.all():
-        logger.info(f"Adding {item.item}-{item.quantity} -{item.weight_variants} -variant cleaned status {item.is_cleaned} ")
+        logger.info(
+            f"Adding {item.item}-{item.quantity} -{item.weight_variants} -variant cleaned status {item.is_cleaned} ")
         temp_item = TempItem.objects.create(item=item.item, quantity=item.quantity, order=order,
                                             weight_variants=item.weight_variants,
                                             is_cleaned=item.is_cleaned)
@@ -122,7 +123,7 @@ def cancel_last_payment_links(user):
         transaction.delete()
 
 
-def get_payment_link(user, amount, address_obj):
+def get_payment_link(user, amount, amount_saved, address_obj):
     """
     This Function returns thr payment url for that particular checkout
     Returns a list with payment link and payment id created by razorpay
@@ -133,7 +134,8 @@ def get_payment_link(user, amount, address_obj):
     key_id = settings.razorpay_key_id
     cancel_last_payment_links(user)
     transaction_id = create_new_unique_id()
-    transaction_details = TransactionDetails(transaction_id=transaction_id, user=user, total=amount)
+    transaction_details = TransactionDetails(transaction_id=transaction_id, user=user,
+                                             total=amount, amount_saved=amount_saved)
     transaction_details.save()
     logger.info(f"created transaction details object for {user}")
     amount *= 100  # converting rupees to paisa
@@ -229,6 +231,7 @@ def reduce_points(user):
     logger.info("user used points to checkout making points zero")
     user.tokens.points = 0
     user.tokens.save()
+    print(user.tokens.points)
 
 
 def add_points(token):
@@ -302,7 +305,8 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
     return amount if amount more than 500
     If any coupon code is present it will apply before adding the delivery charge if any
     """
-    logger.info(f"calculating total amount for user {user},address-obj ={address_obj}  coupon-{coupon_code} points-{points}")
+    logger.info(
+        f"calculating total amount for user {user},address-obj ={address_obj}  coupon-{coupon_code} points-{points}")
     cart = user.cart
     amount = 0
     actual_amount = 0
@@ -310,7 +314,7 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
         if item.quantity > 0:
             if item.is_cleaned:
                 actual_amount += (item.quantity * item.item.cleaned_price * item.weight_variants / 1000)
-                amount = actual_amount * (100-item.item.discount)/100
+                amount = actual_amount * (100 - item.item.discount) / 100
             else:
                 if item.item.type_of_quantity:
                     actual_amount += item.quantity * item.item.price * item.weight_variants / 1000
@@ -351,10 +355,10 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
 def verify_signature(request):
     logger.info("Signature verification taking place")
     try:
-        signature_payload = request.GET['razorpay_payment_link_id'] + '|' +\
-            request.GET['razorpay_payment_link_reference_id']+ '|' +\
-            request.GET['razorpay_payment_link_status'] + '|' +\
-            request.GET['razorpay_payment_id']
+        signature_payload = request.GET['razorpay_payment_link_id'] + '|' + \
+                            request.GET['razorpay_payment_link_reference_id'] + '|' + \
+                            request.GET['razorpay_payment_link_status'] + '|' + \
+                            request.GET['razorpay_payment_id']
         signature_payload = bytes(signature_payload, 'utf-8')
         byte_key = bytes(settings.razorpay_key_secret, 'utf-8')
         generated_signature = hmac.new(byte_key, signature_payload, hashlib.sha256).hexdigest()
@@ -370,6 +374,60 @@ def verify_signature(request):
     except Exception as e:
         logger.warning("signature verification failed")
         logger.warning(e)
+
+
+def handle_payment(transaction_id, payment_status):
+    try:
+        transaction_details = TransactionDetails.objects.get(transaction_id=transaction_id)
+        transaction_details.payment_status = payment_status
+        logger.info(f"payment status {transaction_details.payment_status}")
+        #   temp order will have the intermediate  order details between checkout and payment
+        #   the items added after checkout will not be in temp order
+        logger.info("collecting data  from temporary order ")
+        temp_order = TempOrder.objects.get(payment_id=transaction_details.payment_id)
+        logger.info(f"temp order = {temp_order.payment_id}")
+        temp_items = TempItem.objects.filter(order=temp_order)
+        user = transaction_details.user
+        logger.info(f"user - {user.username}")
+        cart = user.cart
+        if temp_order.coupon:
+            coupon_obj = Coupon.objects.filter(code=temp_order.coupon)
+            print(coupon_obj, temp_order.coupon)
+            logger.info(f"Payment done by using coupon {temp_order.coupon.code}")
+            order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
+                                          address_id=temp_order.address_id,
+                                          total=transaction_details.total,
+                                          status="p", coupon=temp_order.coupon, used_points=temp_order.used_points)
+        else:
+            order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
+                                          address_id=temp_order.address_id,
+                                          total=transaction_details.total, status="p",
+                                          used_points=temp_order.used_points)
+        logger.info("creating order")
+        order.save()
+        if order.used_points:
+            reduce_points(user)
+        transaction_details.order = order
+        transaction_details.save()
+
+        token = user.tokens
+        token.amount_saved += transaction_details.amount_saved
+        if not token.first_purchase_done:
+            logger.info("first purchase ")
+            if token.invite_token:  # All user may not be invite token that's why this check is here
+                logger.info(f"{user.username} is invited by {token.invite_token} token")
+                add_points(token.invite_token)  # This function add points if token is valid
+            token.first_purchase_done = True  # after first purchase this will executed and make is True
+        token.save()
+        logger.info(f"first purchase done status = {user.tokens.first_purchase_done}")
+
+        create_order_items(cart, temp_items, order)
+        temp_order.delete()
+        logger.info("order creation completed")
+    except TempOrder.DoesNotExist:
+        logger.warning("Temporary order does not exist  already created an order from this")
+    except Exception as ex:
+        logger.critical(f"order not created exception {ex} ")
 
 
 def create_order_items(cart, temp_items, order):
@@ -397,7 +455,7 @@ def distance_between(loc1, loc2):
     pnt1 = GEOSGeometry(f"POINT ({loc1[1]} {loc1[0]})", srid=4326)
     pnt2 = GEOSGeometry(f"POINT ({loc2[1]} {loc2[0]})", srid=4326)
     distance = pnt1.distance(pnt2) * 100
-    return distance*1.45
+    return distance * 1.45
 
 
 def get_delivery_charge(location):
