@@ -9,12 +9,12 @@ from django.contrib.postgres.fields import ArrayField
 
 class Category(models.Model):
     choices = (
-        ("chicken",'chicken'), ('fish','fish'), ('groceries','groceries'), ('fruits', 'fruits'),
-        ('vegetables','vegetables'), ('meat','meat'), ("ready to eat", 'ready to eat')
+        ('groceries','groceries'), ('fruits and vegetables', 'fruits and vegetables'),
+         ('meat', 'meat'),
     )
     name = models.CharField(max_length=20, unique=True)
     code = models.CharField(max_length=3, primary_key=True)
-    category = models.CharField(choices=choices, max_length=15, default='fish')
+    category = models.CharField(choices=choices, max_length=25, default='meat')
 
     def __str__(self):
         return self.name
