@@ -893,14 +893,9 @@ class CouponsAdmin(admin.ModelAdmin):
     list_display = ['pincode','district']
 
 
-@admin.register(models.SubCategory)
+@admin.register(models.Category)
 class SubCategoryAdmin(admin.ModelAdmin):
     list_display = ['name', 'code']
-
-
-@admin.register(models.MainCategory)
-class MainCategoryAdmin(admin.ModelAdmin):
-    pass
 
 
 @admin.register(models.TempItem)

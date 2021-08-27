@@ -7,18 +7,14 @@ from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
 
-class MainCategory(models.Model):
-    name = models.CharField(max_length=25)
-
-    def __str__(self):
-        return self.name
-
-
-class SubCategory(models.Model):
+class Category(models.Model):
+    choices = (
+        ("chicken",'chicken'), ('fish','fish'), ('groceries','groceries'), ('fruits', 'fruits'),
+        ('vegetables','vegetables'), ('meat','meat'), ("ready to eat", 'ready to eat')
+    )
     name = models.CharField(max_length=20, unique=True)
-    code = models.CharField(max_length=3,primary_key=True)
-    category = models.ForeignKey(MainCategory, related_name="subcategory",
-                                 on_delete=models.CASCADE, blank=True, null=True)
+    code = models.CharField(max_length=3, primary_key=True)
+    category = models.CharField(choices=choices, max_length=15, default='fish')
 
     def __str__(self):
         return self.name
@@ -31,7 +27,7 @@ class Product(models.Model):
     description = models.TextField(max_length=2048, )
     price = models.FloatField()
     stock = models.IntegerField()
-    meat = models.ForeignKey(SubCategory, on_delete=models.CASCADE, blank=True, null=True)
+    meat = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, null=True)
     bestSeller = models.BooleanField(default=False)
     rating = models.IntegerField(default=0)
     type_of_quantity = models.IntegerField(default=1, choices=[(1, "weight"), (0, "piece")])
@@ -42,7 +38,7 @@ class Product(models.Model):
                                          help_text='1->Can be cleaned, 0->Can not be cleaned')
     cleaned_price = models.FloatField(blank=True, null=True, )
     weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0,
-                                                     choices=weight_choice), default=list)
+                                                     choices=weight_choice),blank=True, null=True, default=list)
     discount = models.FloatField(default=0, help_text='discount in percentage')
     icon = models.ImageField(upload_to='images/', null=True, blank=True,help_text="Upload the icon ")
     nutritions = models.ManyToManyField('Nutrition', through='NutritionQuantity')

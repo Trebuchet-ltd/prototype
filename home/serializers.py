@@ -1,12 +1,11 @@
 from rest_framework import serializers
 from .models import ImageModel, CartModel
 from .models import Product
-from .models import Tokens, CartItem, TransactionDetails,\
-    Orders, OrderItem, Addresses,RecipeBox,Quantity,NutritionQuantity,Nutrition
+from .models import Tokens, CartItem, TransactionDetails, \
+    Orders, OrderItem, Addresses, RecipeBox, Quantity, NutritionQuantity, Nutrition,Category
 
 
 class GetImageSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ImageModel
         fields = [
@@ -15,7 +14,6 @@ class GetImageSerializer(serializers.ModelSerializer):
 
 
 class GetNutritionSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Nutrition
         fields = ['name']
@@ -29,16 +27,24 @@ class GetNutritionQuantitySerializer(serializers.ModelSerializer):
         fields = ['quantity', 'nutrition']
 
 
+class GetCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['name', 'category']
+
+
 class GetProductSerializer(serializers.ModelSerializer):
     images = GetImageSerializer(many=True, required=False)
     nutrition = GetNutritionQuantitySerializer(many=True, read_only=True)
+    meat = GetCategorySerializer(read_only=True,many=False)
 
     class Meta:
         model = Product
         fields = [
             'id', 'title', 'description', 'short_description', 'price', 'stock',
             'meat', 'images', 'bestSeller', "weight", 'rating',
-            'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price', "discount", 'recipe_box','nutrition'
+            'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price', "discount", 'recipe_box',
+            'nutrition'
         ]
 
 
@@ -60,8 +66,8 @@ class GetRecipeProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-             'title', 'description', 'short_description',
-             'meat', 'images', 'bestSeller','rating',
+            'title', 'description', 'short_description',
+            'meat', 'images', 'bestSeller', 'rating',
 
         ]
 
@@ -83,7 +89,7 @@ class GetRecipeBoxSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeBox
         fields = [
-            'shadow_product','video_url', 'items',
+            'shadow_product', 'video_url', 'items',
         ]
 
 
@@ -133,7 +139,7 @@ class GetAddressSerializer(serializers.ModelSerializer):
         model = Addresses
         fields = [
             'id', 'name', 'address', 'pincode', 'state', 'phone', 'latitude', 'longitude', "delivery_charge"
-            ]
+        ]
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -156,5 +162,5 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'total', 'date', 'time',
             'address', 'status', 'order_item',
-            'transaction','used_points'
+            'transaction', 'used_points'
         ]
