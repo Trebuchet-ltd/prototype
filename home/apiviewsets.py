@@ -56,9 +56,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return serializer_class
 
     def create(self, request, *args, **kwargs):
+
         serializer = self.get_serializer(data=request.data)
         user = request.user
         item = request.POST["item"]
+        logger.info(f"{user} requested to write review for product {item}")
         valid, err = is_valid_review(user, item)
         if not valid:
             return Response({"error": err}, status=status.HTTP_406_NOT_ACCEPTABLE)

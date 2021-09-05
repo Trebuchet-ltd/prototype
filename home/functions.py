@@ -352,20 +352,27 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
     return amount, actual_amount
 
 
-def is_valid_review(user,item):
+def is_valid_review(user, item):
+    product = Product.objects.filter(id=item).first()
+    logger.info(f"validating review for the product {product}")
     exising_review = Reviews.objects.filter(user=user, item=item)
     if exising_review:
-        return False, "you cant write more than one review for a product"
+        logger.info(f"{user} already reviewed to {product} ")
+        logger.info("review not created")
+        return False, f"you have already  reviewed {product}"
+    logger.info("checking the user purchased this product")
     orders = Orders.objects.filter(user=user, status="d")
 
     for order in orders:
         items = OrderItem.objects.filter(order=order, item=item)
-        print(items)
+        logger.info(f"order item query set {items}")
         if items:
+            logger.info(f"user purchased {product} before")
             break
     else:
-        print("not created")
-        return False, "you cant write review for the product that you are not purchase"
+        logger.info("review not created")
+        return False, "please purchase this product and make your review"
+    logger.info("review valid creating review")
     return True, ''
 
 
