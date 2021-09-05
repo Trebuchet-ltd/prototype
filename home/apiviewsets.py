@@ -19,7 +19,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ['bestSeller', 'meat']
+    filterset_fields = ['bestSeller', 'meat','meat__category']
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'short_description', 'description', 'can_be_cleaned', 'weight_variants']
 
