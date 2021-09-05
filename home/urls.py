@@ -10,6 +10,7 @@ router.register(r'cart', CartViewSets)
 router.register(r'order', OrderViewSets)
 router.register(r'address', AddressViewSets)
 router.register(r'recipe_box', RecipeBoxViewSet)
+router.register(r"reviews", ReviewViewSet)
 
 urlpatterns = [
     path(r'', include(router.urls)),

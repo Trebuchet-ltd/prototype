@@ -19,7 +19,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ['bestSeller', 'meat','meat__category']
+    filterset_fields = ['bestSeller', 'meat', 'meat__category']
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'short_description', 'description', 'can_be_cleaned', 'weight_variants']
 
@@ -34,6 +34,39 @@ class RecipeBoxViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'description', ]
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    """
+    API end point to get reviews and write reviews
+    """
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    queryset = Reviews.objects.all()
+    serializer_class = GetReviewSerializer
+    permission_classes = [IsOwner]
+    filterset_fields = ['item']
+    filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+
+        if self.request.method == 'PATCH':
+            serializer_class = GetReviewSerializerWithoutUser
+
+        return serializer_class
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        user = request.user
+        item = request.POST["item"]
+        valid, err = is_valid_review(user, item)
+        if not valid:
+            return Response({"error": err}, status=status.HTTP_406_NOT_ACCEPTABLE)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class CartItemViewSets(viewsets.ModelViewSet):
@@ -187,6 +220,7 @@ def payment(request):
 class CartViewSets(viewsets.ModelViewSet):
     """
     Api end point to get cart fully
+
     """
     permission_classes = [permissions.IsAuthenticated, IsOwner]
     queryset = CartModel.objects.all()

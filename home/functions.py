@@ -352,6 +352,23 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
     return amount, actual_amount
 
 
+def is_valid_review(user,item):
+    exising_review = Reviews.objects.filter(user=user, item=item)
+    if exising_review:
+        return False, "you cant write more than one review for a product"
+    orders = Orders.objects.filter(user=user, status="d")
+
+    for order in orders:
+        items = OrderItem.objects.filter(order=order, item=item)
+        print(items)
+        if items:
+            break
+    else:
+        print("not created")
+        return False, "you cant write review for the product that you are not purchase"
+    return True, ''
+
+
 def verify_signature(request):
     logger.info("Signature verification taking place")
     try:

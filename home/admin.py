@@ -912,3 +912,7 @@ class RecipeBoxAdmin(admin.ModelAdmin):
     inlines = (QuantityAdmin,)
 
 
+@admin.register(models.Reviews)
+class ReviewAdmin(admin.ModelAdmin):
+    pass
+

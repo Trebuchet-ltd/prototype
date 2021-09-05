@@ -74,6 +74,9 @@ class ImageModel(models.Model):
 class Nutrition(models.Model):
     name = models.CharField(max_length=40)
 
+    def __str__(self):
+        return self.name
+
 
 class NutritionQuantity(models.Model):
     quantity = models.FloatField()
@@ -191,7 +194,7 @@ class OrderItem(models.Model):
     weight_choice = ((250, 250), (500, 500), (1000, 1000))
     item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
-    order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE,blank=True, null=True,)
+    order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE, blank=True, null=True,)
     weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
 
@@ -267,6 +270,16 @@ class Tokens(models.Model):
 
     def __str__(self):
         return f"{self.user} "
+
+
+class Reviews(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='reviews', on_delete=models.CASCADE,)
+    item = models.ForeignKey(Product, related_name="review", on_delete=models.CASCADE)
+    title = models.CharField(max_length=50)
+    content = models.TextField()
+    stars = models.IntegerField(default=3, choices=((1, 1), (2, 2), (3, 3), (4, 4), (5, 5)))
+    date = models.DateField(auto_now_add=True, blank=True, null=True)
+    last_edit = models.DateField(auto_now_add=True, blank=True, null=True)
 
 
 class AvailableState(models.Model):

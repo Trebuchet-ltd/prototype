@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import ImageModel, CartModel
 from .models import Product
 from .models import Tokens, CartItem, TransactionDetails, \
-    Orders, OrderItem, Addresses, RecipeBox, Quantity, NutritionQuantity, Nutrition,Category
+    Orders, OrderItem, Addresses, RecipeBox, Quantity, NutritionQuantity, Nutrition, Category, Reviews
 
 
 class GetImageSerializer(serializers.ModelSerializer):
@@ -90,6 +90,25 @@ class GetRecipeBoxSerializer(serializers.ModelSerializer):
         model = RecipeBox
         fields = [
             'shadow_product', 'video_url', 'items',
+        ]
+
+
+class GetReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reviews
+        fields = [
+            'id', 'user', 'title', 'content', 'item', 'stars', 'date', 'last_edit'
+        ]
+        extra_kwargs = {
+            'user': {'read_only': True},
+        }
+
+
+class GetReviewSerializerWithoutUser(serializers.ModelSerializer):
+    class Meta:
+        model = Reviews
+        fields = [
+             'title', 'content', 'stars',
         ]
 
 
