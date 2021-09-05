@@ -129,7 +129,7 @@ class TransactionDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransactionDetails
         fields = [
-            "id", "payment_status", 'time', 'payment_id'
+            "id", "payment_status", 'payment_id'
         ]
 
 
