@@ -59,7 +59,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(data=request.data)
         user = request.user
-        item = request.POST["item"]
+        item = request.data["item"]
+
         logger.info(f"{user} requested to write review for product {item}")
         valid, err = is_valid_review(user, item)
         if not valid:
