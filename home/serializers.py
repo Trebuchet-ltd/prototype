@@ -94,14 +94,16 @@ class GetRecipeBoxSerializer(serializers.ModelSerializer):
 
 
 class GetReviewSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
     class Meta:
         model = Reviews
         fields = [
             'id', 'user', 'title', 'content', 'item', 'stars', 'date', 'last_edit'
         ]
-        extra_kwargs = {
-            'user': {'read_only': True},
-        }
+        # extra_kwargs = {
+        #     'user': {'read_only': True},
+        # }
 
 
 class GetReviewSerializerWithoutUser(serializers.ModelSerializer):
