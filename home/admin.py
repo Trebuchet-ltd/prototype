@@ -895,7 +895,7 @@ class CouponsAdmin(admin.ModelAdmin):
 
 @admin.register(models.Category)
 class SubCategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'code']
+    list_display = ['name', 'code','color', 'icon']
 
 
 @admin.register(models.TempItem)

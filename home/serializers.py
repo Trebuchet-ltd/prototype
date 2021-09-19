@@ -30,7 +30,7 @@ class GetNutritionQuantitySerializer(serializers.ModelSerializer):
 class GetCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['name', 'category']
+        fields = ['name', 'code','category','color','icon']
 
 
 class GetProductSerializer(serializers.ModelSerializer):

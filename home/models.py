@@ -16,6 +16,7 @@ class Category(models.Model):
     code = models.CharField(max_length=3, primary_key=True)
     category = models.CharField(choices=choices, max_length=25, default='meat')
     color = models.CharField(max_length=30,blank=True,null=True)
+    icon = models.ImageField(upload_to='images/', null=True, blank=True, help_text="Upload the icon")
 
     def __str__(self):
         return self.name
