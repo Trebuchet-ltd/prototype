@@ -36,6 +36,16 @@ class RecipeBoxViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description', ]
 
 
+class CategoryViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get']
+    queryset = Category.objects.all()
+    serializer_class = GetCategorySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filterset_fields = ['category']
+    filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
+
+
+
 class ReviewViewSet(viewsets.ModelViewSet):
     """
     API end point to get reviews and write reviews
