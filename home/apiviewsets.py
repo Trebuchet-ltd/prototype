@@ -19,7 +19,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ['bestSeller', 'meat', 'meat__category']
+    filterset_fields = ['bestSeller', 'meat', 'meat__category', "meat__code"]
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'short_description', 'description', 'can_be_cleaned', 'weight_variants']
 
@@ -41,7 +41,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = GetCategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ['category']
+    filterset_fields = ['category','code']
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
 
 
