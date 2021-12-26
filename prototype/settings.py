@@ -178,21 +178,17 @@ if DEBUG:
         BASE_DIR / "static",
     ]
 else:
-    STATIC_ROOT = os.path.join(BASE_DIR, "static")
+    STATIC_ROOT = '/var/www/html/static'
 
 if DEBUG:
     MEDIA_ROOT = BASE_DIR / 'media'
 else:
-    MEDIA_ROOT = '/var/www/html1/media'
+    MEDIA_ROOT = '/var/www/html/media'
 
 MEDIA_URL = '/media/'
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
 LOGIN_URL = '/login/'
-
-# SERIALIZATION_MODULES = {
-#     'json': 'wadofstuff.django.serializers.json'
-# }
 
 
 OAUTH2_PROVIDER = {
