@@ -1,11 +1,13 @@
 import django_filters
 from django.contrib.auth.models import User
-from rest_framework import viewsets, status, filters
+from django.db.models import Q
+from django.http import HttpResponseRedirect
 from rest_framework import permissions
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.http import HttpResponseRedirect
+
 from authentication.permissions import IsOwner, IsMyCartItem
 from home.serializers import *
 from .functions import *
@@ -22,6 +24,17 @@ class ProductViewSet(viewsets.ModelViewSet):
     filterset_fields = ['bestSeller', 'meat', 'meat__category', "meat__code"]
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'short_description', 'description', 'can_be_cleaned', 'weight_variants']
+
+    @action(detail=False, methods=["get", ], url_path='offers')
+    def offers(self, request, *args, **kwargs):
+        products = Product.objects.filter(~Q(discount=0))
+        page = self.paginate_queryset(products)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(products, many=True)
+
+        return Response(serializer.data)
 
 
 class RecipeBoxViewSet(viewsets.ModelViewSet):
@@ -41,9 +54,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = GetCategorySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ['category','code']
+    filterset_fields = ['category', 'code']
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
-
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -203,7 +215,7 @@ def confirm_order(request):
 
     logger.info(f"Total amount = {amount} amount saved = {amount_saved} ")
     if amount > 0:
-        [payment_url, payment_id] = get_payment_link(user, amount,amount_saved, address_obj)
+        [payment_url, payment_id] = get_payment_link(user, amount, amount_saved, address_obj)
         if payment_url:
             # creating a temporary order for saving the current details of cart
             create_temp_order(user, payment_id, date, time, address_obj, coupon_code, points)
