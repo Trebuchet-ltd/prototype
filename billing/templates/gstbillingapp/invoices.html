@@ -20,14 +20,14 @@
 			</tr>
 		</thead>
 		<tbody class="two-col-form">
-			{% for invoice in invoices %}
+			{% for order in orders %}
 			<tr>
  				<!-- <td>{{invoice.id}}</td> -->
- 				<td>{{invoice.invoice_number}}</td>
- 				<td>{{invoice.invoice_date}}</td>
- 				<td>{{invoice.invoice_customer}}</td>
-				 <td><a href="{% url 'invoice_viewer' invoice.id %}"><button type="button" class="btn btn-primary">View</button></a></td>
-				 <td><button type="button" class="btn btn-danger" data-toggle="modal" data-target="#invoiceDeleteModal" data-invoice-id="{{invoice.id}}" data-invoice-number="{{invoice.invoice_number}}, for {{invoice.invoice_customer}}">Delete</button></td>
+ 				<td>{{order.id}}</td>
+ 				<td>{{order.date}}</td>
+ 				<td>{{order.user.first_name}}</td>
+				 <td><a href="{% url 'invoice_viewer' order.id %}"><button type="button" class="btn btn-primary">View</button></a></td>
+				 <td><button type="button" class="btn btn-danger" data-toggle="modal" data-target="#invoiceDeleteModal" data-invoice-id="{{order.id}}" data-invoice-number="{{order.id}}, for {{order.user}}">Delete</button></td>
 			</tr>
 			{% endfor %}
 		</tbody>

@@ -6,8 +6,8 @@
 	<div class="card">
 		<div class="card-header">
 			<div class="row">
-			<div class="col-sm-6 col-6"><strong>Invoice Date: {{invoice.invoice_date}}</strong></div> 
-			<div class="col-sm-6 text-right col-6"><strong>Invoice No:{{invoice.invoice_number}}</strong></div>
+			<div class="col-sm-6 col-6"><strong>Invoice Date: {{order.date}}</strong></div>
+			<div class="col-sm-6 text-right col-6"><strong>Invoice No:{{order.id}}</strong></div>
 			</div>
 		</div>
 
@@ -17,18 +17,18 @@
 
 				<div class="col-sm-6 col-md-6 col-lg-6 col-6">
 					<div>
-						<strong>{{user_profile.business_title}}</strong>
+						<strong>{{order.user.first_name}}</strong>
 					</div>
-						<div id="invoice_profile_data">{{user_profile.business_address}}</div>
-					{% if user_profile.business_email %}
-						<div>EMAIL: {{user_profile.business_email}}</div>
-					{% endif %}
-					{% if user_profile.business_phone %}
-						<div>Phone: {{user_profile.business_phone}}</div>
-					{% endif %}
-					{% if user_profile.business_gst %}
-						<div>GST No: {{user_profile.business_gst}}</div>
-					{% endif %}
+{#						<div id="invoice_profile_data">{{user_profile.business_address}}</div>#}
+{#					{% if order.user.email %}#}
+{#						<div>EMAIL: {{order.user.email}}</div>#}
+{#					{% endif %}#}
+{#					{% if order.business_phone %}#}
+{#						<div>Phone: {{user_profile.business_phone}}</div>#}
+{#					{% endif %}#}
+{#					{% if user_profile.business_gst %}#}
+{#						<div>GST No: {{user_profile.business_gst}}</div>#}
+{#					{% endif %}#}
 				</div>
 
 
@@ -36,14 +36,14 @@
 				<div class="col-sm-6 col-md-6 col-lg-6 col-6">
 					<h6 class="mb-3">Billed To:</h6>
 					<div>
-						<strong>{{ invoice_data.customer_name }}</strong>
+						<strong>{{ order.user.first_name }}</strong>
 					</div>
-					<div>{{ invoice_data.customer_address }}</div>
-					<div>Phone: {{ invoice_data.customer_phone }}</div>
-					<div>GST No: {{ invoice_data.customer_gst }}</div>
-					{% if invoice_data.vehicle_number %}
-					<div><strong>Vehicle No:</strong> {{ invoice_data.vehicle_number }}</div>
-					{% endif %}
+{#					<div>{{ invoice_data.customer_address }}</div>#}
+{#					<div>Phone: {{ invoice_data.customer_phone }}</div>#}
+{#					<div>GST No: {{ invoice_data.customer_gst }}</div>#}
+{#					{% if invoice_data.vehicle_number %}#}
+{#					<div><strong>Vehicle No:</strong> {{ invoice_data.vehicle_number }}</div>#}
+{#					{% endif %}#}
 				</div>
 
 
@@ -73,41 +73,41 @@
 						</tr>
 					</thead>
 					<tbody>
-						{% for item in invoice_data.items %}
-						<tr>
-							<td class="text-center">{{ forloop.counter }}</td>
-							<td class="text-left strong">{{ item.invoice_product }}</td>
-							<td class="text-center">{{ item.invoice_hsn }}</td>
-							<td class="text-center">{{ item.invoice_unit }}</td>
-							<td class="text-right">{{ item.invoice_qty }}</td>
-							<td class="text-right">{{ item.invoice_rate_without_gst|floatformat:2 }}</td>
-							<td class="text-right">{{ item.invoice_amt_without_gst|floatformat:2 }}</td>
-							<td class="text-right">{{ item.invoice_gst_percentage }}</td>
-							{% if invoice_data.igstcheck %}
-								<td class="text-right">{{ item.invoice_amt_igst|floatformat:2 }}</td>
-							{% else %}
-								<td class="text-right">{{ item.invoice_amt_cgst|floatformat:2 }}</td>
-								<td class="text-right">{{ item.invoice_amt_sgst|floatformat:2 }}</td>
-							{% endif %}
-							<td class="text-right">{{ item.invoice_amt_with_gst|floatformat:2 }}</td>
-						</tr>
-						{% endfor %}
+{#						{% for item in order.items %}#}
+{#						<tr>#}
+{#							<td class="text-center">{{ forloop.counter }}</td>#}
+{#							<td class="text-left strong">{{ item.name }}</td>#}
+{#							<td class="text-center">{{ item.invoice_hsn }}</td>#}
+{#							<td class="text-center">{{ item.invoice_unit }}</td>#}
+{#							<td class="text-right">{{ item.invoice_qty }}</td>#}
+{#							<td class="text-right">{{ item.invoice_rate_without_gst|floatformat:2 }}</td>#}
+{#							<td class="text-right">{{ item.invoice_amt_without_gst|floatformat:2 }}</td>#}
+{#							<td class="text-right">{{ item.invoice_gst_percentage }}</td>#}
+{#							{% if invoice_data.igstcheck %}#}
+{#								<td class="text-right">{{ item.invoice_amt_igst|floatformat:2 }}</td>#}
+{#							{% else %}#}
+{#								<td class="text-right">{{ item.invoice_amt_cgst|floatformat:2 }}</td>#}
+{#								<td class="text-right">{{ item.invoice_amt_sgst|floatformat:2 }}</td>#}
+{#							{% endif %}#}
+{#							<td class="text-right">{{ item.invoice_amt_with_gst|floatformat:2 }}</td>#}
+{#						</tr>#}
+{#						{% endfor %}#}
 
-						<tr id="table-invoice-total-row">
-							{% if invoice_data.igstcheck %}
-								<td class="text-right" colspan="6">Total: </td>
-								<td class="text-right">{{ currency }} {{ invoice_data.invoice_total_amt_without_gst|floatformat:2 }}</td>
-								<td class="text-right"></td>
-								<td class="text-right">{{ currency }} {{invoice_data.invoice_total_amt_igst|floatformat:2 }}</td>
-							{% else %}
-								<td class="text-right" colspan="6">Total: </td>
-								<td class="text-right">{{ currency }} {{ invoice_data.invoice_total_amt_without_gst|floatformat:2 }}</td>
-								<td class="text-right"></td>
-								<td class="text-right">{{ currency }} {{invoice_data.invoice_total_amt_cgst|floatformat:2 }}</td>
-								<td class="text-right">{{ currency }} {{invoice_data.invoice_total_amt_sgst|floatformat:2 }}</td>
-							{% endif %}
-							<td class="text-right"><strong>{{ currency }} {{ invoice_data.invoice_total_amt_with_gst|floatformat:2 }}</strong></td>
-						</tr>
+{#						<tr id="table-invoice-total-row">#}
+{#							{% if invoice_data.igstcheck %}#}
+{#								<td class="text-right" colspan="6">Total: </td>#}
+{#								<td class="text-right">{{ currency }} {{ invoice_data.invoice_total_amt_without_gst|floatformat:2 }}</td>#}
+{#								<td class="text-right"></td>#}
+{#								<td class="text-right">{{ currency }} {{invoice_data.invoice_total_amt_igst|floatformat:2 }}</td>#}
+{#							{% else %}#}
+{#								<td class="text-right" colspan="6">Total: </td>#}
+{#								<td class="text-right">{{ currency }} {{ invoice_data.invoice_total_amt_without_gst|floatformat:2 }}</td>#}
+{#								<td class="text-right"></td>#}
+{#								<td class="text-right">{{ currency }} {{invoice_data.invoice_total_amt_cgst|floatformat:2 }}</td>#}
+{#								<td class="text-right">{{ currency }} {{invoice_data.invoice_total_amt_sgst|floatformat:2 }}</td>#}
+{#							{% endif %}#}
+{#							<td class="text-right"><strong>{{ currency }} {{ invoice_data.invoice_total_amt_with_gst|floatformat:2 }}</strong></td>#}
+{#						</tr>#}
 
 					</tbody>
 				</table>
@@ -120,46 +120,46 @@
 					
 				</div>
 
-				<div class="col-sm-6 col-lg-6 col-md-6">
-					<table class="table text-right" id="invoice-grand-total-table">
-						<tr>
-							<td>Total Taxable Amount: </td>
-							<td>{{ currency }} {{ invoice_data.invoice_total_amt_without_gst|floatformat:2 }}</td>
-						</tr>
-						{% if invoice_data.igstcheck %}
-							<tr>
-								<td>IGST: </td>
-								<td>{{ currency }} {{ invoice_data.invoice_total_amt_igst|floatformat:2 }}</td>
-							</tr>
-						{% else %}
-							<tr>
-								<td>CGST: </td>
-								<td>{{ currency }} {{ invoice_data.invoice_total_amt_cgst|floatformat:2 }}</td>
-							</tr>
-							<tr>
-								<td>SGST: </td>
-								<td>{{ currency }} {{ invoice_data.invoice_total_amt_sgst|floatformat:2 }}</td>
-							</tr>
-						{% endif %}
-						<tr>
-							<td>Invoice Total: </td>
-							<td>{{ currency }} {{invoice_data.invoice_total_amt_with_gst|floatformat:2 }}</td>
-						</tr>
-						<tr> 
-							<td colspan="2" class="text-middle">
-								Invoice Total In Words: {{ total_in_words }} only.
-							</td>
-						</tr>
-						<tr id="invoice-signature-row">
-							<td colspan="2"></td>
-						</tr>
-						<tr id="invoice-signature-text-row">
-							<td colspan="2">Authorized Signatory<br> E, & O.E.	</td>
-						</tr>
-					</table>
-
-
-				</div>
+{#				<div class="col-sm-6 col-lg-6 col-md-6">#}
+{#					<table class="table text-right" id="invoice-grand-total-table">#}
+{#						<tr>#}
+{#							<td>Total Taxable Amount: </td>#}
+{#							<td>{{ currency }} {{ invoice_data.invoice_total_amt_without_gst|floatformat:2 }}</td>#}
+{#						</tr>#}
+{#						{% if invoice_data.igstcheck %}#}
+{#							<tr>#}
+{#								<td>IGST: </td>#}
+{#								<td>{{ currency }} {{ invoice_data.invoice_total_amt_igst|floatformat:2 }}</td>#}
+{#							</tr>#}
+{#						{% else %}#}
+{#							<tr>#}
+{#								<td>CGST: </td>#}
+{#								<td>{{ currency }} {{ invoice_data.invoice_total_amt_cgst|floatformat:2 }}</td>#}
+{#							</tr>#}
+{#							<tr>#}
+{#								<td>SGST: </td>#}
+{#								<td>{{ currency }} {{ invoice_data.invoice_total_amt_sgst|floatformat:2 }}</td>#}
+{#							</tr>#}
+{#						{% endif %}#}
+{#						<tr>#}
+{#							<td>Invoice Total: </td>#}
+{#							<td>{{ currency }} {{invoice_data.invoice_total_amt_with_gst|floatformat:2 }}</td>#}
+{#						</tr>#}
+{#						<tr> #}
+{#							<td colspan="2" class="text-middle">#}
+{#								Invoice Total In Words: {{ total_in_words }} only.#}
+{#							</td>#}
+{#						</tr>#}
+{#						<tr id="invoice-signature-row">#}
+{#							<td colspan="2"></td>#}
+{#						</tr>#}
+{#						<tr id="invoice-signature-text-row">#}
+{#							<td colspan="2">Authorized Signatory<br> E, & O.E.	</td>#}
+{#						</tr>#}
+{#					</table>#}
+{##}
+{##}
+{#				</div>#}
 
 
 
@@ -168,89 +168,89 @@
 
 		</div>
 
-  <div id="invoice-POS">
-
-    <center id="top">
-      <div class="logo"></div>
-      <div class="info">
-        <h2>SBISTechs Inc</h2>
-      </div><!--End Info-->
-    </center><!--End InvoiceTop-->
-
-    <div id="mid">
-      <div class="info">
-        <h2>Contact Info</h2>
-        <p>
-            Address : street city, state 0000</br>
-            Email   : JohnDoe@gmail.com</br>
-            Phone   : 555-555-5555</br>
-        </p>
-      </div>
-    </div><!--End Invoice Mid-->
-
-    <div id="bot">
-
-					<div id="table">
-						<table>
-							<tr class="tabletitle">
-								<td class="item"><h2>Item</h2></td>
-								<td class="Hours"><h2>Qty</h2></td>
-								<td class="Rate"><h2>Sub Total</h2></td>
-							</tr>
-
-							<tr class="service">
-								<td class="tableitem"><p class="itemtext">Communication</p></td>
-								<td class="tableitem"><p class="itemtext">5</p></td>
-								<td class="tableitem"><p class="itemtext">$375.00</p></td>
-							</tr>
-
-							<tr class="service">
-								<td class="tableitem"><p class="itemtext">Asset Gathering</p></td>
-								<td class="tableitem"><p class="itemtext">3</p></td>
-								<td class="tableitem"><p class="itemtext">$225.00</p></td>
-							</tr>
-
-							<tr class="service">
-								<td class="tableitem"><p class="itemtext">Design Development</p></td>
-								<td class="tableitem"><p class="itemtext">5</p></td>
-								<td class="tableitem"><p class="itemtext">$375.00</p></td>
-							</tr>
-
-							<tr class="service">
-								<td class="tableitem"><p class="itemtext">Animation</p></td>
-								<td class="tableitem"><p class="itemtext">20</p></td>
-								<td class="tableitem"><p class="itemtext">$1500.00</p></td>
-							</tr>
-
-							<tr class="service">
-								<td class="tableitem"><p class="itemtext">Animation Revisions</p></td>
-								<td class="tableitem"><p class="itemtext">10</p></td>
-								<td class="tableitem"><p class="itemtext">$750.00</p></td>
-							</tr>
-
-
-							<tr class="tabletitle">
-								<td></td>
-								<td class="Rate"><h2>tax</h2></td>
-								<td class="payment"><h2>$419.25</h2></td>
-							</tr>
-
-							<tr class="tabletitle">
-								<td></td>
-								<td class="Rate"><h2>Total</h2></td>
-								<td class="payment"><h2>$3,644.25</h2></td>
-							</tr>
-
-						</table>
-					</div><!--End Table-->
-
-					<div id="legalcopy">
-						<p class="legal"><strong>Thank you for your business!</strong>  Payment is expected within 31 days; please process this invoice within that time. There will be a 5% interest charge per month on late invoices.
-						</p>
-					</div>
-
-				</div><!--End InvoiceBot-->
-  </div><!--End Invoice-->
+{#  <div id="invoice-POS">#}
+{##}
+{#    <center id="top">#}
+{#      <div class="logo"></div>#}
+{#      <div class="info">#}
+{#        <h2>SBISTechs Inc</h2>#}
+{#      </div><!--End Info-->#}
+{#    </center><!--End InvoiceTop-->#}
+{##}
+{#    <div id="mid">#}
+{#      <div class="info">#}
+{#        <h2>Contact Info</h2>#}
+{#        <p>#}
+{#            Address : street city, state 0000</br>#}
+{#            Email   : JohnDoe@gmail.com</br>#}
+{#            Phone   : 555-555-5555</br>#}
+{#        </p>#}
+{#      </div>#}
+{#    </div><!--End Invoice Mid-->#}
+{##}
+{#    <div id="bot">#}
+{##}
+{#					<div id="table">#}
+{#						<table>#}
+{#							<tr class="tabletitle">#}
+{#								<td class="item"><h2>Item</h2></td>#}
+{#								<td class="Hours"><h2>Qty</h2></td>#}
+{#								<td class="Rate"><h2>Sub Total</h2></td>#}
+{#							</tr>#}
+{##}
+{#							<tr class="service">#}
+{#								<td class="tableitem"><p class="itemtext">Communication</p></td>#}
+{#								<td class="tableitem"><p class="itemtext">5</p></td>#}
+{#								<td class="tableitem"><p class="itemtext">$375.00</p></td>#}
+{#							</tr>#}
+{##}
+{#							<tr class="service">#}
+{#								<td class="tableitem"><p class="itemtext">Asset Gathering</p></td>#}
+{#								<td class="tableitem"><p class="itemtext">3</p></td>#}
+{#								<td class="tableitem"><p class="itemtext">$225.00</p></td>#}
+{#							</tr>#}
+{##}
+{#							<tr class="service">#}
+{#								<td class="tableitem"><p class="itemtext">Design Development</p></td>#}
+{#								<td class="tableitem"><p class="itemtext">5</p></td>#}
+{#								<td class="tableitem"><p class="itemtext">$375.00</p></td>#}
+{#							</tr>#}
+{##}
+{#							<tr class="service">#}
+{#								<td class="tableitem"><p class="itemtext">Animation</p></td>#}
+{#								<td class="tableitem"><p class="itemtext">20</p></td>#}
+{#								<td class="tableitem"><p class="itemtext">$1500.00</p></td>#}
+{#							</tr>#}
+{##}
+{#							<tr class="service">#}
+{#								<td class="tableitem"><p class="itemtext">Animation Revisions</p></td>#}
+{#								<td class="tableitem"><p class="itemtext">10</p></td>#}
+{#								<td class="tableitem"><p class="itemtext">$750.00</p></td>#}
+{#							</tr>#}
+{##}
+{##}
+{#							<tr class="tabletitle">#}
+{#								<td></td>#}
+{#								<td class="Rate"><h2>tax</h2></td>#}
+{#								<td class="payment"><h2>$419.25</h2></td>#}
+{#							</tr>#}
+{##}
+{#							<tr class="tabletitle">#}
+{#								<td></td>#}
+{#								<td class="Rate"><h2>Total</h2></td>#}
+{#								<td class="payment"><h2>$3,644.25</h2></td>#}
+{#							</tr>#}
+{##}
+{#						</table>#}
+{#					</div><!--End Table-->#}
+{##}
+{#					<div id="legalcopy">#}
+{#						<p class="legal"><strong>Thank you for your business!</strong>  Payment is expected within 31 days; please process this invoice within that time. There will be a 5% interest charge per month on late invoices.#}
+{#						</p>#}
+{#					</div>#}
+{##}
+{#				</div><!--End InvoiceBot-->#}
+{#  </div><!--End Invoice-->#}
 
 	</div>
 
