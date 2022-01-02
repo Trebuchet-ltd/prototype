@@ -128,7 +128,7 @@ class Addresses(models.Model):
     name = models.TextField(max_length=100)
     address = models.TextField(max_length=3000)
     pincode = models.CharField(max_length=6)
-    state = models.TextField(max_length=25)
+    state = models.TextField(max_length=25, blank=True, null=True)
     phone = models.CharField(max_length=15)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
     latitude = models.FloatField(null=True, blank=True)

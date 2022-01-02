@@ -108,11 +108,12 @@ def signup_view(request):
 @login_required
 def invoice_create(request):
     context = {}
-    context['default_invoice_number'] = Orders.objects.all().order_by('-id').first().id
-    if not context['default_invoice_number']:
-        context['default_invoice_number'] = 1
+    last_order = Orders.objects.all().order_by('-id').first()
+    if last_order:
+        context['default_invoice_number'] = last_order.id +1
     else:
-        context['default_invoice_number'] += 1
+        context['default_invoice_number'] =  1
+
 
     context['default_invoice_date'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
     if request.method == 'POST':

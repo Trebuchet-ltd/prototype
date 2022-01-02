@@ -4,7 +4,7 @@ import json
 from django.contrib.auth.models import User
 from django.db.models import Sum
 
-from home.models import Orders, TransactionDetails, OrderItem
+from home.models import Orders, TransactionDetails, OrderItem, Addresses
 from .models import Book
 from .models import BookLog
 from .models import Inventory
@@ -38,14 +38,15 @@ def invoice_data_processor(invoice_post_data):
     processed_invoice_data['invoice_number'] = invoice_post_data['invoice-number']
     processed_invoice_data['invoice_date'] = invoice_post_data['invoice-date']
 
-    processed_invoice_data['customer_name'] = invoice_post_data['customer-name']
-    processed_invoice_data['customer_address'] = invoice_post_data['customer-address']
-    processed_invoice_data['customer_phone'] = invoice_post_data['customer-phone']
-    processed_invoice_data['customer_gst'] = invoice_post_data['customer-gst']
+    customer_name = invoice_post_data['customer-name']
+    customer_address = invoice_post_data['customer-address']
+    customer_phone = invoice_post_data['customer-phone']
+    # customer_pincode = invoice_post_data['pincode']
     user, _ = User.objects.get_or_create(username=invoice_post_data['customer-phone'],
                                          first_name=invoice_post_data['customer-name'], )
-
-    order = Orders.objects.create(user=user, is_seen=True, status='d', )
+    address, _ = Addresses.objects.get_or_create(name=customer_name, address=customer_address, pincode=679357,
+                                                 phone=customer_phone, user=user, state='kerala')
+    order = Orders.objects.create(user=user, is_seen=True, status='d', address=address)
     transaction = TransactionDetails.objects.create(order=order, user=user, payment_status='paid', )
 
     if 'igstcheck' in invoice_post_data:
@@ -54,12 +55,14 @@ def invoice_data_processor(invoice_post_data):
         processed_invoice_data['igstcheck'] = False
 
     invoice_post_data = dict(invoice_post_data)
-    for product in invoice_post_data['products']:
+
+    for idx, product in enumerate(invoice_post_data['invoice-product']):
         if product:
             try:
+                print(f"{invoice_post_data = } {idx = }")
                 item = Product.objects.get(name=product["name"])
-                weight = product['weight']
-                quantity = product['quantity']
+                weight = float(invoice_post_data['invoice-unit'][idx])
+                quantity = int(invoice_post_data['invoice-qty'][idx])
                 amt_with_tax = item.price * weight * (1 + item.product_gst_percentage / 100)
                 transaction.total += amt_with_tax * (1 - item.discount / 100)
                 transaction.invoice_amt_without_gst = item.price * weight * (1 - item.discount / 100)

@@ -1,5 +1,4 @@
 import django_filters
-from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from rest_framework import permissions
@@ -21,7 +20,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ['bestSeller', 'meat', 'meat__category', "meat__code"]
+    filterset_fields = ['bestSeller', 'meat', 'meat__category', "meat__code", 'code']
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'short_description', 'description', 'can_be_cleaned', 'weight_variants']
 
@@ -35,6 +34,16 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(products, many=True)
 
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get", ], url_path='code')
+    def code(self, request, *args, **kwargs):
+        try:
+
+            ret = Product.objects.get(code__iexact=request.GET['code'])
+            serializer = self.get_serializer(ret)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(status=400)
 
 
 class RecipeBoxViewSet(viewsets.ModelViewSet):
