@@ -1,18 +1,15 @@
 import datetime
-import json
 
-import num2words
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.db.models import Max
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
 
+from home.models import Orders, OrderItem
 from home.models import Product
-from home.models import Orders
 from .forms import BookLogForm
 from .forms import CustomerForm
 from .forms import InventoryLogForm
@@ -26,14 +23,11 @@ from .models import InventoryLog
 from .models import Invoice
 from .models import UserProfile
 from .utils import add_customer_book
-from .utils import auto_deduct_book_from_invoice
 from .utils import create_inventory
 from .utils import invoice_data_processor
 from .utils import invoice_data_validator
 from .utils import remove_inventory_entries_for_invoice
-from .utils import update_inventory
-from .utils import update_products_from_invoice
-
+from django.contrib.auth.models import User
 
 # Create your views here.
 
@@ -113,7 +107,6 @@ def signup_view(request):
 
 @login_required
 def invoice_create(request):
-
     context = {}
     context['default_invoice_number'] = Orders.objects.all().order_by('-id').first().id
     if not context['default_invoice_number']:
@@ -145,15 +138,13 @@ def invoices(request):
 
 @login_required
 def invoice_viewer(request, invoice_id):
-    orders = get_object_or_404(Orders, id=invoice_id)
-
+    order = get_object_or_404(Orders, id=invoice_id)
     context = {}
-    context['order'] = orders
+    if order:
+        context['items'] = OrderItem.objects.filter(order=order)
+    context['order'] = order
 
     context['currency'] = "₹"
-    # context['total_in_words'] = num2words.num2words(int(context['invoice_data']['invoice_total_amt_with_gst']),
-    #                                                 lang='en_IN').title()
-
     return render(request, 'gstbillingapp/invoice_printer.html', context)
 
 
@@ -161,9 +152,7 @@ def invoice_viewer(request, invoice_id):
 def invoice_delete(request):
     if request.method == "POST":
         invoice_id = request.POST["invoice_id"]
-        invoice_obj = get_object_or_404(Invoice, user=request.user, id=invoice_id)
-        if len(request.POST.getlist('inventory-del')):
-            remove_inventory_entries_for_invoice(invoice_obj, request.user)
+        invoice_obj = get_object_or_404(Orders, user=request.user, id=invoice_id)
         invoice_obj.delete()
     return redirect('invoices')
 
@@ -171,14 +160,14 @@ def invoice_delete(request):
 @login_required
 def customers(request):
     context = {}
-    context['customers'] = Customer.objects.filter(user=request.user)
+    context['customers'] = User.objects.all()
     return render(request, 'gstbillingapp/customers.html', context)
 
 
 @login_required
 def products(request):
     context = {}
-    context['products'] = Product.objects.filter(user=request.user)
+    context['products'] = Product.objects.all()
     return render(request, 'gstbillingapp/products.html', context)
 
 

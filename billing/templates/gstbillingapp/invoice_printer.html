@@ -19,11 +19,11 @@
 					<div>
 						<strong>{{order.user.first_name}}</strong>
 					</div>
-{#						<div id="invoice_profile_data">{{user_profile.business_address}}</div>#}
-{#					{% if order.user.email %}#}
-{#						<div>EMAIL: {{order.user.email}}</div>#}
-{#					{% endif %}#}
-{#					{% if order.business_phone %}#}
+						<div id="invoice_profile_data">{{order.user}}</div>
+					{% if order.user.email %}
+						<div>EMAIL: {{order.user.email}}</div>
+					{% endif %}
+{#					{% if order.user. %}#}
 {#						<div>Phone: {{user_profile.business_phone}}</div>#}
 {#					{% endif %}#}
 {#					{% if user_profile.business_gst %}#}

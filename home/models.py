@@ -7,6 +7,18 @@ from django.db import models
 
 
 # Create your models here.
+class Nutrition(models.Model):
+    name = models.CharField(max_length=40)
+
+    def __str__(self):
+        return self.name
+
+
+class NutritionQuantity(models.Model):
+    quantity = models.FloatField()
+    nutrition = models.ForeignKey(Nutrition, on_delete=models.CASCADE, related_name='nutrition')
+    product = models.ForeignKey("Product", on_delete=models.CASCADE, related_name='nutrition_product')
+
 
 class Category(models.Model):
     choices = (
@@ -46,7 +58,7 @@ class Product(models.Model):
                                                      choices=weight_choice), blank=True, null=True, default=list)
     discount = models.FloatField(default=0, help_text='discount in percentage')
     icon = models.ImageField(upload_to='images/', null=True, blank=True, help_text="Upload the icon ")
-    nutritions = models.ManyToManyField('Nutrition', through='NutritionQuantity')
+    nutrition = models.ManyToManyField(Nutrition, through=NutritionQuantity, related_name='nutrition_quantity')
     product_gst_percentage = models.FloatField(default=0)
     product_rate_with_gst = models.FloatField(default=0)
 
@@ -77,18 +89,6 @@ class ImageModel(models.Model):
     def __str__(self):
         return self.title
 
-
-class Nutrition(models.Model):
-    name = models.CharField(max_length=40)
-
-    def __str__(self):
-        return self.name
-
-
-class NutritionQuantity(models.Model):
-    quantity = models.FloatField()
-    nutrition = models.ForeignKey(Nutrition, on_delete=models.CASCADE, related_name='nutrition')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='nutrition')
 
 
 class CartModel(models.Model):
@@ -129,7 +129,8 @@ class Addresses(models.Model):
     name = models.TextField(max_length=100)
     address = models.TextField(max_length=3000)
     pincode = models.CharField(max_length=6)
-    state = models.TextField(max_length=100)
+    district = models.CharField(max_length=25)
+    state = models.TextField(max_length=25)
     phone = models.CharField(max_length=15)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
     latitude = models.FloatField(null=True, blank=True)
@@ -152,7 +153,6 @@ def create_new_code():
         if not Coupon.objects.filter(code=unique_code):
             not_unique = False
     return str(unique_code)
-
 
 
 class Coupon(models.Model):
@@ -183,17 +183,18 @@ class Orders(models.Model):
         ('m', 'morning'),
         ('e', 'evening')
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.SET_NULL,null=True,blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.SET_NULL, null=True,
+                             blank=True)
     total = models.FloatField(default=0)
-    address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE,blank=True,null=True)
+    address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
+    address_string = models.TextField(blank=True, null=True)
     is_seen = models.IntegerField(default=0, blank=True, null=True, help_text='1->Seen, 0->Not seen',
                                   choices=((1, 'Seen'), (0, 'Not seen')))
     date = models.DateField(auto_now_add=True)
-    time = models.CharField(max_length=10, choices=order_time,default='m')
+    time = models.CharField(max_length=10, choices=order_time, default='m')
     status = models.CharField(max_length=10, choices=order_status, default='preparing')
     coupon = models.ForeignKey(Coupon, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
     used_points = models.IntegerField(default=0, blank=True, null=True)
-
 
     def __str__(self):
         return f"{self.user} , date-{self.date} , status -{self.status} "
@@ -205,6 +206,11 @@ class Orders(models.Model):
     @property
     def invoice_date(self):
         return self.date
+
+    @property
+    def get_address(self):
+        if self.address:
+            return f"{self.address.user}, {self.address.district}"
 
 
 class OrderItem(models.Model):
@@ -224,6 +230,7 @@ class OrderItem(models.Model):
             return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
         return f"{self.item} - {self.quantity} items "
 
+
 def create_new_transaction_id():
     not_unique = True
     unique_code = code_generator()
@@ -232,6 +239,7 @@ def create_new_transaction_id():
         if not TransactionDetails.objects.filter(transaction_id=unique_code):
             not_unique = False
     return str(unique_code)
+
 
 class TransactionDetails(models.Model):
     order = models.ForeignKey(Orders, related_name="transaction", on_delete=models.CASCADE, null=True, blank=True)
@@ -250,8 +258,6 @@ class TransactionDetails(models.Model):
     invoice_amt_sgst = models.FloatField(default=0)
     invoice_amt_igst = models.FloatField(default=0)
     invoice_amt_with_gst = models.FloatField(default=0)
-
-
 
 
 class TempOrder(models.Model):
