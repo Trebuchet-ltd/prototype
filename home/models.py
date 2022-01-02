@@ -90,7 +90,6 @@ class ImageModel(models.Model):
         return self.title
 
 
-
 class CartModel(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="cart", on_delete=models.CASCADE)
     total = models.FloatField(default=0)
@@ -129,7 +128,6 @@ class Addresses(models.Model):
     name = models.TextField(max_length=100)
     address = models.TextField(max_length=3000)
     pincode = models.CharField(max_length=6)
-    district = models.CharField(max_length=25)
     state = models.TextField(max_length=25)
     phone = models.CharField(max_length=15)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
@@ -187,7 +185,6 @@ class Orders(models.Model):
                              blank=True)
     total = models.FloatField(default=0)
     address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
-    address_string = models.TextField(blank=True, null=True)
     is_seen = models.IntegerField(default=0, blank=True, null=True, help_text='1->Seen, 0->Not seen',
                                   choices=((1, 'Seen'), (0, 'Not seen')))
     date = models.DateField(auto_now_add=True)
@@ -206,11 +203,6 @@ class Orders(models.Model):
     @property
     def invoice_date(self):
         return self.date
-
-    @property
-    def get_address(self):
-        if self.address:
-            return f"{self.address.user}, {self.address.district}"
 
 
 class OrderItem(models.Model):
