@@ -1,6 +1,7 @@
 import os
-from dotenv import load_dotenv
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 load_dotenv(dotenv_path='.env')
 
@@ -69,6 +70,7 @@ INSTALLED_APPS = [
     # custom
     'home',
     'auth_login',
+    'billing'
 ]
 
 application_name = "dreameat"
@@ -425,7 +427,9 @@ JAZZMIN_SETTINGS = {
                   'django_filters',
                   'oidc_provider',
                   'drf_yasg',
-                  'admin_honeypot', ],
+                  'admin_honeypot',
+
+                  ],
 
     # Hide these models when generating side menu (e.g auth.user)
     "hide_models": [],

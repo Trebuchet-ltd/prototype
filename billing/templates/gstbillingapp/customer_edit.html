@@ -1,0 +1,35 @@
+{% extends "gstbillingapp/base.html" %}
+
+{% load static %}
+
+
+
+{% block content %}
+<h2>Edit Customer</h2>
+<form method="POST">
+	{% csrf_token %}
+	<table class="table">
+		<tbody class="two-col-form">
+			<tr>
+				<th scope="row" class="text-right">Customer Name:</th>
+				<td class="form-input-td">{{customer_form.customer_name}}</td>
+			</tr>
+			<tr>
+				<th scope="row" class="text-right">Customer Address:</th>
+				<td class="form-input-td">{{customer_form.customer_address}}</td>
+			</tr>
+			<tr>
+				<th scope="row" class="text-right">Customer Phone:</th>
+				<td class="form-input-td">{{customer_form.customer_phone}}</td>
+			</tr>
+			<tr>
+				<th scope="row" class="text-right">Customer GST:</th>
+				<td class="form-input-td" pattern="([A-Za-z0-9]{15})|(^$)">{{customer_form.customer_gst}}</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<input type="submit" class="btn btn-primary float-right" value="Submit">
+</form>
+
+{% endblock %}
