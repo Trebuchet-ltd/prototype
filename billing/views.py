@@ -7,6 +7,9 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from home.models import Orders, OrderItem
 from home.models import Product
@@ -39,6 +42,7 @@ def login_view(request):
     return render(request, 'gstbillingapp/login.html', context)
 
 
+@csrf_exempt
 @login_required
 def invoice_create(request):
     context = {}
@@ -51,16 +55,21 @@ def invoice_create(request):
     context['default_invoice_date'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
     if request.method == 'POST':
         invoice_data = request.POST
-        validation_error = invoice_data_validator(invoice_data)
-        if validation_error:
-            context["error_message"] = validation_error
-            return render(request, 'gstbillingapp/invoice_create.html', context)
-        print("Valid Invoice Data")
-        invoice_data_processed = invoice_data_processor(invoice_data)
+
+        print(f"Valid Invoice Data {request.__dict__ = }")
+        invoice_data_processor(invoice_data)
 
         customer = None
 
     return render(request, 'gstbillingapp/invoice_create.html', context)
+
+
+@api_view(["POST"])
+def orders(request):
+    invoice_data = request.data
+    print(f"{invoice_data = }")
+    invoice_data_processor(invoice_data)
+    return Response(status=200)
 
 
 @login_required

@@ -47,7 +47,8 @@ def invoice_data_processor(invoice_post_data):
     for product in invoice_post_data['products']:
         if product:
             try:
-                item = Product.objects.get(title=product["name"])
+                item = Product.objects.get(id=product["id"])
+                print(item.title)
                 weight = float(product['weight'])
                 quantity = int(product['quantity'])
                 amt_with_tax = item.price * weight * (1 + item.product_gst_percentage / 100)

@@ -76,8 +76,12 @@ async function checkout() {
     }
 
     if (products.length)
-        await fetch("/bill/invoices/new",
+        await fetch("/bill/order/",
             {
+                headers: {
+                    'Content-Type': 'application/json'
+
+                },
                 credentials: "same-origin",
                 method: "POST",
                 body: JSON.stringify(
