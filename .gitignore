@@ -9,3 +9,5 @@ logs/
 */migrations/*
 *.pyc
 /venv/
+
+.idea/
