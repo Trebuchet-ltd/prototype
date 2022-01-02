@@ -1,0 +1,205 @@
+{% extends "admin/base_site.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Django Log Viewer" %} - {{ block.super }}{% endblock %}
+
+
+
+{% block extrastyle %}
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/tailwindcss@1.0.4/dist/tailwind.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap4.min.css">
+
+    {% if custom_style_file %}
+        <link type="text/css" href="{{ custom_style_file }}" rel="stylesheet">
+    {% endif %}
+    <style>
+        .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate {
+            color: #fff !important;
+        }
+
+        table.dataTable tbody th, table.dataTable tbody td {
+            padding: 8px 10px;
+            background-color: #67707a;
+            color: white;
+            font-weight: 500;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            color: white !important;
+        }
+    </style>
+{% endblock %}
+
+{% block extrahead %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.js"></script>
+{% endblock %}
+
+{% block content %}
+
+    <div class="container font-sans mx-auto px-4 sm:px-8">
+        <h3 class="text-2xl font-semibold leading-tight mb-3">Log viewer </h3>
+        <div class="flex flex-col">
+            <div class="mb-4 flex align-items-center justify-content-sm-between  sm:flex-row flex-col">
+                <div class=" relative ">
+                    <div class="relative">
+                        <label for="log-files-list"></label>
+                        <select id="log-files-list"
+                                class="filter-method appearance-none border border-gray-400 border-b block pl-8 pr-6 py-2 w-full  text-sm placeholder-gray-400 text-gray-700   focus:outline-none">
+
+                        </select>
+
+                        <div
+                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path>
+                            </svg>
+                        </div>
+                        <div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+                <div>
+                        Live Monitoring Status :
+                        <span class="text-green-400"
+                              data-toggle="tooltip" data-placement="top" title="Live monitoring is on">●</span>
+                        <br/>
+                    </div>
+            </div>
+
+
+            <div class="text-white mb-5" id="table-data">
+                <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                        <div class="shadow-lg overflow-hidden border-b border-gray-200 sm:rounded-lg">
+                            <table id="log-table-table">
+                                <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Sl:NO:
+                                    </th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Log level
+                                    </th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Timestamp
+                                    </th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        location
+                                    </th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        message
+                                    </th>
+                                    <th scope="col">
+
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody id="log-table-body" class="text-black-50 divide-y divide-gray-200">
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        {% include 'request_viewer/fragments/modal.html' %}
+    </div>
+
+    <script>
+        let current = 0;
+        let table = false;
+
+        function buildTable(log) {
+            let rows = '';
+
+            for (let index = 0; index < log.length; index++) {
+                let content = log[index].split('] ')
+
+                let row = `
+                   <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${index}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            ${content[0].substring(1)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            ${content[1].substring(1)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            ${content[2].substring(1)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            ${content[3]}
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a data-path=" " href="#"
+                               class="details text-indigo-600 hover:text-indigo-900 hover:no-underline">Details</a>
+                        </td>
+                    </tr>`
+                rows += row
+            }
+            if (table) {
+                table.destroy()
+            }
+            $('#log-table-body').html(rows);
+            table = $("#log-table-table").DataTable();
+
+        }
+
+        $(document).ready(function () {
+            // just blank entry to get the `log_files`
+            var url_json = "{% url 'log_viewer:log_json_view' xxxxx %}";
+            $.getJSON(url_json, function (result) {
+                result.log_files.forEach(function (log) {
+                    const keys = Object.keys(log);
+                    Object.entries(log).forEach(([file_name, xtra]) => {
+                        // console.log(file_name);
+                        // console.log(xtra);
+                        let html = `<option value="${url_json}${file_name}" class="btn-load-json-log" href="javascript:;"
+                            data-file-name="${file_name}"
+                            data-href="${url_json}${file_name}"> ${xtra.display}  </option>`
+                        $('#log-files-list').append(html);
+                    });
+                });
+            });
+        });
+
+        $(document).on('change', '#log-files-list', function () {
+            console.log(this.value);
+            $.ajax({
+                type: "GET",
+                url: this.value,
+                success: function (response) {
+                    buildTable(response.logs)
+
+                },
+                error: function (response) {
+                    console.log(response);
+                }
+            });
+        });
+    </script>
+{% endblock %}

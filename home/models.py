@@ -1,21 +1,22 @@
-from django.db import models
-from django.conf import settings
-import string
 import random
+import string
+
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from django.db import models
 
 
 # Create your models here.
 
 class Category(models.Model):
     choices = (
-        ('groceries','groceries'), ('fruits and vegetables', 'fruits and vegetables'),
-         ('meat', 'meat'),
+        ('groceries', 'groceries'), ('fruits and vegetables', 'fruits and vegetables'),
+        ('meat', 'meat'),
     )
     name = models.CharField(max_length=20, unique=True)
     code = models.CharField(max_length=3, primary_key=True)
     category = models.CharField(choices=choices, max_length=25, default='meat')
-    color = models.CharField(max_length=30,blank=True,null=True)
+    color = models.CharField(max_length=30, blank=True, null=True)
     icon = models.ImageField(upload_to='images/', null=True, blank=True, help_text="Upload the icon")
 
     def __str__(self):
@@ -40,10 +41,12 @@ class Product(models.Model):
                                          help_text='1->Can be cleaned, 0->Can not be cleaned')
     cleaned_price = models.FloatField(blank=True, null=True, )
     weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0,
-                                                     choices=weight_choice),blank=True, null=True, default=list)
+                                                     choices=weight_choice), blank=True, null=True, default=list)
     discount = models.FloatField(default=0, help_text='discount in percentage')
-    icon = models.ImageField(upload_to='images/', null=True, blank=True,help_text="Upload the icon ")
+    icon = models.ImageField(upload_to='images/', null=True, blank=True, help_text="Upload the icon ")
     nutritions = models.ManyToManyField('Nutrition', through='NutritionQuantity')
+    product_gst_percentage = models.FloatField(default=0)
+    product_rate_with_gst = models.FloatField(default=0)
 
     def __str__(self):
         return self.title
@@ -52,7 +55,8 @@ class Product(models.Model):
 class RecipeBox(models.Model):
     products = models.ManyToManyField(Product, through='Quantity', help_text="enter the products")
     video_url = models.CharField(max_length=500)
-    shadow_product = models.OneToOneField(Product, related_name='recipe_box',on_delete=models.CASCADE,blank=True,null=True)
+    shadow_product = models.OneToOneField(Product, related_name='recipe_box', on_delete=models.CASCADE, blank=True,
+                                          null=True)
 
 
 class Quantity(models.Model):
@@ -81,7 +85,7 @@ class Nutrition(models.Model):
 
 class NutritionQuantity(models.Model):
     quantity = models.FloatField()
-    nutrition = models.ForeignKey(Nutrition, on_delete=models.CASCADE,related_name='nutrition')
+    nutrition = models.ForeignKey(Nutrition, on_delete=models.CASCADE, related_name='nutrition')
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='nutrition')
 
 
@@ -148,6 +152,7 @@ def create_new_code():
     return str(unique_code)
 
 
+
 class Coupon(models.Model):
     code = models.CharField(max_length=20, default=create_new_code, unique=True)
     user_specific_status = models.BooleanField(default=False)
@@ -176,27 +181,36 @@ class Orders(models.Model):
         ('m', 'morning'),
         ('e', 'evening')
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.CASCADE)
-    total = models.FloatField()
-    address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.SET_NULL,null=True,blank=True)
+    total = models.FloatField(default=0)
+    address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE,blank=True,null=True)
     is_seen = models.IntegerField(default=0, blank=True, null=True, help_text='1->Seen, 0->Not seen',
                                   choices=((1, 'Seen'), (0, 'Not seen')))
-    date = models.DateField()
-    time = models.CharField(max_length=10, choices=order_time)
+    date = models.DateField(auto_now_add=True)
+    time = models.CharField(max_length=10, choices=order_time,default='m')
     status = models.CharField(max_length=10, choices=order_status, default='preparing')
     coupon = models.ForeignKey(Coupon, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
     used_points = models.IntegerField(default=0, blank=True, null=True)
 
+
     def __str__(self):
         return f"{self.user} , date-{self.date} , status -{self.status} "
+
+    @property
+    def invoice_number(self):
+        return self.id
+
+    @property
+    def invoice_date(self):
+        return self.date
 
 
 class OrderItem(models.Model):
     weight_choice = ((250, 250), (500, 500), (1000, 1000))
     item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
-    order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE, blank=True, null=True,)
-    weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
+    order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE, blank=True, null=True, )
+    weight_variants = models.IntegerField(blank=True, null=True, default=0)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
 
     def __str__(self):
@@ -206,20 +220,36 @@ class OrderItem(models.Model):
             cleaned_status = ''
         if self.item.type_of_quantity:
             return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
-        return f"{self.item} - {self.quantity } items "
+        return f"{self.item} - {self.quantity} items "
 
+def create_new_transaction_id():
+    not_unique = True
+    unique_code = code_generator()
+    while not_unique:
+        unique_code = code_generator()
+        if not TransactionDetails.objects.filter(transaction_id=unique_code):
+            not_unique = False
+    return str(unique_code)
 
 class TransactionDetails(models.Model):
     order = models.ForeignKey(Orders, related_name="transaction", on_delete=models.CASCADE, null=True, blank=True)
     total = models.FloatField(default=0)
     amount_saved = models.IntegerField(default=0)
     # to store the random generated unique id
-    transaction_id = models.CharField(max_length=10)
+    transaction_id = models.CharField(max_length=10, default=create_new_transaction_id)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="transaction", on_delete=models.CASCADE)
     # to store the id returned when creating a payment link
     payment_id = models.CharField(max_length=20, default="")
     payment_status = models.CharField(max_length=20, default="failed")
     date = models.DateField(auto_now=True, blank=True, null=True)
+    invoice_rate_with_gst = models.FloatField(default=0)
+    invoice_gst_percentage = models.FloatField(default=0)
+    invoice_amt_without_gst = models.FloatField(default=0)
+    invoice_amt_sgst = models.FloatField(default=0)
+    invoice_amt_igst = models.FloatField(default=0)
+    invoice_amt_with_gst = models.FloatField(default=0)
+
+
 
 
 class TempOrder(models.Model):
@@ -237,7 +267,7 @@ class TempOrder(models.Model):
 
 
 class TempItem(models.Model):
-    item = models.ForeignKey(Product,related_name="temp_item", on_delete=models.CASCADE,blank=True,null=True)
+    item = models.ForeignKey(Product, related_name="temp_item", on_delete=models.CASCADE, blank=True, null=True)
     quantity = models.PositiveIntegerField()
     order = models.ForeignKey(TempOrder, related_name="temp_item", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
@@ -274,7 +304,7 @@ class Tokens(models.Model):
 
 
 class Reviews(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='reviews', on_delete=models.CASCADE,)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='reviews', on_delete=models.CASCADE, )
     item = models.ForeignKey(Product, related_name="review", on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
     content = models.TextField()
