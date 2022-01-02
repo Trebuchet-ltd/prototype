@@ -27,6 +27,8 @@ class Product(models.Model):
     weight_choice = ((250, 250), (500, 500), (1000, 1000))
     title = models.CharField(max_length=255)
     short_description = models.TextField(max_length=2048, default='')
+    product_hsn = models.CharField(max_length=50, null=True, blank=True)
+    code = models.CharField(max_length=50, null=True, blank=True)
     description = models.TextField(max_length=2048, )
     price = models.FloatField()
     stock = models.IntegerField()
