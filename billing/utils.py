@@ -9,7 +9,7 @@ from .models import Book
 from .models import BookLog
 from .models import Inventory
 from .models import InventoryLog
-from .models import Product
+from home.models import Product
 
 
 def invoice_data_validator(invoice_data):
@@ -59,8 +59,7 @@ def invoice_data_processor(invoice_post_data):
     for idx, product in enumerate(invoice_post_data['invoice-product']):
         if product:
             try:
-                print(f"{invoice_post_data = } {idx = }")
-                item = Product.objects.get(name=product["name"])
+                item = Product.objects.get(title=product)
                 weight = float(invoice_post_data['invoice-unit'][idx])
                 quantity = int(invoice_post_data['invoice-qty'][idx])
                 amt_with_tax = item.price * weight * (1 + item.product_gst_percentage / 100)
