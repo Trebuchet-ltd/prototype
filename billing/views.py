@@ -42,7 +42,7 @@ def login_view(request):
     return render(request, 'gstbillingapp/login.html', context)
 
 
-@csrf_exempt
+
 @login_required
 def invoice_create(request):
     context = {}
@@ -56,7 +56,7 @@ def invoice_create(request):
     if request.method == 'POST':
         invoice_data = request.POST
 
-        print(f"Valid Invoice Data {request.__dict__ = }")
+        print(f"Valid Invoice Data {request.POST = }")
         invoice_data_processor(invoice_data)
 
         customer = None

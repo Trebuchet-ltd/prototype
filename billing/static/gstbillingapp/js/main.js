@@ -76,7 +76,7 @@ async function checkout() {
     }
 
     if (products.length)
-        await fetch("/bill/order/",
+        await fetch("/bill/invoices/new",
             {
                 headers: {
                     'Content-Type': 'application/json'
@@ -86,11 +86,13 @@ async function checkout() {
                 method: "POST",
                 body: JSON.stringify(
                     {
-                        name: document.getElementById("customer-name-input").value,
-                        address: document.getElementById("customer-address-input").value,
-                        pincode: document.getElementById("customer-pin-input").value,
-                        phone: document.getElementById("customer-phone-input").value,
-                        products
+                        data: {
+                            name: document.getElementById("customer-name-input").value,
+                            address: document.getElementById("customer-address-input").value,
+                            pincode: document.getElementById("customer-pin-input").value,
+                            phone: document.getElementById("customer-phone-input").value,
+                            products
+                        }
                     }
                 )
             });
