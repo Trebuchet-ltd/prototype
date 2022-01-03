@@ -78,6 +78,7 @@
                 <th scope="col">Product</th>
                 <th scope="col">Weight</th>
                 <th scope="col">Qty</th>
+                <th scope="col">Cleaned</th>
 
                 <th scope="col">Rate without GST</th>
                 <th scope="col">Amt without GST</th>
@@ -93,7 +94,7 @@
             </tbody>
 
             <tr>
-                <td colspan="6" class="text-center"><strong>TOTAL:</strong></td>
+                <td colspan="7" class="text-center"><strong>TOTAL:</strong></td>
                 <td class="form-input-td">
                     <input name="invoice-total-amt-without-gst" type="number" step="any" class="form-control" readonly>
                 </td>
@@ -134,6 +135,9 @@
             <td class="form-input-td">
                 <input type="text" id="quantity" step="1" min="0" class="form-control" placeholder="Qty">
             </td>
+            <td class="form-input-td">
+                <input type="checkbox" id="cleaned" class="form-control" placeholder="Cleaned">
+            </td>
 
             <td class="form-input-td">
                 <input type="number" id="rate_wo_gst" step="any" class="form-control" readonly>
@@ -157,6 +161,28 @@
                 <input type="number" id="id" step="any" class="form-control" readonly required>
             </td>
         </tr>
+    </template>
+
+    <template id="print_content">
+        <h3 style="text-align: center">DreamEat</h3>
+        <table style="width: 100%; text-align: center;">
+            <thead>
+            <tr>
+                <th scope="col" style="border-bottom-style: solid;">Item</th>
+                <th scope="col" style="border-bottom-style: solid;">Weight (Kg)</th>
+                <th scope="col" style="border-bottom-style: solid;">Quantity</th>
+                <th scope="col" style="border-bottom-style: solid;">Price</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+            <tr>
+                <th scope="col" colspan="3" style="border-top-style: solid;">Total</th>
+                <td style="border-top-style: solid;"><span></span> ₹</td>
+            </tr>
+            </tfoot>
+        </table>
+        <h4>Total Payable Amount <b></b> ₹</h4>
     </template>
 
     <datalist id="code_options">

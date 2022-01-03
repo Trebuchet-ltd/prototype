@@ -70,34 +70,63 @@ async function checkout() {
         const id = Number(row.querySelector("#id").value);
         const quantity = Number(row.querySelector("#quantity").value);
         const weight = Number(row.querySelector("#weight").value);
+        const cleaned = Number(row.querySelector("#cleaned").checked);
 
         if (id && quantity && weight)
-            products.push({id, quantity, weight});
+            products.push({id, quantity, weight, cleaned});
     }
 
-    if (products.length)
-        await fetch("/bill/invoices/new",
+    if (products.length) {
+        const order = await fetch("/api/order/order/",
             {
                 headers: {
                     'Content-Type': 'application/json',
-                     'X-CSRFToken': document.getElementsByName("csrfmiddlewaretoken")[0].value
+                    'X-CSRFToken': document.getElementsByName("csrfmiddlewaretoken")[0].value
                 },
                 credentials: "same-origin",
                 method: "POST",
                 body: JSON.stringify(
                     {
-
                         name: document.getElementById("customer-name-input").value,
                         address: document.getElementById("customer-address-input").value,
                         pincode: document.getElementById("customer-pin-input").value,
                         phone: document.getElementById("customer-phone-input").value,
                         products
-
                     }
                 )
             });
-    else
+
+        printBill(await order.json());
+    } else
         window.alert("Fill the form !!!")
+}
+
+function printBill({total, order_item}) {
+    const printWindow = window.open("", "Print Bill");
+    let print = document.getElementById("print_content").innerHTML;
+
+    console.log(order_item[0])
+
+    const rows = order_item.map(({quantity, item}) =>
+        `<tr>
+            <td>${item.title}</td>
+            <td>${item.weight}</td>
+            <td>${quantity}</td>
+            <td>${item.cleaned_price || item.product_rate_with_gst}</td>
+        </tr>`
+    );
+
+    print = print.split("<tbody>").join(rows.join(""));
+    print = print.split("<span>").join(total);
+    print = print.split("<b>").join(total);
+
+    printWindow.document.write('<html lang="en"><body style="font-family: sans-serif;">');
+    printWindow.document.write(print);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+
+    printWindow.focus();
+    printWindow.print();
 }
 
 for (let i = 0; i < 5; i++)

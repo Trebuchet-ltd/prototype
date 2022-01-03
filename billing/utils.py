@@ -54,10 +54,11 @@ def invoice_data_processor(invoice_post_data):
                 amt_with_tax = item.price * weight * (1 + item.product_gst_percentage / 100)
                 transaction.total += amt_with_tax * (1 - item.discount / 100)
                 transaction.invoice_amt_without_gst = item.price * weight * (1 - item.discount / 100)
-                item.stock -= int(weight * quantity/1000)
+                transaction.save()
+                item.stock -= int(weight * quantity / 1000)
                 item.save()
-                is_cleaned = True
-                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight, is_cleaned=is_cleaned,
+
+                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight, is_cleaned=True,
                                          order=order)
             except Product.DoesNotExist:
                 pass

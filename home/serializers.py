@@ -30,21 +30,21 @@ class GetNutritionQuantitySerializer(serializers.ModelSerializer):
 class GetCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['name', 'code','category','color','icon']
+        fields = ['name', 'code', 'category', 'color', 'icon']
 
 
 class GetProductSerializer(serializers.ModelSerializer):
     images = GetImageSerializer(many=True, required=False)
     nutrition = GetNutritionQuantitySerializer(many=True, read_only=True)
-    meat = GetCategorySerializer(read_only=True,many=False)
+    meat = GetCategorySerializer(read_only=True, many=False)
 
     class Meta:
         model = Product
         fields = [
-            'id', 'title','code', 'description', 'short_description', 'price', 'stock',
+            'id', 'title', 'code', 'description', 'short_description', 'price', 'stock',
             'meat', 'images', 'bestSeller', "weight", 'rating',
             'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price', "discount", 'recipe_box',
-            'nutrition','product_gst_percentage','product_rate_with_gst'
+            'nutrition', 'product_gst_percentage', 'product_rate_with_gst'
         ]
 
 
@@ -110,7 +110,7 @@ class GetReviewSerializerWithoutUser(serializers.ModelSerializer):
     class Meta:
         model = Reviews
         fields = [
-             'title', 'content', 'stars',
+            'title', 'content', 'stars',
         ]
 
 
