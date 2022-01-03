@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -7,7 +8,6 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -15,7 +15,6 @@ from home.models import Orders, OrderItem
 from home.models import Product
 from .forms import ProductForm
 from .utils import invoice_data_processor
-from .utils import invoice_data_validator
 
 
 # Create your views here.
@@ -42,7 +41,6 @@ def login_view(request):
     return render(request, 'gstbillingapp/login.html', context)
 
 
-
 @login_required
 def invoice_create(request):
     context = {}
@@ -54,9 +52,9 @@ def invoice_create(request):
 
     context['default_invoice_date'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
     if request.method == 'POST':
-        invoice_data = request.POST
+        invoice_data = json.loads(request.body)
 
-        print(f"Valid Invoice Data {request.POST = }")
+        print(f"Valid Invoice Data {json.loads(request.body) = }")
         invoice_data_processor(invoice_data)
 
         customer = None

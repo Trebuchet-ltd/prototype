@@ -79,20 +79,20 @@ async function checkout() {
         await fetch("/bill/invoices/new",
             {
                 headers: {
-                    'Content-Type': 'application/json'
-
+                    'Content-Type': 'application/json',
+                     'X-CSRFToken': document.getElementsByName("csrfmiddlewaretoken")[0].value
                 },
                 credentials: "same-origin",
                 method: "POST",
                 body: JSON.stringify(
                     {
-                        data: {
-                            name: document.getElementById("customer-name-input").value,
-                            address: document.getElementById("customer-address-input").value,
-                            pincode: document.getElementById("customer-pin-input").value,
-                            phone: document.getElementById("customer-phone-input").value,
-                            products
-                        }
+
+                        name: document.getElementById("customer-name-input").value,
+                        address: document.getElementById("customer-address-input").value,
+                        pincode: document.getElementById("customer-pin-input").value,
+                        phone: document.getElementById("customer-phone-input").value,
+                        products
+
                     }
                 )
             });
