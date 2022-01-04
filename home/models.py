@@ -36,7 +36,6 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    weight_choice = ((250, 250), (500, 500), (1000, 1000))
     title = models.CharField(max_length=255)
     short_description = models.TextField(max_length=2048, default='')
     product_hsn = models.CharField(max_length=50, null=True, blank=True)
@@ -54,8 +53,7 @@ class Product(models.Model):
     can_be_cleaned = models.BooleanField(default=0, blank=True, null=True,
                                          help_text='1->Can be cleaned, 0->Can not be cleaned')
     cleaned_price = models.FloatField(blank=True, null=True, )
-    weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0,
-                                                     choices=weight_choice), blank=True, null=True, default=list)
+    weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0,), blank=True, null=True, default=list)
     discount = models.FloatField(default=0, help_text='discount in percentage')
     icon = models.ImageField(upload_to='images/', null=True, blank=True, help_text="Upload the icon ")
     nutrition = models.ManyToManyField(Nutrition, through=NutritionQuantity, related_name='nutrition_quantity')

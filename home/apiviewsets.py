@@ -187,6 +187,7 @@ def confirm_order(request):
 
     }
     """
+    user = request.user
 
     date = request.data["date"]
     date_str = "".join(date.split("-"))  # converting '2017-05-05' to '20170505'
@@ -217,7 +218,7 @@ def confirm_order(request):
         logger.info("Request not accepted because pincode is not available ")
         return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    user = request.user
+
 
     amount, actual_amount = total_amount(user, address_obj, coupon_code, points)
     amount_saved = actual_amount - amount
