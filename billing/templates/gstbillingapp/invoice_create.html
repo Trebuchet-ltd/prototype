@@ -94,18 +94,9 @@
             </tbody>
 
             <tr>
-                <td colspan="7" class="text-center"><strong>TOTAL:</strong></td>
-                <td class="form-input-td">
-                    <input name="invoice-total-amt-without-gst" type="number" step="any" class="form-control" readonly>
-                </td>
-                <td class="form-input-td">
-                    <input name="invoice-total-amt-sgst" type="number" step="any" class="form-control" readonly></td>
-                <td class="form-input-td">
-                    <input name="invoice-total-amt-cgst" type="number" step="any" class="form-control" readonly></td>
-                <td class="form-input-td">
-                    <input name="invoice-total-amt-igst" type="number" step="any" class="form-control" readonly></td>
-                <td class="form-input-td">
-                    <input name="invoice-total-amt-with-gst" type="number" step="any" class="form-control" readonly>
+                <td colspan="10" class="text-center align-content-center"><strong>TOTAL:</strong></td>
+                <td colspan="2" class="text-center">
+                    <input id="invoice-total" type="number" step="any" class="form-control" readonly>
                 </td>
             </tr>
 
@@ -157,32 +148,11 @@
             <td class="form-input-td">
                 <input type="number" id="amt" step="any" class="form-control" readonly>
             </td>
-            <td class="form-input-td" hidden>
-                <input type="number" id="id" step="any" class="form-control" readonly required>
+            <td hidden>
+                <input id="id">
+                <input id="price_swap">
             </td>
         </tr>
-    </template>
-
-    <template id="print_content">
-        <h3 style="text-align: center">DreamEat</h3>
-        <table style="width: 100%; text-align: center;">
-            <thead>
-            <tr>
-                <th scope="col" style="border-bottom-style: solid;">Item</th>
-                <th scope="col" style="border-bottom-style: solid;">Weight (Kg)</th>
-                <th scope="col" style="border-bottom-style: solid;">Quantity</th>
-                <th scope="col" style="border-bottom-style: solid;">Price</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-            <tfoot>
-            <tr>
-                <th scope="col" colspan="3" style="border-top-style: solid;">Total</th>
-                <td style="border-top-style: solid;"><span></span> ₹</td>
-            </tr>
-            </tfoot>
-        </table>
-        <h4>Total Payable Amount <b></b> ₹</h4>
     </template>
 
     <datalist id="code_options">
