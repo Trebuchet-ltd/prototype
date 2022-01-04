@@ -7,17 +7,20 @@ const BILL_TABLE =
     `
 &nbsp;                                                 
          
-                                                 
+<b>                                                 
                     DreamEat
 +______________________________________________+
 |            Item          | Wgt | Qty | Price |
 +----------------------------------------------+
+</b>
 <ITEMS>    
+<b>
 +----------------------------------------------+
-|        Total          |       T$$$$$         |
+|        Total             |      T$$$$$       |
 +----------------------------------------------+
 
 Total Payable Amount T$$$$$ Rs
+</b>
 
 
 
@@ -26,9 +29,10 @@ Total Payable Amount T$$$$$ Rs
 
 const ROW_LENGTH = 48;
 
-const PRICE_LENGTH = 7;
-const QTY_LENGTH = 5;
-const WGT_LENGTH = 5;
+const WGT_LENGTH = 6;
+const QTY_LENGTH = 6;
+const PRICE_LENGTH = 9;
+
 const ITEM_LENGTH = ROW_LENGTH - PRICE_LENGTH - QTY_LENGTH - WGT_LENGTH
 
 function addRow() {
@@ -168,10 +172,10 @@ function printBill({total, order_item}) {
             price: String(item.can_be_cleaned ? item.cleaned_price : item.product_rate_with_gst)
         }))
         .map(({title,weight, quantity, price}) =>
-            `|${title}${space(ITEM_LENGTH - title.length)}|` +
-            `|${weight}${space(WGT_LENGTH - weight.length)}|` +
-            `|${quantity}${space(QTY_LENGTH - quantity.length)}|` +
-            `|${space(PRICE_LENGTH - price.length)}${price}|`);
+            `|${title}${space(ITEM_LENGTH - title.length-1)}` +
+            `|${weight}${space(WGT_LENGTH - weight.length-1)}` +
+            `|${quantity}${space(QTY_LENGTH - quantity.length-1)}` +
+            `|${space(PRICE_LENGTH - price.length-2)}${price}|`);
 
     const print = BILL_TABLE.replaceAll("T$$$$$", `${space(6-String(total).length)}${total}`)
         .replace("<ITEMS>", rows.join("<br>"));
