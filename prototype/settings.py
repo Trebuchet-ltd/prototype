@@ -160,17 +160,17 @@ DEPLOYMENT_URL = 'https://api.dev.dreameat.in'
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-if DEBUG:
-    STATICFILES_DIRS = [
-        BASE_DIR / "static",
-    ]
-else:
-    STATIC_ROOT = '/var/www/html/static'
-
-if DEBUG:
-    MEDIA_ROOT = BASE_DIR / 'media'
-else:
-    MEDIA_ROOT = '/var/www/html/media'
+# if DEBUG:
+#     STATICFILES_DIRS = [
+#         BASE_DIR / "static",
+#     ]
+# else:
+STATIC_ROOT = '/var/www/html/static'
+#
+# if DEBUG:
+#     MEDIA_ROOT = BASE_DIR / 'media'
+# else:
+MEDIA_ROOT = '/var/www/html/media'
 
 MEDIA_URL = '/media/'
 CORS_ALLOW_CREDENTIALS = True
