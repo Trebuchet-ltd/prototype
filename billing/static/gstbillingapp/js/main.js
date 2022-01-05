@@ -12,9 +12,7 @@ const BILL_TABLE =
 +______________________________________________+
 |            Item          | Wgt | Qty | Price |
 +----------------------------------------------+
-</b>
-<ITEMS>    
-<b>
+</b><ITEMS><b>
 +----------------------------------------------+
 |        Total             |      T$$$$$       |
 +----------------------------------------------+
@@ -124,10 +122,10 @@ async function checkout() {
         const id = Number(row.querySelector("#id").value);
         const quantity = Number(row.querySelector("#quantity").value);
         const weight = Number(row.querySelector("#weight").value);
-        const cleaned = Number(row.querySelector("#cleaned").checked);
+        const cleaned_status = Number(row.querySelector("#cleaned").checked);
 
         if (id && quantity && weight)
-            products.push({id, quantity, weight, cleaned});
+            products.push({id, quantity, weight, cleaned_status});
     }
 
     if (products.length) {

@@ -56,13 +56,13 @@ def invoice_data_processor(invoice_post_data):
 
                     amount += (quantity * item.cleaned_price * weight / 1000) * (
                             1 + item.product_gst_percentage / 100) * (
-                                      100 - item.item.discount) / 100
+                                      100 - item.discount) / 100
                 else:
                     if item.type_of_quantity:
 
                         amount += quantity * item.price * weight / 1000 * (
                                 1 + item.product_gst_percentage / 100) * (
-                                          100 - item.item.discount) / 100
+                                          100 - item.discount) / 100
                     else:
                         amount += quantity * item.price * (
                                 1 + item.product_gst_percentage / 100) * (100 - item.discount) / 100
