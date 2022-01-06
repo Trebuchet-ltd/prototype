@@ -53,6 +53,8 @@ function addRow() {
     })
 
     document.getElementById("invoice-form-items-table-body").appendChild(row);
+    document.getElementsByTagName("tr")[cRow]
+        .addEventListener("keyup", ({key}) => rowEventHandler(key, cRow));
 }
 
 function calculateTotal() {
@@ -67,7 +69,6 @@ function calculateTotal() {
 
 function calculateRow(rowId) {
     const row = document.getElementsByTagName("tr")[rowId];
-    console.log(row, rowId);
     const price = Number(row.querySelector("#rate_wo_gst").value || 0) * 0.001 *
         Number(row.querySelector("#weight").value || 0) * Number(row.querySelector("#quantity").value || 0)
 
@@ -169,13 +170,13 @@ function printBill({total, order_item}) {
             quantity: String(quantity), title: String(item.title), weight: String(item.weight),
             price: String(item.can_be_cleaned ? item.cleaned_price : item.product_rate_with_gst)
         }))
-        .map(({title,weight, quantity, price}) =>
-            `|${title}${space(ITEM_LENGTH - title.length-1)}` +
-            `|${weight}${space(WGT_LENGTH - weight.length-1)}` +
-            `|${quantity}${space(QTY_LENGTH - quantity.length-1)}` +
-            `|${space(PRICE_LENGTH - price.length-2)}${price}|`);
+        .map(({title, weight, quantity, price}) =>
+            `|${title}${space(ITEM_LENGTH - title.length - 1)}` +
+            `|${weight}${space(WGT_LENGTH - weight.length - 1)}` +
+            `|${quantity}${space(QTY_LENGTH - quantity.length - 1)}` +
+            `|${space(PRICE_LENGTH - price.length - 2)}${price}|`);
 
-    const print = BILL_TABLE.replaceAll("T$$$$$", `${space(6-String(total).length)}${total}`)
+    const print = BILL_TABLE.replaceAll("T$$$$$", `${space(6 - String(total).length)}${total}`)
         .replace("<ITEMS>", rows.join("<br>"));
 
     printWindow.document.write('<html lang="en"><body style="font-family: sans-serif;"><pre>');
