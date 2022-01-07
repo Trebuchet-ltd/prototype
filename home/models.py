@@ -204,9 +204,9 @@ class Orders(models.Model):
 
 
 class OrderItem(models.Model):
-    weight_choice = ((250, 250), (500, 500), (1000, 1000))
     item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+    price = models.FloatField(default=0)
     order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE, blank=True, null=True, )
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
@@ -267,6 +267,7 @@ class TempOrder(models.Model):
 class TempItem(models.Model):
     item = models.ForeignKey(Product, related_name="temp_item", on_delete=models.CASCADE, blank=True, null=True)
     quantity = models.PositiveIntegerField()
+    price = models.FloatField(default=0)
     order = models.ForeignKey(TempOrder, related_name="temp_item", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')

@@ -15,6 +15,7 @@ from home.models import Orders, OrderItem
 from home.models import Product
 from .forms import ProductForm
 from .utils import invoice_data_processor
+from home.serializers import OrderSerializer
 
 
 # Create your views here.
@@ -65,9 +66,12 @@ def invoice_create(request):
 @api_view(["POST"])
 def orders(request):
     invoice_data = request.data
-    print(f"{invoice_data = }")
-    invoice_data_processor(invoice_data)
-    return Response(status=200)
+
+    order = invoice_data_processor(invoice_data)
+
+    serializer = OrderSerializer(data=order, many=False)
+    serializer.is_valid(raise_exception=True)
+    return Response(serializer.data, status=200)
 
 
 @login_required
@@ -75,18 +79,6 @@ def invoices(request):
     context = {}
     context['orders'] = Orders.objects.all().order_by('-id')
     return render(request, 'gstbillingapp/invoices.html', context)
-
-
-@login_required
-def invoice_viewer(request, invoice_id):
-    order = get_object_or_404(Orders, id=invoice_id)
-    context = {}
-    if order:
-        context['items'] = OrderItem.objects.filter(order=order)
-    context['order'] = order
-
-    context['currency'] = "₹"
-    return render(request, 'gstbillingapp/invoice_printer.html', context)
 
 
 @login_required

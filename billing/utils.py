@@ -43,22 +43,40 @@ def invoice_data_processor(invoice_post_data):
     transaction = TransactionDetails.objects.create(order=order, user=user, payment_status='paid', )
 
     invoice_post_data = dict(invoice_post_data)
-
+    amount = 0
     for product in invoice_post_data['products']:
         if product:
             try:
                 item = Product.objects.get(id=product["id"])
-                print(item.title)
                 weight = float(product['weight'])
                 quantity = int(product['quantity'])
-                amt_with_tax = item.price * weight * (1 + item.product_gst_percentage / 100)
-                transaction.total += amt_with_tax * (1 - item.discount / 100)
-                transaction.invoice_amt_without_gst = item.price * weight * (1 - item.discount / 100)
-                item.stock -= int(weight * quantity/1000)
+                cleaned = int(product['cleaned_status'])
+
+                if cleaned and item.can_be_cleaned:
+
+                    amount += (quantity * item.cleaned_price * weight / 1000) * (
+                            1 + item.product_gst_percentage / 100) * (
+                                      100 - item.discount) / 100
+                else:
+                    if item.type_of_quantity:
+
+                        amount += quantity * item.price * weight / 1000 * (
+                                1 + item.product_gst_percentage / 100) * (
+                                          100 - item.discount) / 100
+                    else:
+                        amount += quantity * item.price * (
+                                1 + item.product_gst_percentage / 100) * (100 - item.discount) / 100
+
+                order.total += amount
+                transaction.total += amount
+                item.stock -= int(weight * quantity / 1000)
                 item.save()
-                is_cleaned = True
-                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight, is_cleaned=is_cleaned,
+                transaction.save()
+                order.save()
+                print(f"{amount = }")
+                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight, is_cleaned=True,
                                          order=order)
             except Product.DoesNotExist:
                 pass
+
     return order

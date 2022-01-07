@@ -70,14 +70,13 @@
 
         <table class="table table-bordered" id="invoice-form-items-table">
             <thead>
-            <th class="table-active" scope="col" colspan="13">Items</th>
+            <th class="table-active" scope="col" colspan="11">Items</th>
 
             <tr>
-                <th scope="col">Sl No.</th>
+                <th scope="col">SlNo</th>
                 <th scope="col">Code</th>
                 <th scope="col">Product</th>
-                <th scope="col">Weight</th>
-                <th scope="col">Qty</th>
+                <th scope="col">Weight / Qty</th>
 
                 <th scope="col">Rate without GST</th>
                 <th scope="col">Amt without GST</th>
@@ -85,7 +84,6 @@
                 <th scope="col">CGST</th>
                 <th scope="col">IGST</th>
                 <th scope="col">Amt with GST</th>
-
             </tr>
             </thead>
             <tbody id="invoice-form-items-table-body">
@@ -93,18 +91,9 @@
             </tbody>
 
             <tr>
-                <td colspan="6" class="text-center"><strong>TOTAL:</strong></td>
-                <td class="form-input-td">
-                    <input name="invoice-total-amt-without-gst" type="number" step="any" class="form-control" readonly>
-                </td>
-                <td class="form-input-td">
-                    <input name="invoice-total-amt-sgst" type="number" step="any" class="form-control" readonly></td>
-                <td class="form-input-td">
-                    <input name="invoice-total-amt-cgst" type="number" step="any" class="form-control" readonly></td>
-                <td class="form-input-td">
-                    <input name="invoice-total-amt-igst" type="number" step="any" class="form-control" readonly></td>
-                <td class="form-input-td">
-                    <input name="invoice-total-amt-with-gst" type="number" step="any" class="form-control" readonly>
+                <td colspan="9" class="text-center align-content-center"><strong>TOTAL:</strong></td>
+                <td colspan="2" class="text-center">
+                    <input id="invoice-total" type="number" step="any" class="form-control" readonly>
                 </td>
             </tr>
 
@@ -112,29 +101,24 @@
 
         {% csrf_token %}
 
-        <button type="button" class="btn btn-primary" id="invoice-form-addrow" onclick="addRow()">+</button>
         <button type="submit" class="btn btn-primary">Submit</button>
-
     </form>
 
     <template id="invoice_row">
         <tr>
-            <td class="invoice-item-slno">1</td>
+            <td class="form-input-td" id="sl_no" disabled align="center">
+            </td>
             <td class="form-input-td">
-                <input type="text" list="code_options" id="code" autocomplete="off"
+                <input type="text" id="code" autocomplete="off" list="code_options"
                        class="form-control product_search_area product_search_input" placeholder="Product Code">
             </td>
             <td class="form-input-td">
-                <input type="text" list="name_options" id="name" autocomplete="off"
+                <input type="text" id="name" autocomplete="off" list="name_options"
                        class="form-control product_search_area product_search_input" placeholder="Product">
             </td>
             <td class="form-input-td">
                 <input type="text" id="weight" class="form-control" placeholder="Weight">
             </td>
-            <td class="form-input-td">
-                <input type="text" id="quantity" step="1" min="0" class="form-control" placeholder="Qty">
-            </td>
-
             <td class="form-input-td">
                 <input type="number" id="rate_wo_gst" step="any" class="form-control" readonly>
             </td>
@@ -153,8 +137,8 @@
             <td class="form-input-td">
                 <input type="number" id="amt" step="any" class="form-control" readonly>
             </td>
-            <td class="form-input-td" hidden>
-                <input type="number" id="id" step="any" class="form-control" readonly required>
+            <td hidden disabled>
+                <input id="id">
             </td>
         </tr>
     </template>
@@ -169,6 +153,6 @@
 
 
 {% block includejs %}
-    <script src="{% static "gstbillingapp/js/fuse-3.4.6.min.js" %}"></script>
+    <script src="{% static "gstbillingapp/js/navigator.js" %}"></script>
     <script src="{% static "gstbillingapp/js/main.js" %}"></script>
 {% endblock %}

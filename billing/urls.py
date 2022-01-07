@@ -13,9 +13,6 @@ urlpatterns = [
     path('accounts/', include('django.contrib.auth.urls')),
     path(r'order/', views.orders),
     path('invoices', views.invoices, name='invoices'),
-    path('invoice/<int:invoice_id>', views.invoice_viewer, name='invoice_viewer'),
-
-
 
     path('products', views.products, name='products'),
     path('products/add', views.product_add, name='product_add'),

@@ -8,6 +8,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from authentication.permissions import IsOwner, IsMyCartItem
+from billing.utils import invoice_data_processor
 from home.serializers import *
 from .functions import *
 
@@ -274,14 +275,25 @@ class CartViewSets(viewsets.ModelViewSet):
 
 
 class OrderViewSets(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    permission_classes = [permissions.IsAdminUser]
     queryset = Orders.objects.all()
     serializer_class = OrderSerializer
-    http_method_names = ['get']
+    http_method_names = ['get', 'post']
 
     def get_queryset(self):
-        self.queryset = Orders.objects.filter(user=self.request.user)
-        return self.queryset
+        if self.request.user.is_superuser:
+            return Orders.objects.all()
+
+        return Orders.objects.filter(user=self.request.user)
+
+    @action(detail=False, methods=["post"], url_path='order')
+    def order(self, request, *args, **kwargs):
+        invoice_data = request.data
+
+        order = invoice_data_processor(invoice_data)
+
+        serializer = self.get_serializer(order, many=False)
+        return Response(serializer.data, status=200)
 
 
 class AddressViewSets(viewsets.ModelViewSet):

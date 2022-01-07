@@ -153,27 +153,24 @@ USE_L10N = True
 
 USE_TZ = True
 
-if not DEBUG:
-    DEPLOYMENT_URL = 'https://api.dreameat.in'
+DEPLOYMENT_URL = 'https://api.dev.dreameat.in'
 
-else:
-    DEPLOYMENT_URL = 'http://127.0.0.1:8000'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-if DEBUG:
-    STATICFILES_DIRS = [
-        BASE_DIR / "static",
-    ]
-else:
-    STATIC_ROOT = '/var/www/html/static'
-
-if DEBUG:
-    MEDIA_ROOT = BASE_DIR / 'media'
-else:
-    MEDIA_ROOT = '/var/www/html/media'
+# if DEBUG:
+#     STATICFILES_DIRS = [
+#         BASE_DIR / "static",
+#     ]
+# else:
+STATIC_ROOT = '/var/www/html/static'
+#
+# if DEBUG:
+#     MEDIA_ROOT = BASE_DIR / 'media'
+# else:
+MEDIA_ROOT = '/var/www/html/media'
 
 MEDIA_URL = '/media/'
 CORS_ALLOW_CREDENTIALS = True
