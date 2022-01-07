@@ -91,14 +91,14 @@ async function search(row, name, code = null) {
     if (!name && !code)
         return fillRow(row);
 
-    [code, name] = [code.replace("*", ""), name.replace("-Cleaned", "")]
+    [code, name] = [code?.replace("*", ""), name?.replace("-Cleaned", "")]
 
     const results = await fetch(`/api/products/?${code ? "code" : "search"}=${name || code}`)
         .then((res) => res.json())
         .then((json) => json.results);
 
-    results.forEach((result) => results.push({
-        ...result, title: `${result.title}-Cleaned`, code: `*${result.code}`, price: item.cleaned_price
+    results.forEach((result) => result.can_be_cleaned && results.push({
+        ...result, title: `${result.title}-Cleaned`, code: `*${result.code}`, price: result.cleaned_price
     }))
 
     results.forEach((result) => currentData[result.title] = currentData[result.code] = result);
@@ -115,12 +115,11 @@ async function checkout() {
     for (let i = INITIAL_ROWS; i < rowCount + INITIAL_ROWS; i++) {
         const row = trs[i];
 
-        const id = Number(row.querySelector("#id").value.replace("*", ""));
-        const quantity = Number(row.querySelector("#quantity").value);
+        const id = Number(row.querySelector("#id").value?.replace("*", ""));
         const weight_qty = Number(row.querySelector("#weight").value);
         const cleaned_status = Number(row.querySelector("#id").value.startsWith("*"));
 
-        if (id && quantity && weight_qty)
+        if (id && weight_qty)
             products.push({id, quantity: weight_qty, weight: weight_qty, cleaned_status});
     }
 
