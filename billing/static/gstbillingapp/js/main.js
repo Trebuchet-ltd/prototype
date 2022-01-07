@@ -3,36 +3,6 @@ const INITIAL_ROWS = 7;
 let currentData = {};
 let rowCount = 0;
 
-const BILL_TABLE =
-    `
-&nbsp;                                                 
-         
-<b>                                                 
-                    DreamEat
-+______________________________________________+
-|            Item          | Wgt | Qty | Price |
-+----------------------------------------------+
-</b><ITEMS><b>
-+----------------------------------------------+
-|        Total             |      T$$$$$       |
-+----------------------------------------------+
-
-Total Payable Amount T$$$$$ Rs
-</b>
-
-
-
-&nbsp;
-`;
-
-const ROW_LENGTH = 48;
-
-const WGT_LENGTH = 6;
-const QTY_LENGTH = 6;
-const PRICE_LENGTH = 9;
-
-const ITEM_LENGTH = ROW_LENGTH - PRICE_LENGTH - QTY_LENGTH - WGT_LENGTH
-
 function addRow() {
     let row = document.getElementById("invoice_row").content.cloneNode(true);
 
@@ -146,40 +116,6 @@ async function checkout() {
         printBill(await order.json());
     } else
         window.alert("Fill the form !!!")
-}
-
-function space(count) {
-    let spaces = "";
-    for (let i = 0; i < Number(count).toFixed(0); i++)
-        spaces += "&nbsp;";
-
-    return spaces;
-}
-
-function printBill({total, order_item}) {
-    const printWindow = window.open("", "Print Bill");
-
-    const rows = order_item
-        .map(({quantity, item}) => ({
-            quantity: String(quantity), title: String(item.title), weight: String(item.weight),
-            price: String(item.can_be_cleaned ? item.cleaned_price : item.product_rate_with_gst)
-        }))
-        .map(({title, weight, quantity, price}) =>
-            `|${title}${space(ITEM_LENGTH - title.length - 1)}` +
-            `|${weight}${space(WGT_LENGTH - weight.length - 1)}` +
-            `|${quantity}${space(QTY_LENGTH - quantity.length - 1)}` +
-            `|${space(PRICE_LENGTH - price.length - 2)}${price}|`);
-
-    const print = BILL_TABLE.replaceAll("T$$$$$", `${space(6 - String(total).length)}${total}`)
-        .replace("<ITEMS>", rows.join("<br>"));
-
-    printWindow.document.write('<html lang="en"><body style="font-family: sans-serif;"><pre>');
-    printWindow.document.write(print);
-    printWindow.document.write('</pre></body></html>');
-    printWindow.document.close();
-
-    printWindow.focus();
-    printWindow.print();
 }
 
 for (let i = 0; i < 5; i++)
