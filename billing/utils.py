@@ -43,8 +43,9 @@ def invoice_data_processor(invoice_post_data):
     transaction = TransactionDetails.objects.create(order=order, user=user, payment_status='paid', )
 
     invoice_post_data = dict(invoice_post_data)
-    amount = 0
+
     for product in invoice_post_data['products']:
+        amount = 0
         if product:
             try:
                 item = Product.objects.get(id=product["id"])
@@ -54,18 +55,13 @@ def invoice_data_processor(invoice_post_data):
                 print(f"{cleaned = }")
                 if cleaned and item.can_be_cleaned:
 
-                    amount += (quantity * item.cleaned_price * weight) * (
-                            1 + item.product_gst_percentage / 100) * (
-                                      100 - item.discount) / 100
+                    amount += item.cleaned_price * weight
                 else:
                     if item.type_of_quantity:
 
-                        amount += quantity * item.price * weight * (
-                                1 + item.product_gst_percentage / 100) * (
-                                          100 - item.discount) / 100
+                        amount += quantity * item.price * weight
                     else:
-                        amount += quantity * item.price * (
-                                1 + item.product_gst_percentage / 100) * (100 - item.discount) / 100
+                        amount += quantity * item.price
 
                 order.total += amount
                 transaction.total += amount
@@ -74,7 +70,7 @@ def invoice_data_processor(invoice_post_data):
                 transaction.save()
                 order.save()
                 print(f"{amount = }")
-                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight*1000, is_cleaned=cleaned,
+                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight*1000, is_cleaned=cleaned and item.can_be_cleaned,
                                          order=order)
             except Product.DoesNotExist:
                 pass

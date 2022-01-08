@@ -51,7 +51,7 @@ function createBillRow({title, weight, quantity, price}) {
     for (let i = 1; i < titles.length; i++) {
         col = `|${titles[i]}${titles.length - i === 1 ? "" : "-"}`
         row +=
-            `\n${col}${space(ITEM_LENGTH - col.length)}|${space(WGT_LENGTH - 1)}` +
+            `<br>${col}${space(ITEM_LENGTH - col.length)}|${space(WGT_LENGTH - 1)}` +
             `|${space(QTY_LENGTH - 1)}|${space(PRICE_LENGTH - 2)}|`
     }
 
@@ -62,14 +62,14 @@ function printBill({total, order_item}) {
     const printWindow = window.open("", "Print Bill");
 
     const rows = order_item
-        .map(({quantity, item}) => ({
+        .map(({quantity, item, is_cleaned}) => ({
             quantity: String(quantity), title: String(item.title), weight: String(item.weight),
-            price: String(item.can_be_cleaned ? item.cleaned_price : item.product_rate_with_gst)
+            price: String(is_cleaned ? item.cleaned_price : item.price)
         }))
         .map(createBillRow);
 
     const print = BILL_TABLE.replaceAll("T$$$$$", `${space(6 - String(total).length)}${total}`)
-        .replace("<ITEMS>", rows.join("<br>"));
+        .replace("<ITEMS>", rows.join("<br>")).replaceAll("\n", "<br>");
 
     printWindow.document.write('<html lang="en"><body style="font-family: sans-serif;"><pre>');
     printWindow.document.write(print);

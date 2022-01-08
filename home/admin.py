@@ -30,7 +30,7 @@ class OrderAdmin(admin.ModelAdmin):
                     orders.append(f" {str(order_item.item).title()} {cleaned_status} "
                                   f"{order_item.quantity * order_item.weight_variants / 1000} kg , ")
                 else:
-                    orders.append(f" {str(order_item.item).title()} {order_item.quantity } items , ")
+                    orders.append(f" {str(order_item.item).title()} {order_item.quantity} items , ")
 
             # removing the last space and comma
             orders[-1] = orders[-1][:-2]
@@ -825,20 +825,21 @@ class StatesAdmin(admin.ModelAdmin):
 
         print(self.districts.get(str(state)))
         for district in self.districts.get(str(state)):
-            models.District.objects.create(district_name=district,state=state)
+            models.District.objects.create(district_name=district, state=state)
 
 
 @admin.register(models.District)
 class DistrictAdmin(admin.ModelAdmin):
     list_display = ("district_name", "state", "Available_status")
-    list_filter =['state', 'Available_status']
+    list_filter = ['state', 'Available_status']
     actions = ['make_available', 'make_not_Available']
 
-    def available_status(self,obj):
+    def available_status(self, obj):
         return obj.Available_status == True
+
     available_status.boolean = True
 
-    def make_available(modeladmin,request, queryset):
+    def make_available(modeladmin, request, queryset):
         queryset.update(Available_status=1)
         messages.success(request, "Selected District(s) is available now !!")
 
@@ -858,12 +859,14 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['title', 'available_stock','price']
+    list_display = ['title', 'available_stock', 'price', 'discount']
     list_filter = ['meat', 'bestSeller']
     inlines = [NutritionQuantity]
 
+    search_fields = ['title']
+
     @admin.display(description="stock")
-    def available_stock(self,obj):
+    def available_stock(self, obj):
         return f"{obj.stock} kg"
 
 
@@ -885,22 +888,22 @@ class CouponsAdmin(admin.ModelAdmin):
 
 @admin.register(models.Tokens)
 class CouponsAdmin(admin.ModelAdmin):
-    list_display = ['user','private_token','points',]
+    list_display = ['user', 'private_token', 'points', ]
 
 
 @admin.register(models.Pincodes)
 class CouponsAdmin(admin.ModelAdmin):
-    list_display = ['pincode','district']
+    list_display = ['pincode', 'district']
 
 
 @admin.register(models.Category)
 class SubCategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'code','color', 'icon']
+    list_display = ['name', 'code', 'color', 'icon']
 
 
 @admin.register(models.TempItem)
 class TempItemAdmin(admin.ModelAdmin):
-    list_display = ["item","quantity","order","weight_variants",'is_cleaned']
+    list_display = ["item", "quantity", "order", "weight_variants", 'is_cleaned']
 
 
 class QuantityAdmin(admin.TabularInline):
@@ -915,4 +918,3 @@ class RecipeBoxAdmin(admin.ModelAdmin):
 @admin.register(models.Reviews)
 class ReviewAdmin(admin.ModelAdmin):
     pass
-
