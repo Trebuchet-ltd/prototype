@@ -36,11 +36,11 @@
         <table class="table table-bordered">
             <thead>
             <tr>
-                <th class="table-active" scope="col" colspan="4">Customer Details</th>
+                <th class="table-active" scope="col" colspan="7">Customer Details</th>
             </tr>
             </thead>
 
-            <tbody class="two-col-form">
+            <tbody>
             <tr>
                 <th scope="row">Customer Name</th>
                 <td class="form-input-td customer_search_area">
@@ -48,7 +48,7 @@
                            id="customer-name-input" placeholder="Customer Name" required>
                 </td>
                 <th scope="row">Customer Address</th>
-                <td class="form-input-td">
+                <td class="form-input-td" colspan="3">
                     <input type="text" class="form-control" id="customer-address-input" placeholder="Customer Address"
                            required>
                 </td>
@@ -63,6 +63,10 @@
                 <td class="form-input-td">
                     <input type="number" class="form-control" id="customer-pin-input" placeholder="PIN Code" required>
                 </td>
+                <th scope="row">GST</th>
+                <td class="form-input-td">
+                    <input type="text" class="form-control" id="customer-gst-input" placeholder="Customer GST">
+                </td>
             </tr>
 
             </tbody>
@@ -70,8 +74,9 @@
 
         <table class="table table-bordered" id="invoice-form-items-table">
             <thead>
-            <th class="table-active" scope="col" colspan="11">Items</th>
-
+            <tr>
+                <th class="table-active" scope="col" colspan="11">Items</th>
+            </tr>
             <tr>
                 <th scope="col">SlNo</th>
                 <th scope="col">Code</th>
@@ -117,7 +122,7 @@
                        class="form-control product_search_area product_search_input" placeholder="Product">
             </td>
             <td class="form-input-td">
-                <input type="text" id="weight" class="form-control" placeholder="Weight">
+                <input type="text" id="quantity" class="form-control" placeholder="Quantity">
             </td>
             <td class="form-input-td">
                 <input type="number" id="rate_wo_gst" step="any" class="form-control" readonly>

@@ -1,17 +1,12 @@
 import datetime
-import json
 
 from django.contrib.auth.models import User
-from django.db.models import Sum
 
 from home.models import Orders, TransactionDetails, OrderItem, Addresses
 from home.models import Product
 
 
 def invoice_data_validator(invoice_data):
-    # Validate Invoice Info ----------
-
-    # invoice-number
     try:
         invoice_number = int(invoice_data['invoice-number'])
     except:
@@ -49,29 +44,28 @@ def invoice_data_processor(invoice_post_data):
         if product:
             try:
                 item = Product.objects.get(id=product["id"])
-                weight = float(product['weight'])
-                quantity = int(product['quantity'])
+                weight = float(product['weight']) if "weight" in product else int(product['quantity'])
                 cleaned = int(product['cleaned_status'])
                 print(f"{cleaned = }")
                 if cleaned and item.can_be_cleaned:
-
                     amount += item.cleaned_price * weight
                 else:
-                    if item.type_of_quantity:
-
-                        amount += quantity * item.price * weight
-                    else:
-                        amount += quantity * item.price
+                    amount += item.price * weight
 
                 order.total += amount
                 transaction.total += amount
-                item.stock -= int(weight * quantity)
+                item.stock -= int(weight)
+
                 item.save()
                 transaction.save()
                 order.save()
-                print(f"{amount = }")
-                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight*1000, is_cleaned=cleaned and item.can_be_cleaned,
-                                         order=order)
+
+                quantity = 1
+                if not item.type_of_quantity:
+                    quantity, weight = weight, quantity
+
+                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight * 1000,
+                                         is_cleaned=cleaned and item.can_be_cleaned, order=order)
             except Product.DoesNotExist:
                 pass
 

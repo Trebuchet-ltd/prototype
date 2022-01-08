@@ -11,7 +11,7 @@ function addRow() {
     row.querySelector("#sl_no").innerText = rowCount;
     row.querySelector("#code").addEventListener("keyup", (e) => search(cRow, null, e.target.value));
     row.querySelector("#name").addEventListener("keyup", (e) => search(cRow, e.target.value));
-    row.querySelector("#weight").addEventListener("keyup", () => calculateRow(cRow));
+    row.querySelector("#quantity").addEventListener("keyup", () => calculateRow(cRow));
 
     document.getElementById("invoice-form-items-table-body").appendChild(row);
     document.getElementsByTagName("tr")[cRow]
@@ -31,7 +31,7 @@ function calculateTotal() {
 function calculateRow(rowId) {
     const row = document.getElementsByTagName("tr")[rowId];
     const price = Number(row.querySelector("#rate_wo_gst").value || 0) *
-        Number(row.querySelector("#weight").value || 0)
+        Number(row.querySelector("#quantity").value || 0)
 
     row.querySelector("#amt_wo_gst").value = price;
     row.querySelector("#amt").value = price +
@@ -46,12 +46,16 @@ async function fillRow(rowId, item) {
     row.querySelector("#id").value = item?.id || "";
     row.querySelector("#code").value = item?.code || "";
     row.querySelector("#name").value = item?.title || "";
-    row.querySelector("#weight").value = item ? row.querySelector("#weight").value || 1 : 0;
+    row.querySelector("#quantity").value = item ? row.querySelector("#quantity").value || 1 : 0;
     row.querySelector("#s_gst").value = (item?.product_gst_percentage || 0) / 2;
     row.querySelector("#c_gst").value = (item?.product_gst_percentage || 0) / 2;
     row.querySelector("#rate_wo_gst").value = item?.price || 0;
 
     calculateRow(rowId);
+
+    if (item && INITIAL_ROWS + rowCount - rowId <= 2)
+        addRow();
+
 }
 
 async function search(row, name, code = null) {
@@ -81,44 +85,56 @@ async function search(row, name, code = null) {
 async function checkout() {
     const trs = document.querySelectorAll("tr");
     const products = [];
+    const names = {};
 
     for (let i = INITIAL_ROWS; i < rowCount + INITIAL_ROWS; i++) {
         const row = trs[i];
 
+        const name = row.querySelector("#name").value;
         const id = Number(row.querySelector("#id").value?.replace("*", ""));
-        const weight_qty = Number(row.querySelector("#weight").value);
-        const cleaned_status = Number(row.querySelector("#id").value.startsWith("*"));
+        const quantity = Number(row.querySelector("#quantity").value);
+        const cleaned_status = row.querySelector("#code").value.startsWith("*");
 
-        if (id && weight_qty)
-            products.push({id, quantity: weight_qty, weight: weight_qty, cleaned_status});
+        if (!id || !quantity || !name)
+            continue;
+
+        if (name in names) {
+            if(window.confirm(`Merge Duplicate entry for ${name} ?`))
+                products[names[name]] = {...products[names[name]], quantity: quantity + products[names[name]].quantity};
+
+            continue;
+        }
+
+        names[name] = products.push({id, quantity, cleaned_status}) - 1;
     }
 
-    if (products.length) {
-        const order = await fetch("/api/order/order/",
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.getElementsByName("csrfmiddlewaretoken")[0].value
-                },
-                credentials: "same-origin",
-                method: "POST",
-                body: JSON.stringify(
-                    {
-                        name: document.getElementById("customer-name-input").value,
-                        address: document.getElementById("customer-address-input").value,
-                        pincode: document.getElementById("customer-pin-input").value,
-                        phone: document.getElementById("customer-phone-input").value,
-                        products
-                    }
-                )
-            });
+    if (products.length === 0)
+        return window.alert("Fill the form !!!");
 
-        printBill(await order.json());
-    } else
-        window.alert("Fill the form !!!")
+    const order = await fetch("/api/order/order/",
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.getElementsByName("csrfmiddlewaretoken")[0].value
+            },
+            credentials: "same-origin",
+            method: "POST",
+            body: JSON.stringify(
+                {
+                    name: document.getElementById("customer-name-input").value,
+                    address: document.getElementById("customer-address-input").value,
+                    pincode: document.getElementById("customer-pin-input").value,
+                    phone: document.getElementById("customer-phone-input").value,
+                    gst: document.getElementById("customer-gst-input").value,
+                    products
+                }
+            )
+        });
+
+    printBill(await order.json());
 }
 
-for (let i = 0; i < 10; i++)
+for (let i = 0; i < 3; i++)
     addRow();
 
 
