@@ -54,13 +54,13 @@ def invoice_data_processor(invoice_post_data):
 
                 if cleaned and item.can_be_cleaned:
 
-                    amount += (quantity * item.cleaned_price * weight / 1000) * (
+                    amount += (quantity * item.cleaned_price * weight) * (
                             1 + item.product_gst_percentage / 100) * (
                                       100 - item.discount) / 100
                 else:
                     if item.type_of_quantity:
 
-                        amount += quantity * item.price * weight / 1000 * (
+                        amount += quantity * item.price * weight * (
                                 1 + item.product_gst_percentage / 100) * (
                                           100 - item.discount) / 100
                     else:
@@ -69,7 +69,7 @@ def invoice_data_processor(invoice_post_data):
 
                 order.total += amount
                 transaction.total += amount
-                item.stock -= int(weight * quantity / 1000)
+                item.stock -= int(weight * quantity)
                 item.save()
                 transaction.save()
                 order.save()
