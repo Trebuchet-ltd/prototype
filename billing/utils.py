@@ -51,7 +51,7 @@ def invoice_data_processor(invoice_post_data):
                 weight = float(product['weight'])
                 quantity = int(product['quantity'])
                 cleaned = int(product['cleaned_status'])
-
+                print(f"{cleaned = }")
                 if cleaned and item.can_be_cleaned:
 
                     amount += (quantity * item.cleaned_price * weight) * (
@@ -74,7 +74,7 @@ def invoice_data_processor(invoice_post_data):
                 transaction.save()
                 order.save()
                 print(f"{amount = }")
-                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight, is_cleaned=True,
+                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight, is_cleaned=cleaned,
                                          order=order)
             except Product.DoesNotExist:
                 pass
