@@ -74,7 +74,7 @@ def invoice_data_processor(invoice_post_data):
                 transaction.save()
                 order.save()
                 print(f"{amount = }")
-                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight, is_cleaned=cleaned,
+                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight*1000, is_cleaned=cleaned,
                                          order=order)
             except Product.DoesNotExist:
                 pass
