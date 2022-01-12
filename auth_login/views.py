@@ -3,7 +3,6 @@ import logging
 from pprint import pprint
 from urllib import parse
 
-import django
 import requests
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout

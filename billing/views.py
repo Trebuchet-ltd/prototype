@@ -18,12 +18,6 @@ from .utils import invoice_data_processor
 from home.serializers import OrderSerializer
 
 
-# Create your views here.
-
-
-# User Management =====================================
-
-
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("invoice_create")
@@ -58,8 +52,6 @@ def invoice_create(request):
         print(f"Valid Invoice Data {json.loads(request.body) = }")
         invoice_data_processor(invoice_data)
 
-        customer = None
-
     return render(request, 'gstbillingapp/invoice_create.html', context)
 
 
@@ -76,8 +68,7 @@ def orders(request):
 
 @login_required
 def invoices(request):
-    context = {}
-    context['orders'] = Orders.objects.all().order_by('-id')
+    context = {'orders': Orders.objects.all().order_by('-id')}
     return render(request, 'gstbillingapp/invoices.html', context)
 
 
@@ -92,15 +83,13 @@ def invoice_delete(request):
 
 @login_required
 def customers(request):
-    context = {}
-    context['customers'] = User.objects.all()
+    context = {'customers': User.objects.all()}
     return render(request, 'gstbillingapp/customers.html', context)
 
 
 @login_required
 def products(request):
-    context = {}
-    context['products'] = Product.objects.all()
+    context = {'products': Product.objects.all()}
     return render(request, 'gstbillingapp/products.html', context)
 
 
@@ -110,11 +99,26 @@ def product_edit(request, product_id):
     if request.method == "POST":
         product_form = ProductForm(request.POST, instance=product_obj)
         if product_form.is_valid():
-            new_product = product_form.save()
+            product_form.save()
             return redirect('products')
-    context = {}
-    context['product_form'] = ProductForm(instance=product_obj)
+    context = {'product_form': ProductForm(instance=product_obj)}
     return render(request, 'gstbillingapp/product_edit.html', context)
+
+
+@login_required
+def invoice_viewer(request, invoice_id):
+    invoice_obj = Orders.objects.get(id=invoice_id)
+
+    return Response(invoice_obj)
+
+
+@login_required
+def show_invoice(request, invoice_id):
+    invoice = Orders.objects.get(id=invoice_id)
+    items = OrderItem.objects.filter(order=invoice)
+
+    context = {"invoice": invoice, "items": items}
+    return render(request, 'gstbillingapp/invoice_show.html', context=context)
 
 
 @login_required
@@ -127,8 +131,7 @@ def product_add(request):
             new_product.save()
 
             return redirect('products')
-    context = {}
-    context['product_form'] = ProductForm()
+    context = {'product_form': ProductForm()}
     return render(request, 'gstbillingapp/product_edit.html', context)
 
 
