@@ -159,7 +159,7 @@ class GetAddressSerializer(serializers.ModelSerializer):
         ordering = ['id']
         model = Addresses
         fields = [
-            'id', 'name', 'address', 'pincode', 'state', 'phone', 'latitude', 'longitude', "delivery_charge"
+            'id', 'name', 'address', 'pincode', 'state', 'phone', 'latitude', 'longitude', "delivery_charge", 'gst'
         ]
 
 

@@ -45,7 +45,7 @@
                 <th scope="row">Customer Name</th>
                 <td class="form-input-td customer_search_area">
                     <input autocomplete="off" type="text" class="form-control customer_search_input"
-                           id="customer-name-input" placeholder="Customer Name" required>
+                           list="user_name_options" id="customer-name-input" placeholder="Customer Name" required>
                 </td>
                 <th scope="row">Customer Address</th>
                 <td class="form-input-td" colspan="3">
@@ -57,7 +57,7 @@
                 <th scope="row">Customer Mobile Number</th>
                 <td class="form-input-td">
                     <input type="tel" class="form-control" id="customer-phone-input"
-                           placeholder="Customer Mobile Number" required>
+                           list="user_phone_options" placeholder="Customer Mobile Number" required>
                 </td>
                 <th scope="row">Pin Code</th>
                 <td class="form-input-td">
@@ -148,6 +148,10 @@
         </tr>
     </template>
 
+    <datalist id="user_name_options">
+    </datalist>
+    <datalist id="user_phone_options">
+    </datalist>
     <datalist id="code_options">
     </datalist>
     <datalist id="name_options">
@@ -161,4 +165,5 @@
     <script src="{% static "gstbillingapp/js/navigator.js" %}"></script>
     <script src="{% static "gstbillingapp/js/printer.js" %}"></script>
     <script src="{% static "gstbillingapp/js/main.js" %}"></script>
+    <script src="{% static "gstbillingapp/js/customer.js" %}"></script>
 {% endblock %}

@@ -29,11 +29,12 @@ def invoice_data_processor(invoice_post_data):
     customer_address = invoice_post_data['address']
     customer_phone = invoice_post_data['phone']
     customer_pincode = invoice_post_data['pincode']
+    customer_gst = invoice_post_data['gst']
 
     user, _ = User.objects.get_or_create(username=invoice_post_data['phone'],
                                          first_name=invoice_post_data['name'], )
     address, _ = Addresses.objects.get_or_create(name=customer_name, address=customer_address, pincode=customer_pincode,
-                                                 phone=customer_phone, user=user, state='kerala')
+                                                 phone=customer_phone, user=user, state='kerala', gst=customer_gst)
     order = Orders.objects.create(user=user, is_seen=True, status='d', address=address)
     transaction = TransactionDetails.objects.create(order=order, user=user, payment_status='paid', )
 
