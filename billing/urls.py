@@ -6,6 +6,9 @@ from . import views
 urlpatterns = [
     path('', views.landing_page, name='landing_page'),
 
+    path('purchases', views.purchases, name='purchases'),
+    path('purchases/new', views.purchase_create, name='purchase_create'),
+
     path('invoices/new', views.invoice_create, name='invoice_create'),
     path('invoices/delete', views.invoice_delete, name='invoice_delete'),
     path('invoices/invoice_viewer/<int:invoice_id>', views.invoice_viewer, name='invoice_viewer'),

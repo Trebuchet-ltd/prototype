@@ -1,0 +1,169 @@
+{% extends "gstbillingapp/base.html" %}
+
+
+{% load static %}
+<!doctype html>
+
+{% block content %}
+
+    <h2>Create Invoice</h2>
+
+    <form method="POST" id="invoice-form">
+
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th class="table-active" scope="col" colspan="4">Invoice Details</th>
+            </tr>
+            </thead>
+
+            <tbody class="two-col-form">
+            <tr>
+                <th scope="row">Invoice Number</th>
+                <td class="form-input-td">
+                    <input name="invoice-number" type="number" class="form-control" placeholder="Invoice Number"
+                           value="{{ default_invoice_number }}" readonly>
+                </td>
+                <th scope="row">Date</th>
+                <td class="form-input-td">
+                    <input name="invoice-date" type="date" class="form-control" value="{{ default_invoice_date }}"
+                           readonly>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th class="table-active" scope="col" colspan="7">Customer Details</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr>
+                <th scope="row">Customer Name</th>
+                <td class="form-input-td customer_search_area">
+                    <input autocomplete="off" type="text" class="form-control customer_search_input"
+                           list="user_name_options" id="customer-name-input" placeholder="Customer Name" required>
+                </td>
+                <th scope="row">Customer Address</th>
+                <td class="form-input-td" colspan="3">
+                    <input type="text" class="form-control" id="customer-address-input" placeholder="Customer Address"
+                           required>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">Customer Mobile Number</th>
+                <td class="form-input-td">
+                    <input type="tel" class="form-control" id="customer-phone-input"
+                           list="user_phone_options" placeholder="Customer Mobile Number" required>
+                </td>
+                <th scope="row">Pin Code</th>
+                <td class="form-input-td">
+                    <input type="number" class="form-control" id="customer-pin-input" placeholder="PIN Code" required>
+                </td>
+                <th scope="row">GST</th>
+                <td class="form-input-td">
+                    <input type="text" class="form-control" id="customer-gst-input" placeholder="Customer GST">
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+
+        <table class="table table-bordered" id="invoice-form-items-table">
+            <thead>
+            <tr>
+                <th class="table-active" scope="col" colspan="11">Items</th>
+            </tr>
+            <tr>
+                <th scope="col">SlNo</th>
+                <th scope="col">Code</th>
+                <th scope="col">Product</th>
+                <th scope="col">Weight / Qty</th>
+
+                <th scope="col">Rate without GST</th>
+                <th scope="col">Amt without GST</th>
+                <th scope="col">SGST</th>
+                <th scope="col">CGST</th>
+                <th scope="col">IGST</th>
+                <th scope="col">Amt with GST</th>
+            </tr>
+            </thead>
+            <tbody id="invoice-form-items-table-body">
+
+            </tbody>
+
+            <tr>
+                <td colspan="9" class="text-center align-content-center"><strong>TOTAL:</strong></td>
+                <td colspan="2" class="text-center">
+                    <input id="invoice-total" type="number" step="any" class="form-control" readonly>
+                </td>
+            </tr>
+
+        </table>
+
+        {% csrf_token %}
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <template id="invoice_row">
+        <tr>
+            <td class="form-input-td" id="sl_no" disabled align="center">
+            </td>
+            <td class="form-input-td">
+                <input type="text" id="code" autocomplete="off" list="code_options"
+                       class="form-control product_search_area product_search_input" placeholder="Product Code">
+            </td>
+            <td class="form-input-td">
+                <input type="text" id="name" autocomplete="off" list="name_options"
+                       class="form-control product_search_area product_search_input" placeholder="Product">
+            </td>
+            <td class="form-input-td">
+                <input type="text" id="quantity" class="form-control" placeholder="Quantity">
+            </td>
+            <td class="form-input-td">
+                <input type="number" id="rate_wo_gst" step="any" class="form-control" readonly>
+            </td>
+            <td class="form-input-td">
+                <input type="number" id="amt_wo_gst" step="any" class="form-control" readonly>
+            </td>
+            <td class="form-input-td">
+                <input type="number" id="s_gst" step="any" class="form-control" readonly>
+            </td>
+            <td class="form-input-td">
+                <input type="number" id="c_gst" step="any" class="form-control" readonly>
+            </td>
+            <td class="form-input-td">
+                <input type="number" id="i_gst" step="any" class="form-control" readonly>
+            </td>
+            <td class="form-input-td">
+                <input type="number" id="amt" step="any" class="form-control" readonly>
+            </td>
+            <td hidden disabled>
+                <input id="id">
+            </td>
+        </tr>
+    </template>
+
+    <datalist id="user_name_options">
+    </datalist>
+    <datalist id="user_phone_options">
+    </datalist>
+    <datalist id="code_options">
+    </datalist>
+    <datalist id="name_options">
+    </datalist>
+
+{% endblock %}
+
+
+
+{% block includejs %}
+    <script src="{% static "gstbillingapp/js/navigator.js" %}"></script>
+    <script src="{% static "gstbillingapp/js/printer.js" %}"></script>
+    <script src="{% static "gstbillingapp/js/main.js" %}"></script>
+    <script src="{% static "gstbillingapp/js/customer.js" %}"></script>
+{% endblock %}

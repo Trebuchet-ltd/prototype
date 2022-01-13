@@ -11,10 +11,10 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from home.models import Orders, OrderItem
+from home.models import Orders, OrderItem, Purchase
 from home.models import Product
 from .forms import ProductForm
-from .utils import invoice_data_processor
+from .utils import invoice_data_processor, product_data_processor
 from home.serializers import OrderSerializer
 
 
@@ -36,10 +36,9 @@ def login_view(request):
     return render(request, 'gstbillingapp/login.html', context)
 
 
-@login_required
-def invoice_create(request):
+def refactor(request, function, model):
     context = {}
-    last_order = Orders.objects.all().order_by('-id').first()
+    last_order = model.objects.all().order_by('-id').first()
     if last_order:
         context['default_invoice_number'] = last_order.id + 1
     else:
@@ -49,10 +48,19 @@ def invoice_create(request):
     if request.method == 'POST':
         invoice_data = json.loads(request.body)
 
-        print(f"Valid Invoice Data {json.loads(request.body) = }")
-        invoice_data_processor(invoice_data)
+        function(invoice_data)
 
-    return render(request, 'gstbillingapp/invoice_create.html', context)
+    return context
+
+
+@login_required
+def invoice_create(request):
+    return render(request, 'gstbillingapp/invoice_create.html', refactor(request, invoice_data_processor, Orders))
+
+
+@login_required
+def purchase_create(request):
+    return render(request, 'gstbillingapp/purchase_create.html', refactor(request, product_data_processor, Purchase))
 
 
 @api_view(["POST"])
@@ -70,6 +78,12 @@ def orders(request):
 def invoices(request):
     context = {'orders': Orders.objects.all().order_by('-id')}
     return render(request, 'gstbillingapp/invoices.html', context)
+
+
+@login_required
+def purchases(request):
+    context = {'orders': Purchase.objects.all().order_by('-id')}
+    return render(request, 'gstbillingapp/purchases.html', context)
 
 
 @login_required
