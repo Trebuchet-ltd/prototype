@@ -69,6 +69,7 @@ def invoice_data_processor(invoice_post_data):
 
                 order.total += amount
                 transaction.total += amount
+                print(f'{transaction.total = } , {order.total = }')
                 item.stock -= int(weight * quantity / 1000)
                 item.save()
                 transaction.save()
