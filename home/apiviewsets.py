@@ -288,7 +288,7 @@ class OrderViewSets(viewsets.ModelViewSet):
     def order(self, request, *args, **kwargs):
         invoice_data = request.data
 
-        order = invoice_data_processor(invoice_data)
+        order = invoice_data_processor(invoice_data, request.user.tokens.organisation)
 
         serializer = self.get_serializer(order, many=False)
         return Response(serializer.data, status=200)

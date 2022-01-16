@@ -43,7 +43,7 @@ def login_view(request):
     return render(request, 'gstbillingapp/login.html', context)
 
 
-def refactor(request, function, model):
+def refactor(request, function, model, org):
     context = {}
     last_order = model.objects.all().order_by('-id').first()
     if last_order:
@@ -55,7 +55,7 @@ def refactor(request, function, model):
     if request.method == 'POST':
         invoice_data = json.loads(request.body)
 
-        function(invoice_data)
+        function(invoice_data, org)
 
     return context
 
@@ -63,20 +63,22 @@ def refactor(request, function, model):
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def invoice_create(request):
-    return render(request, 'gstbillingapp/invoice_create.html', refactor(request, invoice_data_processor, Orders))
+    context = refactor(request, invoice_data_processor, Orders, request.user.tokens.organisation)
+    return render(request, 'gstbillingapp/invoice_create.html', context)
 
 
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def purchase_create(request):
-    return render(request, 'gstbillingapp/purchase_create.html', refactor(request, product_data_processor, Purchase))
+    context = refactor(request, product_data_processor, Purchase, request.user.tokens.organisation)
+    return render(request, 'gstbillingapp/purchase_create.html', context)
 
 
 @api_view(["POST"])
 def orders(request):
     invoice_data = request.data
 
-    order = invoice_data_processor(invoice_data)
+    order = invoice_data_processor(invoice_data, request.user.tokens.organisation)
 
     serializer = OrderSerializer(data=order, many=False)
     serializer.is_valid(raise_exception=True)
@@ -93,7 +95,7 @@ def invoices(request):
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def purchases(request):
-    context = {'orders': Purchase.objects.all().order_by('-id')}
+    context = {'orders': Purchase.objects.filter(organisation=request.user.tokens.organisation).order_by('-id')}
     return render(request, 'gstbillingapp/purchases.html', context)
 
 
@@ -102,7 +104,7 @@ def purchases(request):
 def invoice_delete(request):
     if request.method == "POST":
         invoice_id = request.POST["invoice_id"]
-        invoice_obj = get_object_or_404(Orders, user=request.user, id=invoice_id)
+        invoice_obj = get_object_or_404(Orders, organisation=request.user.tokens.organisation, id=invoice_id)
         invoice_obj.delete()
     return redirect('invoices')
 
@@ -117,14 +119,15 @@ def customers(request):
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def products(request):
-    context = {'products': Product.objects.all()}
+    context = {'products': Product.objects.filter(organisation=request.user.tokens.organisation)}
     return render(request, 'gstbillingapp/products.html', context)
 
 
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def product_edit(request, product_id):
-    product_obj = Product.objects.get(id=product_id)
+    product_obj = get_object_or_404(Product, id=product_id, organisation=request.user.tokens.organisation)
+
     if request.method == "POST":
         product_form = ProductForm(request.POST, instance=product_obj)
         if product_form.is_valid():
@@ -137,7 +140,7 @@ def product_edit(request, product_id):
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def invoice_viewer(request, invoice_id):
-    invoice_obj = Orders.objects.get(id=invoice_id)
+    invoice_obj = get_object_or_404(Orders, id=invoice_id, organisation=request.user.tokens.organisation)
 
     return Response(invoice_obj)
 
@@ -145,8 +148,8 @@ def invoice_viewer(request, invoice_id):
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def show_invoice(request, invoice_id):
-    invoice = Orders.objects.get(id=invoice_id)
-    items = OrderItem.objects.filter(order=invoice)
+    invoice = get_object_or_404(Orders, id=invoice_id, organisation=request.user.tokens.organisation)
+    items = OrderItem.objects.filter(order=invoice, organisation=request.user.tokens.organisation)
 
     context = {"invoice": invoice, "items": items}
     return render(request, 'gstbillingapp/invoice_show.html', context=context)
@@ -172,7 +175,7 @@ def product_add(request):
 def product_delete(request):
     if request.method == "POST":
         product_id = request.POST["product_id"]
-        product_obj = get_object_or_404(Product, user=request.user, id=product_id)
+        product_obj = get_object_or_404(Product, organisation=request.user.tokens.organisation, id=product_id)
         product_obj.delete()
     return redirect('products')
 
@@ -180,8 +183,8 @@ def product_delete(request):
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def landing_page(request):
-    if request.user.tokens.org:
-        context = {"org": request.user.tokens.org}
+    if request.user.tokens.organisation:
+        context = {"org": request.user.tokens.organisation}
         return render(request, 'gstbillingapp/pages/landing_page.html', context)
     return redirect('/')
 
