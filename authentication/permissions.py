@@ -40,3 +40,11 @@ class IsMyCartItem(permissions.BasePermission):
             return obj.cart.user == request.user
         return obj == request.user
 
+
+class IsOrganiserUser(permissions.BasePermission):
+    """
+    Custom permission to only allow to  access  the owner's cart item
+    """
+
+    def has_object_permission(self, request, view, obj):
+        return True if request.user.tokens.organisation else False
