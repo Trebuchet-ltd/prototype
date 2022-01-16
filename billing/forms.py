@@ -1,13 +1,10 @@
 from django.forms import ModelForm
 
-from home.models import Product
+from billing.models import BillingProduct
 
 
 class ProductForm(ModelForm):
     class Meta:
-        model = Product
-        fields = ['title', 'code', 'description', 'short_description', 'price', 'stock', 'type_of_quantity',
-                  'meat', 'bestSeller', "weight", 'rating', 'product_hsn',
-                  'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price', "discount",
-                  'nutrition', 'product_gst_percentage', 'product_rate_with_gst'
+        model = BillingProduct
+        fields = ['title', 'code', 'price', 'price2', 'price3', 'stock', 'discount'
                   ]

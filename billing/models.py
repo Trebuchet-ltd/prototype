@@ -10,11 +10,10 @@ class HsnCode(models.Model):
 
 class BillingProduct(models.Model):
     title = models.CharField(max_length=255)
-    product_hsn = models.CharField(max_length=8)
+    product_hsn = models.ForeignKey(HsnCode, on_delete=models.SET_NULL, blank=True, null=True)
+    code = models.CharField(max_length=8)
     price = models.FloatField()
     stock = models.IntegerField()
     discount = models.PositiveIntegerField(validators=[MaxValueValidator(100)])
     price2 = models.FloatField(default=0)
     price3 = models.FloatField(default=0)
-
-
