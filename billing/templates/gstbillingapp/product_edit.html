@@ -12,18 +12,18 @@
         <table class="table">
             <tbody class="two-col-form">
             <tr>
-                <th scope="row" class="text-right">Product Name:</th>
-                <td class="form-input-td">{{ product_form.title }}</td>
-            </tr>
-            <tr>
                 <th scope="row" class="text-right">Product Code:</th>
                 <td class="form-input-td">{{ product_form.code }}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">Product Name:</th>
+                <td class="form-input-td">{{ product_form.title }}</td>
             </tr>
             <tr>
                 <th scope="row" class="text-right"><label for="id_product_hsn">HSN:</label></th>
                 <td class="form-input-td">
                     <input type="text" name="product_hsn" id="id_product_hsn" list="hsn"
-                           value="{{ product_form.get_hsn }}">
+                           value="{% firstof product_form.get_hsn "" %}">
                 </td>
             </tr>
             <tr>

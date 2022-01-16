@@ -18,11 +18,11 @@ class BillingProduct(models.Model):
     product_hsn = models.ForeignKey(HsnCode, on_delete=models.SET_NULL, blank=True, null=True)
     code = models.CharField(max_length=8)
     price = models.FloatField()
-    stock = models.IntegerField()
+    stock = models.IntegerField(default=0)
     discount = models.PositiveIntegerField(validators=[MaxValueValidator(100)], default=0)
     price2 = models.FloatField(default=0)
     price3 = models.FloatField(default=0)
-    gst_percent    = models.PositiveIntegerField(validators=[MaxValueValidator(100)])
+    gst_percent = models.PositiveIntegerField(validators=[MaxValueValidator(100)], default=0)
     organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT)
 
     def __str__(self):
