@@ -1,5 +1,4 @@
 import django_filters
-from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import HttpResponseRedirect
 from rest_framework import permissions
@@ -9,6 +8,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from authentication.permissions import IsOwner, IsMyCartItem
+from billing.utils import invoice_data_processor
 from home.serializers import *
 from .functions import *
 
@@ -21,7 +21,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    filterset_fields = ['bestSeller', 'meat', 'meat__category', "meat__code"]
+    filterset_fields = ['bestSeller', 'meat', 'meat__category', "meat__code", 'code']
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'short_description', 'description', 'can_be_cleaned', 'weight_variants']
 
@@ -35,6 +35,16 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(products, many=True)
 
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get", ], url_path='code')
+    def code(self, request, *args, **kwargs):
+        try:
+
+            ret = Product.objects.get(code__iexact=request.GET['code'])
+            serializer = self.get_serializer(ret)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(status=400)
 
 
 class RecipeBoxViewSet(viewsets.ModelViewSet):
@@ -178,6 +188,7 @@ def confirm_order(request):
 
     }
     """
+    user = request.user
 
     date = request.data["date"]
     date_str = "".join(date.split("-"))  # converting '2017-05-05' to '20170505'
@@ -208,7 +219,7 @@ def confirm_order(request):
         logger.info("Request not accepted because pincode is not available ")
         return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-    user = request.user
+
 
     amount, actual_amount = total_amount(user, address_obj, coupon_code, points)
     amount_saved = actual_amount - amount
@@ -264,14 +275,25 @@ class CartViewSets(viewsets.ModelViewSet):
 
 
 class OrderViewSets(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated, IsOwner]
+    permission_classes = [permissions.IsAdminUser]
     queryset = Orders.objects.all()
     serializer_class = OrderSerializer
-    http_method_names = ['get']
+    http_method_names = ['get', 'post']
 
     def get_queryset(self):
-        self.queryset = Orders.objects.filter(user=self.request.user)
-        return self.queryset
+        if self.request.user.is_superuser:
+            return Orders.objects.all()
+
+        return Orders.objects.filter(user=self.request.user)
+
+    @action(detail=False, methods=["post"], url_path='order')
+    def order(self, request, *args, **kwargs):
+        invoice_data = request.data
+
+        order = invoice_data_processor(invoice_data)
+
+        serializer = self.get_serializer(order, many=False)
+        return Response(serializer.data, status=200)
 
 
 class AddressViewSets(viewsets.ModelViewSet):

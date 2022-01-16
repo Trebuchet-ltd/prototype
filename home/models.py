@@ -7,6 +7,21 @@ from django.db import models
 
 
 # Create your models here.
+from organisation.models import Organisation
+
+
+class Nutrition(models.Model):
+    name = models.CharField(max_length=40)
+
+    def __str__(self):
+        return self.name
+
+
+class NutritionQuantity(models.Model):
+    quantity = models.FloatField()
+    nutrition = models.ForeignKey(Nutrition, on_delete=models.CASCADE, related_name='nutrition')
+    product = models.ForeignKey("Product", on_delete=models.CASCADE, related_name='nutrition_product')
+
 
 class Category(models.Model):
     choices = (
@@ -24,9 +39,10 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    weight_choice = ((250, 250), (500, 500), (1000, 1000))
     title = models.CharField(max_length=255)
     short_description = models.TextField(max_length=2048, default='')
+    product_hsn = models.CharField(max_length=50, null=True, blank=True)
+    code = models.CharField(max_length=50, null=True, blank=True)
     description = models.TextField(max_length=2048, )
     price = models.FloatField()
     stock = models.IntegerField()
@@ -40,11 +56,11 @@ class Product(models.Model):
     can_be_cleaned = models.BooleanField(default=0, blank=True, null=True,
                                          help_text='1->Can be cleaned, 0->Can not be cleaned')
     cleaned_price = models.FloatField(blank=True, null=True, )
-    weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0,
-                                                     choices=weight_choice), blank=True, null=True, default=list)
+    weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0, ), blank=True, null=True,
+                                 default=list)
     discount = models.FloatField(default=0, help_text='discount in percentage')
     icon = models.ImageField(upload_to='images/', null=True, blank=True, help_text="Upload the icon ")
-    nutritions = models.ManyToManyField('Nutrition', through='NutritionQuantity')
+    nutrition = models.ManyToManyField(Nutrition, through=NutritionQuantity, related_name='nutrition_quantity')
     product_gst_percentage = models.FloatField(default=0)
     product_rate_with_gst = models.FloatField(default=0)
 
@@ -74,19 +90,6 @@ class ImageModel(models.Model):
 
     def __str__(self):
         return self.title
-
-
-class Nutrition(models.Model):
-    name = models.CharField(max_length=40)
-
-    def __str__(self):
-        return self.name
-
-
-class NutritionQuantity(models.Model):
-    quantity = models.FloatField()
-    nutrition = models.ForeignKey(Nutrition, on_delete=models.CASCADE, related_name='nutrition')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='nutrition')
 
 
 class CartModel(models.Model):
@@ -127,9 +130,10 @@ class Addresses(models.Model):
     name = models.TextField(max_length=100)
     address = models.TextField(max_length=3000)
     pincode = models.CharField(max_length=6)
-    state = models.TextField(max_length=100)
+    state = models.TextField(max_length=25, blank=True, null=True)
     phone = models.CharField(max_length=15)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE, blank=True,
+                             null=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     delivery_charge = models.IntegerField(null=True, blank=True, choices=((0, 0), (30, 30), (60, 60)))
@@ -150,7 +154,6 @@ def create_new_code():
         if not Coupon.objects.filter(code=unique_code):
             not_unique = False
     return str(unique_code)
-
 
 
 class Coupon(models.Model):
@@ -181,17 +184,17 @@ class Orders(models.Model):
         ('m', 'morning'),
         ('e', 'evening')
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.SET_NULL,null=True,blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.SET_NULL, null=True,
+                             blank=True)
     total = models.FloatField(default=0)
-    address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE,blank=True,null=True)
+    address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
     is_seen = models.IntegerField(default=0, blank=True, null=True, help_text='1->Seen, 0->Not seen',
                                   choices=((1, 'Seen'), (0, 'Not seen')))
     date = models.DateField(auto_now_add=True)
-    time = models.CharField(max_length=10, choices=order_time,default='m')
+    time = models.CharField(max_length=10, choices=order_time, default='m')
     status = models.CharField(max_length=10, choices=order_status, default='preparing')
     coupon = models.ForeignKey(Coupon, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
     used_points = models.IntegerField(default=0, blank=True, null=True)
-
 
     def __str__(self):
         return f"{self.user} , date-{self.date} , status -{self.status} "
@@ -206,9 +209,9 @@ class Orders(models.Model):
 
 
 class OrderItem(models.Model):
-    weight_choice = ((250, 250), (500, 500), (1000, 1000))
     item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+    price = models.FloatField(default=0)
     order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE, blank=True, null=True, )
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
@@ -222,6 +225,7 @@ class OrderItem(models.Model):
             return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
         return f"{self.item} - {self.quantity} items "
 
+
 def create_new_transaction_id():
     not_unique = True
     unique_code = code_generator()
@@ -230,6 +234,7 @@ def create_new_transaction_id():
         if not TransactionDetails.objects.filter(transaction_id=unique_code):
             not_unique = False
     return str(unique_code)
+
 
 class TransactionDetails(models.Model):
     order = models.ForeignKey(Orders, related_name="transaction", on_delete=models.CASCADE, null=True, blank=True)
@@ -250,8 +255,6 @@ class TransactionDetails(models.Model):
     invoice_amt_with_gst = models.FloatField(default=0)
 
 
-
-
 class TempOrder(models.Model):
     coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE, blank=True, null=True)
     payment_id = models.CharField(max_length=20, default="")
@@ -269,6 +272,7 @@ class TempOrder(models.Model):
 class TempItem(models.Model):
     item = models.ForeignKey(Product, related_name="temp_item", on_delete=models.CASCADE, blank=True, null=True)
     quantity = models.PositiveIntegerField()
+    price = models.FloatField(default=0)
     order = models.ForeignKey(TempOrder, related_name="temp_item", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
@@ -298,6 +302,9 @@ class Tokens(models.Model):
     first_purchase_done = models.BooleanField(default=False)
     total_points_yet = models.IntegerField(default=0)
     amount_saved = models.IntegerField(default=0)
+    org = models.ForeignKey(Organisation, related_name='tokens', on_delete=models.SET_NULL, null=True,
+                            blank=True)
+
 
     def __str__(self):
         return f"{self.user} "
