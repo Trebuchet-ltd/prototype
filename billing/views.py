@@ -190,7 +190,7 @@ def landing_page(request):
 
 
 class HSNViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get']
+    http_method_names = ['get','post','options']
     queryset = HsnCode.objects.all()
     serializer_class = HSNSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
