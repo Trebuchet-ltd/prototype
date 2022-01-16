@@ -6,31 +6,61 @@
 
 {% block content %}
 
-<h2>Edit Product</h2>
-<form method="POST">
-	{% csrf_token %}
-	<table class="table">
-		<tbody class="two-col-form">
-			<tr>
-				<th scope="row" class="text-right">Product Name:</th>
-				<td class="form-input-td">{{product_form.title}}</td>
-			</tr>
-			<tr>
-				<th scope="row" class="text-right">HSN:</th>
-				<td class="form-input-td">{{product_form.product_hsn}}</td>
-			</tr>
-			<tr>
-				<th scope="row" class="text-right">Product stock:</th>
-				<td class="form-input-td">{{product_form.stock}}</td>
-			</tr>
-			<tr>
-				<th scope="row" class="text-right">GST %:</th>
-				<td class="form-input-td">{{product_form.product_gst_percentage}}</td>
-			</tr>
+    <h2>Edit Product</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <table class="table">
+            <tbody class="two-col-form">
+            <tr>
+                <th scope="row" class="text-right">Product Name:</th>
+                <td class="form-input-td">{{ product_form.title }}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">HSN:</th>
+                <td class="form-input-td">{{ product_form.product_hsn }}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">Price:</th>
+                <td class="form-input-td">{{ product_form.price }}</td>
+            </tr>
 
-		</tbody>
-	</table>
 
-	<input type="submit" class="btn btn-primary float-right" value="Submit">
-</form>
+            <tr>
+                <th scope="row" class="text-right">Product stock:</th>
+                <td class="form-input-td">{{ product_form.stock }}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">GST %:</th>
+                <td class="form-input-td">{{ product_form.product_gst_percentage }}</td>
+
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">type of quantity:</th>
+                <td class="form-input-td">{{ product_form.type_of_quantity }}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">Code:</th>
+                <td class="form-input-td">{{ product_form.code }}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">HSN:</th>
+                <td class="form-input-td">{{ product_form.product_hsn }}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">HSN:</th>
+                <td class="form-input-td">{{ product_form.product_hsn }}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">HSN:</th>
+                <td class="form-input-td">{{ product_form.product_hsn }}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">HSN:</th>
+                <td class="form-input-td">{{ product_form.product_hsn }}</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <input type="submit" class="btn btn-primary float-right" value="Submit">
+    </form>
 {% endblock %}
