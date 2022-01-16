@@ -165,6 +165,9 @@ def product_add(request):
         if product_form.is_valid():
             new_product = product_form.save(commit=False)
             new_product.organisation = request.user.tokens.organisation
+            if new_product.product_hsn:
+                new_product.product_hsn.gst_percent = new_product.gst_percent
+                new_product.product_hsn.gst_percent.save()
             new_product.save()
 
         print(product_form.errors, product_form.is_valid())
@@ -193,7 +196,7 @@ def landing_page(request):
 
 
 class HSNViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get','post','options']
+    http_method_names = ['get', 'post', 'options']
     queryset = HsnCode.objects.all()
     serializer_class = HSNSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
