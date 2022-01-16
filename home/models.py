@@ -323,8 +323,8 @@ class Tokens(models.Model):
     first_purchase_done = models.BooleanField(default=False)
     total_points_yet = models.IntegerField(default=0)
     amount_saved = models.IntegerField(default=0)
-    # organisation = models.ForeignKey(Organisation, related_name='tokens', on_delete=models.SET_NULL, null=True,
-    #                         blank=True)
+    organisation = models.ForeignKey(Organisation, related_name='tokens', on_delete=models.SET_NULL, null=True,
+                            blank=True)
 
     def __str__(self):
         return f"{self.user} "
