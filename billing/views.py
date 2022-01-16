@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -15,6 +16,8 @@ from home.models import Orders, OrderItem, Purchase
 from home.models import Product
 from home.serializers import OrderSerializer
 from .forms import ProductForm
+from .models import HsnCode
+from .serializers import HSNSerializer
 from .utils import invoice_data_processor, product_data_processor
 
 
@@ -181,3 +184,11 @@ def landing_page(request):
         context = {"org": request.user.tokens.org}
         return render(request, 'gstbillingapp/pages/landing_page.html', context)
     return redirect('/')
+
+
+class HSNViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get']
+    queryset = HsnCode.objects.all()
+    serializer_class = HSNSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    search_fields = ['code', 'description', ]

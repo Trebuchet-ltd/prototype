@@ -1,11 +1,16 @@
-from django.urls import path
 from django.urls import include
+from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from . import views
 
+router = DefaultRouter()
+
+router.register('', views.HSNViewSet)
+
 urlpatterns = [
     path('', views.landing_page, name='landing_page'),
-
+    path(r'hsn', include(router.urls)),
     path('purchases', views.purchases, name='purchases'),
     path('purchases/new', views.purchase_create, name='purchase_create'),
 

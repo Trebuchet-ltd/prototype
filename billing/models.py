@@ -17,3 +17,4 @@ class BillingProduct(models.Model):
     discount = models.PositiveIntegerField(validators=[MaxValueValidator(100)])
     price2 = models.FloatField(default=0)
     price3 = models.FloatField(default=0)
+    gst_percent = models.PositiveIntegerField(validators=[MaxValueValidator(100)])
