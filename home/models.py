@@ -2,6 +2,7 @@ import random
 import string
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -93,7 +94,7 @@ class ImageModel(models.Model):
 
 
 class CartModel(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="cart", on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name="cart", on_delete=models.CASCADE)
     total = models.FloatField(default=0)
     pincode = models.IntegerField(default=0)
     state = models.TextField(max_length=20, default='')
@@ -132,7 +133,7 @@ class Addresses(models.Model):
     pincode = models.CharField(max_length=6)
     state = models.TextField(max_length=25, blank=True, null=True)
     phone = models.CharField(max_length=15)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE, blank=True,
+    user = models.ForeignKey(User, related_name="Addresses", on_delete=models.CASCADE, blank=True,
                              null=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
@@ -160,7 +161,7 @@ def create_new_code():
 class Coupon(models.Model):
     code = models.CharField(max_length=20, default=create_new_code, unique=True)
     user_specific_status = models.BooleanField(default=False)
-    specific_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True,
+    specific_user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True,
                                       help_text="Please provide the user name for user"
                                                 " specific coupons else left blank")
     minimum_price = models.IntegerField(default=0, help_text="Please provide the minimum prize to apply this coupons ")
@@ -185,7 +186,7 @@ class Orders(models.Model):
         ('m', 'morning'),
         ('e', 'evening')
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="orders", on_delete=models.SET_NULL, null=True,
+    user = models.ForeignKey(User, related_name="orders", on_delete=models.SET_NULL, null=True,
                              blank=True)
     total = models.FloatField(default=0)
     address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
@@ -211,7 +212,7 @@ class Orders(models.Model):
 
 
 class Purchase(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="purchase", on_delete=models.SET_NULL, null=True,
+    user = models.ForeignKey(User, related_name="purchase", on_delete=models.SET_NULL, null=True,
                              blank=True)
     total = models.FloatField(default=0)
     address = models.ForeignKey(Addresses, related_name="purchase", on_delete=models.CASCADE, blank=True, null=True)
@@ -262,7 +263,7 @@ class TransactionDetails(models.Model):
     amount_saved = models.IntegerField(default=0)
     # to store the random generated unique id
     transaction_id = models.CharField(max_length=10, default=create_new_transaction_id)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="transaction", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name="transaction", on_delete=models.CASCADE)
     # to store the id returned when creating a payment link
     payment_id = models.CharField(max_length=20, default="")
     payment_status = models.CharField(max_length=20, default="failed")
@@ -282,7 +283,7 @@ class TempOrder(models.Model):
     time = models.CharField(max_length=20, default='')
     address_id = models.CharField(max_length=10, default='')
     used_points = models.IntegerField(default=0, blank=True, null=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="temp_order",
+    user = models.ForeignKey(User, related_name="temp_order",
                              on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
@@ -313,7 +314,7 @@ def create_new_id():
 
 
 class Tokens(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='tokens', on_delete=models.CASCADE)
+    user = models.OneToOneField(User, related_name='tokens', on_delete=models.CASCADE)
     private_token = models.CharField(max_length=10, unique=True, default=create_new_id)
     invited = models.IntegerField(default=0)
     points = models.IntegerField(default=0)
@@ -330,7 +331,7 @@ class Tokens(models.Model):
 
 
 class Reviews(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='reviews', on_delete=models.CASCADE, )
+    user = models.ForeignKey(User, related_name='reviews', on_delete=models.CASCADE, )
     item = models.ForeignKey(Product, related_name="review", on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
     content = models.TextField()
