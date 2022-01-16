@@ -160,12 +160,14 @@ def show_invoice(request, invoice_id):
 def product_add(request):
     if request.method == "POST":
         product_form = ProductForm(request.POST)
+        # product_form.product_hsn = HsnCode.objects.get(code=product_form.product_hsn)
+
         if product_form.is_valid():
             new_product = product_form.save(commit=False)
             new_product.organisation = request.user.tokens.organisation
             new_product.save()
 
-        print(product_form.errors)
+        print(product_form.errors, product_form.is_valid())
 
     context = {'product_form': ProductForm()}
     return render(request, 'gstbillingapp/product_edit.html', context)

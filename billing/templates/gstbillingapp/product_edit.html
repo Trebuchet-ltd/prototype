@@ -7,7 +7,7 @@
 {% block content %}
 
     <h2>Edit Product</h2>
-    <form method="POST">
+    <form method="POST" onsubmit="hsn.value = hsnId;">
         {% csrf_token %}
         <table class="table">
             <tbody class="two-col-form">
@@ -63,13 +63,25 @@
 
         const db = {};
 
-        hsn.onkeyup = async ({target}) => {
-            const {results} = await fetch(`/bill/hsn/?search=${target.value}`).then((res) => res.json());
+        let hsnId;
 
-            list.innerHTML = results.map(({first_name, id}) => `<option data-id="${id}" value="${first_name}">`)
+        hsn.onkeyup = async ({target}) => {
+            const {results} = await fetch(`/bill/hsn?search=${target.value}`).then((res) => res.json());
+
+            list.innerHTML = results.map(({code, gst_percent, id}) =>
+                `<option data-id="${id}" data-gst="${gst_percent}" value="${code}">`)
                 .join("");
 
-            results.forEach(({id, Addresses}) => db[id] = Addresses[0])
+            results.forEach(({code, gst_percent}) => db[code] = gst_percent);
+        }
+
+        hsn.onchange = (e) =>
+        {
+            const option = document.querySelector(`option[value="${e.target.value}"]`);
+            if(option) {
+                gst.value = option.getAttribute("data-gst");
+                hsnId = option.getAttribute("data-id");
+            }
         }
     </script>
 {% endblock %}
