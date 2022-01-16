@@ -12,6 +12,7 @@ from rest_framework import viewsets, permissions, filters
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from authentication.permissions import IsOrganiserUser
 from home.models import Orders, OrderItem, Purchase
 from home.serializers import OrderSerializer
 from .forms import ProductForm
@@ -209,7 +210,7 @@ class BillingViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'options']
     queryset = BillingProduct.objects.all()
     serializer_class = BillingProductSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsOrganiserUser]
     filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'product_hsn', 'code', '']
 
