@@ -7,6 +7,7 @@ from . import views
 router = DefaultRouter()
 
 router.register('', views.HSNViewSet)
+router.register('products', views.BillingViewSet)
 
 urlpatterns = [
     path('', views.landing_page, name='landing_page'),

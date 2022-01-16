@@ -16,7 +16,7 @@ from home.models import Orders, OrderItem, Purchase
 from home.serializers import OrderSerializer
 from .forms import ProductForm
 from .models import HsnCode, BillingProduct
-from .serializers import HSNSerializer
+from .serializers import HSNSerializer, BillingProductSerializer
 from .utils import invoice_data_processor, product_data_processor
 
 
@@ -200,3 +200,17 @@ class HSNViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['code', 'description', ]
+
+
+class BillingViewSet(viewsets.ModelViewSet):
+    http_method_names = ['get', 'post', 'options']
+    queryset = BillingProduct.objects.all()
+    serializer_class = BillingProductSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title', 'product_hsn', 'code', '']
+
+    def get_queryset(self):
+        if self.request.user.tokens.organisation:
+            return BillingProduct.objects.filter(organisation=self.request.user.tokens.organisation)
+        return BillingProduct.objects.none()
