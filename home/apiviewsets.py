@@ -296,7 +296,7 @@ class OrderViewSets(viewsets.ModelViewSet):
 
 class PurchaseViewSets(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
-    queryset = Purchase.objects.all()
+    queryset = Orders.objects.all()
     serializer_class = PurchaseSerializer
     http_method_names = ['get', 'post']
 

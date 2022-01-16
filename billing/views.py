@@ -12,7 +12,7 @@ from rest_framework import viewsets, permissions, filters
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from home.models import Orders, OrderItem, Purchase
+from home.models import Orders, OrderItem
 from home.serializers import OrderSerializer
 from .forms import ProductForm
 from .models import HsnCode, BillingProduct
@@ -69,7 +69,7 @@ def invoice_create(request):
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def purchase_create(request):
-    context = refactor(request, product_data_processor, Purchase, request.user.tokens.organisation)
+    context = refactor(request, product_data_processor, None, request.user.tokens.organisation)
     return render(request, 'gstbillingapp/purchase_create.html', context)
 
 
@@ -94,7 +94,8 @@ def invoices(request):
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def purchases(request):
-    context = {'orders': Purchase.objects.filter(organisation=request.user.tokens.organisation).order_by('-id')}
+    context = {}
+    # context = {'orders': Purchase.objects.filter(organisation=request.user.tokens.organisation).order_by('-id')}
     return render(request, 'gstbillingapp/purchases.html', context)
 
 
