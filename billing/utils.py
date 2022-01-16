@@ -2,7 +2,7 @@ import datetime
 
 from django.contrib.auth.models import User
 
-from home.models import Orders, TransactionDetails, OrderItem, Addresses
+from home.models import Orders, TransactionDetails, OrderItem, Addresses, Purchase
 from home.models import Product
 
 
@@ -83,13 +83,12 @@ def invoice_data_processor(invoice_post_data, org):
 
 
 def product_data_processor(invoice_post_data, org):
-    # customer, address = create_models(invoice_post_data)
-    # purchase = Purchase.objects.create(user=customer, address=address, organisation=org)
-    #
-    # total = add_items(invoice_post_data['products'], purchase=purchase)
-    #
-    # purchase.total = total
-    # purchase.save()
-    #
-    # return purchase
-    return 1
+    customer, address = create_models(invoice_post_data)
+    purchase = Purchase.objects.create(user=customer, address=address, organisation=org)
+
+    total = add_items(invoice_post_data['products'], purchase=purchase)
+
+    purchase.total = total
+    purchase.save()
+
+    return purchase
