@@ -18,7 +18,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     API end point to get all product details
     """
     http_method_names = ['get']
-    queryset = Product.objects.filter(organisation__show_own_website=True)
+    queryset = Product.objects.all()
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ['bestSeller', 'meat', 'meat__category', "meat__code", 'code']
@@ -296,7 +296,7 @@ class OrderViewSets(viewsets.ModelViewSet):
 
 class PurchaseViewSets(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAdminUser]
-    queryset = Purchase.objects.all()
+    queryset = Orders.objects.all()
     serializer_class = PurchaseSerializer
     http_method_names = ['get', 'post']
 

@@ -62,7 +62,7 @@ class Product(models.Model):
     nutrition = models.ManyToManyField(Nutrition, through=NutritionQuantity, related_name='nutrition_quantity')
     product_gst_percentage = models.FloatField(default=0)
     product_rate_with_gst = models.FloatField(default=0)
-    organisation = models.ForeignKey('organisation.Organisation', on_delete=models.PROTECT, default=1)
+
 
     def __str__(self):
         return self.title
