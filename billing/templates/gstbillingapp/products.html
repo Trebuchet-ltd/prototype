@@ -30,8 +30,8 @@
 				<tr>
 	 				<td>{{product.title}}</td>
 	 				<td>{{product.product_hsn}}</td>
-	 				<td>{{product.product_rate_with_gst}}</td>
-	 				<td>{{product.product_gst_percentage}}</td>
+	 				<td>{{product.price}}</td>
+	 				<td>{{product.gst_percent}}</td>
 	 				<td><a href="{% url 'product_edit' product.id %}"><button type="button" class="btn btn-primary">Edit</button></a></td>
 	 				<td><button type="button" class="btn btn-danger" data-toggle="modal" data-target="#productDeleteModal" data-product-id="{{product.id}}" data-product-name="{{product.product_name}}">Delete</button></td>
 				</tr>
