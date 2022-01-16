@@ -296,6 +296,26 @@ class OrderViewSets(viewsets.ModelViewSet):
         return Response(serializer.data, status=200)
 
 
+class PurchaseViewSets(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAdminUser]
+    queryset = Purchase.objects.all()
+    serializer_class = PurchaseSerializer
+    http_method_names = ['get', 'post']
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return Orders.objects.all()
+
+        return Orders.objects.filter(user=self.request.user)
+
+    @action(detail=False, methods=["post"], url_path='order')
+    def order(self, request, *args, **kwargs):
+        order = invoice_data_processor(request.data)
+
+        serializer = self.get_serializer(order, many=False)
+        return Response(serializer.data, status=200)
+
+
 class AddressViewSets(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsOwner]
     queryset = Addresses.objects.all()

@@ -159,7 +159,7 @@ class GetAddressSerializer(serializers.ModelSerializer):
         ordering = ['id']
         model = Addresses
         fields = [
-            'id', 'name', 'address', 'pincode', 'state', 'phone', 'latitude', 'longitude', "delivery_charge"
+            'id', 'name', 'address', 'pincode', 'state', 'phone', 'latitude', 'longitude', "delivery_charge", 'gst'
         ]
 
 
@@ -185,3 +185,13 @@ class OrderSerializer(serializers.ModelSerializer):
             'address', 'status', 'order_item',
             'transaction', 'used_points'
         ]
+
+
+class PurchaseSerializer(serializers.ModelSerializer):
+    order_item = OrderItemSerializer(many=True, read_only=True, required=False)
+    address = GetAddressSerializer(read_only=True, required=False)
+    transaction = TransactionDetailsSerializer(read_only=True, many=False, required=False)
+
+    class Meta:
+        model = Orders
+        fields = ['id', 'user', 'total', 'address', 'order_item', 'transaction']

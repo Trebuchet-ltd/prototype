@@ -1,19 +1,14 @@
 import datetime
-import json
 
 from django.contrib.auth.models import User
-from django.db.models import Sum
 
-from home.models import Orders, TransactionDetails, OrderItem, Addresses
+from home.models import Orders, TransactionDetails, OrderItem, Addresses, Purchase
 from home.models import Product
 
 
 def invoice_data_validator(invoice_data):
-    # Validate Invoice Info ----------
-
-    # invoice-number
     try:
-        invoice_number = int(invoice_data['invoice-number'])
+        int(invoice_data['invoice-number'])
     except:
         print("Error: Incorrect Invoice Number")
         return "Error: Incorrect Invoice Number"
@@ -27,57 +22,76 @@ def invoice_data_validator(invoice_data):
         return "Error: Incorrect Invoice Date"
 
 
-def invoice_data_processor(invoice_post_data):
-    print(invoice_post_data)
+def create_models(data):
+    phone, name, address, pincode, user, gst = range(6)
+    for key in data.keys():
+        locals()[key] = data[key]
 
-    customer_name = invoice_post_data['name']
-    customer_address = invoice_post_data['address']
-    customer_phone = invoice_post_data['phone']
-    customer_pincode = invoice_post_data['pincode']
+    customer, _ = User.objects.get_or_create(username=phone, first_name=name)
 
-    user, _ = User.objects.get_or_create(username=invoice_post_data['phone'],
-                                         first_name=invoice_post_data['name'], )
-    address, _ = Addresses.objects.get_or_create(name=customer_name, address=customer_address, pincode=customer_pincode,
-                                                 phone=customer_phone, user=user, state='kerala')
-    order = Orders.objects.create(user=user, is_seen=True, status='d', address=address)
-    transaction = TransactionDetails.objects.create(order=order, user=user, payment_status='paid', )
+    address, _ = Addresses.objects.get_or_create(name=name, address=address, pincode=pincode, phone=phone, user=user,
+                                                 state='kerala', gst=gst)
 
-    invoice_post_data = dict(invoice_post_data)
-    amount = 0
-    for product in invoice_post_data['products']:
+    return customer, address
+
+
+def add_items(products, order=None, purchase=None):
+    total = 0
+    for product in products:
         if product:
             try:
                 item = Product.objects.get(id=product["id"])
-                weight = float(product['weight'])
-                quantity = int(product['quantity'])
+                weight = float(product['weight']) if "weight" in product else int(product['quantity'])
                 cleaned = int(product['cleaned_status'])
 
                 if cleaned and item.can_be_cleaned:
-
-                    amount += (quantity * item.cleaned_price * weight / 1000) * (
-                            1 + item.product_gst_percentage / 100) * (
-                                      100 - item.discount) / 100
+                    total += item.cleaned_price * weight
                 else:
-                    if item.type_of_quantity:
 
-                        amount += quantity * item.price * weight / 1000 * (
-                                1 + item.product_gst_percentage / 100) * (
-                                          100 - item.discount) / 100
-                    else:
-                        amount += quantity * item.price * (
-                                1 + item.product_gst_percentage / 100) * (100 - item.discount) / 100
+                    total += item.price * weight
 
-                order.total += amount
-                transaction.total += amount
-                print(f'{transaction.total = } , {order.total = }')
-                item.stock -= int(weight * quantity / 1000)
+                item.stock -= int(weight)
                 item.save()
-                transaction.save()
-                order.save()
-                print(f"{amount = }")
-                OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight, is_cleaned=True,
-                                         order=order)
+
+                quantity = 1
+                if not item.type_of_quantity:
+                    quantity, weight = weight, quantity
+
+                if order:
+                    OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight * 1000,
+                                             is_cleaned=cleaned and item.can_be_cleaned, order=order)
+                else:
+                    OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight * 1000,
+                                             is_cleaned=cleaned and item.can_be_cleaned, purchase=purchase)
+
             except Product.DoesNotExist:
                 pass
 
+        return total
+
+
+def invoice_data_processor(invoice_post_data):
+    customer, address = create_models(invoice_post_data)
+
+    order = Orders.objects.create(user=customer, is_seen=True, status='d', address=address)
+    transaction = TransactionDetails.objects.create(order=order, user=customer, payment_status='paid', )
+
+    total = add_items(invoice_post_data['products'], order=order)
+
+    for m in [transaction, order]:
+        m.total = total
+        m.save()
+
     return order
+
+
+def product_data_processor(invoice_post_data):
+    customer, address = create_models(invoice_post_data)
+    purchase = Purchase.objects.create(user=customer, address=address)
+
+    total = add_items(invoice_post_data['products'], purchase=purchase)
+
+    purchase.total = total
+    purchase.save()
+
+    return purchase

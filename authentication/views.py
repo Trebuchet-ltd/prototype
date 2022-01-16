@@ -1,6 +1,7 @@
+import django_filters
 from django.contrib.auth.models import User, Group
 from oauth2_provider.contrib.rest_framework import TokenHasScope, OAuth2Authentication
-from rest_framework import viewsets, generics, permissions
+from rest_framework import viewsets, generics, permissions, filters
 from rest_framework.decorators import action
 
 from rest_framework_social_oauth2.authentication import SocialAuthentication
@@ -14,6 +15,8 @@ class UserApiViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     authentication_classes = [CsrfExemptSessionAuthentication, SocialAuthentication, OAuth2Authentication]
     queryset = User.objects.all()
+    filter_backends = [filters.SearchFilter]
+    filterset_fields = ['first_name', 'username']
     http_method_names = ['get', 'post', 'put', 'patch', 'head', 'options']
 
     def list(self, request, *args, **kwargs):

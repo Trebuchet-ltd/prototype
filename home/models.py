@@ -137,6 +137,7 @@ class Addresses(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     delivery_charge = models.IntegerField(null=True, blank=True, choices=((0, 0), (30, 30), (60, 60)))
+    gst = models.CharField(max_length=15, null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} - {self.address}, {self.state}, {self.pincode} (PIN) "
@@ -208,11 +209,28 @@ class Orders(models.Model):
         return self.date
 
 
+class Purchase(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="purchase", on_delete=models.SET_NULL, null=True,
+                             blank=True)
+    total = models.FloatField(default=0)
+    address = models.ForeignKey(Addresses, related_name="purchase", on_delete=models.CASCADE, blank=True, null=True)
+    date = models.DateField(auto_now_add=True)
+
+    @property
+    def invoice_number(self):
+        return self.id
+
+    @property
+    def invoice_date(self):
+        return self.date
+
+
 class OrderItem(models.Model):
     item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     price = models.FloatField(default=0)
     order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE, blank=True, null=True, )
+    purchase = models.ForeignKey(Purchase, related_name="order_item", on_delete=models.CASCADE, blank=True, null=True, )
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
 
