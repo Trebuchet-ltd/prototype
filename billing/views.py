@@ -13,10 +13,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from home.models import Orders, OrderItem, Purchase
-from home.models import Product
 from home.serializers import OrderSerializer
 from .forms import ProductForm
-from .models import HsnCode
+from .models import HsnCode, BillingProduct
 from .serializers import HSNSerializer
 from .utils import invoice_data_processor, product_data_processor
 
@@ -119,14 +118,14 @@ def customers(request):
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def products(request):
-    context = {'products': Product.objects.filter(organisation=request.user.tokens.organisation)}
+    context = {'products': BillingProduct.objects.filter(organisation=request.user.tokens.organisation)}
     return render(request, 'gstbillingapp/products.html', context)
 
 
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def product_edit(request, product_id):
-    product_obj = get_object_or_404(Product, id=product_id, organisation=request.user.tokens.organisation)
+    product_obj = get_object_or_404(BillingProduct, id=product_id, organisation=request.user.tokens.organisation)
 
     if request.method == "POST":
         product_form = ProductForm(request.POST, instance=product_obj)
@@ -160,7 +159,6 @@ def show_invoice(request, invoice_id):
 def product_add(request):
     if request.method == "POST":
         product_form = ProductForm(request.POST)
-        # product_form.product_hsn = HsnCode.objects.get(code=product_form.product_hsn)
 
         if product_form.is_valid():
             new_product = product_form.save(commit=False)
@@ -181,7 +179,7 @@ def product_add(request):
 def product_delete(request):
     if request.method == "POST":
         product_id = request.POST["product_id"]
-        product_obj = get_object_or_404(Product, organisation=request.user.tokens.organisation, id=product_id)
+        product_obj = get_object_or_404(BillingProduct, organisation=request.user.tokens.organisation, id=product_id)
         product_obj.delete()
     return redirect('products')
 

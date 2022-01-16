@@ -9,6 +9,9 @@ class HsnCode(models.Model):
     description = models.TextField(max_length=1500, blank=True, null=True)
     gst_percent = models.FloatField(validators=[MaxValueValidator(100), MinValueValidator(0)], blank=True, null=True)
 
+    def __str__(self):
+        return self.code
+
 
 class BillingProduct(models.Model):
     title = models.CharField(max_length=255)
@@ -21,3 +24,6 @@ class BillingProduct(models.Model):
     price3 = models.FloatField(default=0)
     gst_percent = models.PositiveIntegerField(validators=[MaxValueValidator(100)])
     organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT)
+
+    def __str__(self):
+        return self.title
