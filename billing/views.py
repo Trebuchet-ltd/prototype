@@ -148,9 +148,13 @@ def invoice_viewer(request, invoice_id):
 @user_passes_test(test, redirect_field_name='/')
 def show_invoice(request, invoice_id):
     invoice = get_object_or_404(Orders, id=invoice_id, organisation=request.user.tokens.organisation)
-    items = OrderItem.objects.filter(order=invoice, organisation=request.user.tokens.organisation)
+    items = OrderItem.objects.filter(order=invoice)
 
-    return render(request, 'gstbillingapp/invoice_show.html', context={"invoice": invoice, "items": items})
+    prefix = invoice.organisation.c_invoice_prefix if invoice.type == "c" else invoice.organisation.b_invoice_prefix
+
+    context = {"invoice": invoice, "items": items, "invoice_number": f'{prefix}{invoice.invoice_number}'}
+
+    return render(request, 'gstbillingapp/invoice_show.html', context=context)
 
 
 @login_required

@@ -11,7 +11,7 @@
         <div class="card">
             <div class="card-header p-4">
                 <div class="float-right">
-                    <h3 class="mb-0">Invoice #{{ invoice.id }}</h3>
+                    <h3 class="mb-0">Invoice #{{ invoice_number }}</h3>
                     Date: {% string invoice.date %}
                 </div>
             </div>
@@ -42,12 +42,9 @@
                             <th scope="col">Product</th>
                             <th scope="col">Weight / Qty</th>
 
-                            <th scope="col">Rate without GST</th>
-                            <th scope="col">Amt without GST</th>
-                            <th scope="col">SGST</th>
-                            <th scope="col">CGST</th>
-                            <th scope="col">IGST</th>
-                            <th scope="col">Amt with GST</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">GST</th>
+                            <th scope="col">Net Price</th>
                         </tr>
                         </thead>
 
@@ -66,25 +63,17 @@
                                 </td>
 
                                 <td class="form-input-td">
-                                    {% quantity_of item %}
+                                    {{ item.quantity }}
+                                </td>
+
+                                <td class="form-input-td">
+                                    {{ item.price }}
                                 </td>
                                 <td class="form-input-td">
-                                   {{ item.price }}
+                                    {{ item.item.gst_percent }}
                                 </td>
                                 <td class="form-input-td">
-                                    {% multiply item.quantity item.price item.item.weight %}
-                                </td>
-                                <td class="form-input-td">
-                                    {% multiply item.item.product_gst_percentage 0.5 %}
-                                </td>
-                                <td class="form-input-td">
-                                    {% multiply item.item.product_gst_percentage 0.5 %}
-                                </td>
-                                <td class="form-input-td">
-                                    0
-                                </td>
-                                <td class="form-input-td">
-                                    {% price_of item %}
+                                    {%  multiply item.quantity item.price %}
                                 </td>
                                 <td hidden disabled>
                                     {{ item.item.id }}

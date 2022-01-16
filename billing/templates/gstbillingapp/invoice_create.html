@@ -16,10 +16,12 @@
 
             <tbody class="two-col-form">
             <tr>
-                <th scope="row">Invoice Number</th>
+                <th scope="row"><label for="invoice_type">Type</label></th>
                 <td class="form-input-td">
-                    <input name="invoice-number" type="number" class="form-control" placeholder="Invoice Number"
-                           value="{{ default_invoice_number }}" readonly>
+                    <select id="invoice_type" required>
+                        <option value="b">B to B</option>
+                        <option value="c" selected>B to C</option>
+                    </select>
                 </td>
                 <th scope="row">Date</th>
                 <td class="form-input-td">
@@ -77,15 +79,12 @@
             <tr>
                 <th scope="col">SlNo</th>
                 <th scope="col">Code</th>
-                <th scope="col">Product</th>
+                <th scope="col" colspan="4">Product</th>
                 <th scope="col">Weight / Qty</th>
 
-                <th scope="col">Rate without GST</th>
-                <th scope="col">Amt without GST</th>
-                <th scope="col">SGST</th>
-                <th scope="col">CGST</th>
-                <th scope="col">IGST</th>
-                <th scope="col">Amt with GST</th>
+                <th scope="col">Price</th>
+                <th scope="col">GST %</th>
+                <th scope="col">Net Price</th>
             </tr>
             </thead>
             <tbody id="invoice-form-items-table-body">
@@ -114,7 +113,7 @@
                 <input type="text" id="code" autocomplete="off" list="code_options"
                        class="form-control product_search_area product_search_input" placeholder="Product Code">
             </td>
-            <td class="form-input-td">
+            <td class="form-input-td" colspan="4">
                 <input type="text" id="name" autocomplete="off" list="name_options"
                        class="form-control product_search_area product_search_input" placeholder="Product">
             </td>
@@ -125,16 +124,7 @@
                 <input type="number" id="rate_wo_gst" step="any" class="form-control" readonly>
             </td>
             <td class="form-input-td">
-                <input type="number" id="amt_wo_gst" step="any" class="form-control" readonly>
-            </td>
-            <td class="form-input-td">
                 <input type="number" id="s_gst" step="any" class="form-control" readonly>
-            </td>
-            <td class="form-input-td">
-                <input type="number" id="c_gst" step="any" class="form-control" readonly>
-            </td>
-            <td class="form-input-td">
-                <input type="number" id="i_gst" step="any" class="form-control" readonly>
             </td>
             <td class="form-input-td">
                 <input type="number" id="amt" step="any" class="form-control" readonly>

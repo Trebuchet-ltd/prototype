@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from billing.serializers import BillingProductSerializer
 from .models import ImageModel, CartModel
 from .models import Product
 from .models import Tokens, CartItem, TransactionDetails, \
@@ -43,7 +45,7 @@ class GetProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'code', 'description', 'short_description', 'price', 'stock',
             'meat', 'images', 'bestSeller', "weight", 'rating',
-            'weight_variants', 'pieces', 'serves', 'can_be_cleaned', 'cleaned_price', "discount", 'recipe_box',
+            'weight_variants', 'pieces', 'serves', "discount", 'recipe_box',
             'nutrition', 'product_gst_percentage', 'product_rate_with_gst', 'type_of_quantity'
         ]
 
@@ -164,7 +166,7 @@ class GetAddressSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    item = GetProductSerializer(read_only=True, required=False, many=False)
+    item = BillingProductSerializer(read_only=True, required=False, many=False)
 
     class Meta:
         model = OrderItem
@@ -183,7 +185,7 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'total', 'date', 'time',
             'address', 'status', 'order_item',
-            'transaction', 'used_points'
+            'transaction', 'used_points', 'organisation', 'invoice_number'
         ]
 
 

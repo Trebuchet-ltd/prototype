@@ -2,8 +2,10 @@ import datetime
 
 from django.contrib.auth.models import User
 
+from billing.models import BillingProduct
 from home.models import Orders, TransactionDetails, OrderItem, Addresses, Purchase
 from home.models import Product
+from organisation.models import Organisation
 
 
 def invoice_data_validator(invoice_data):
@@ -35,43 +37,45 @@ def create_models(data):
 def add_items(products, order=None, purchase=None):
     total = 0
     for product in products:
-        if product:
-            try:
-                item = Product.objects.get(id=product["id"])
-                weight = float(product['weight']) if "weight" in product else int(product['quantity'])
-                cleaned = int(product['cleaned_status'])
+        try:
+            item = BillingProduct.objects.get(id=product["id"])
+            quantity = float(product['quantity'])
+            cleaned = bool(product['cleaned_status'])
+            price = float(product["price"] or (item.cleaned_price if cleaned and item.can_be_cleaned else item.price))
 
-                if cleaned and item.can_be_cleaned:
-                    total += item.cleaned_price * weight
-                else:
+            total += price * quantity
 
-                    total += item.price * weight
+            item.stock -= quantity
+            item.save()
 
-                item.stock -= int(weight)
-                item.save()
+            if order:
+                OrderItem.objects.create(item=item, quantity=quantity, is_cleaned=cleaned and item.can_be_cleaned,
+                                         order=order, price=price)
+            else:
+                OrderItem.objects.create(item=item, quantity=quantity, is_cleaned=cleaned and item.can_be_cleaned,
+                                         purchase=purchase, price=price)
 
-                quantity = 1
-                if not item.type_of_quantity:
-                    quantity, weight = weight, quantity
+        except Product.DoesNotExist:
+            pass
 
-                if order:
-                    OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight * 1000,
-                                             is_cleaned=cleaned and item.can_be_cleaned, order=order)
-                else:
-                    OrderItem.objects.create(item=item, quantity=quantity, weight_variants=weight * 1000,
-                                             is_cleaned=cleaned and item.can_be_cleaned, purchase=purchase)
-
-            except Product.DoesNotExist:
-                pass
-
-        return total
+    return total
 
 
-def invoice_data_processor(invoice_post_data, org):
+def invoice_data_processor(invoice_post_data, org: Organisation):
     customer, address = create_models(invoice_post_data)
 
-    order = Orders.objects.create(user=customer, is_seen=True, status='d', address=address, organisation=org)
-    transaction = TransactionDetails.objects.create(order=order, user=customer, payment_status='paid', )
+    if invoice_post_data["type"] == "c":
+        org.c_invoice_count += 1
+        count = org.c_invoice_count
+    else:
+        org.b_invoice_count += 1
+        count = org.b_invoice_count
+
+    org.save()
+
+    order = Orders.objects.create(user=customer, is_seen=True, status='d', address=address, organisation=org,
+                                  invoice_number=count)
+    transaction = TransactionDetails.objects.create(order=order, user=customer, payment_status='paid')
 
     total = add_items(invoice_post_data['products'], order=order)
 
