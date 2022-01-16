@@ -62,7 +62,7 @@ function createBillRow({title, quantity, price, sl}) {
     return row;
 }
 
-function printBill({total, order_item, address}) {
+function printBill(items, from, to, total) {
     const printWindow = window.open("", "_blank");
 
     const rows = order_item
