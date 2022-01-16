@@ -12,7 +12,7 @@ async function searchUser(name, mob = "") {
     names.innerHTML = results.map(({first_name, id}) => `<option data-id="${id}" value="${first_name}">`).join("");
     phones.innerHTML = results.map(({username, id}) => `<option data-id="${id}" value="${username}">`).join("");
 
-    results.forEach(({id, first_name, username, Addresses}) => database[id] = {first_name, username, Addresses})
+    results.forEach(({id, Addresses}) => database[id] = Addresses[0])
 }
 
 async function fillUser(input)
@@ -22,11 +22,11 @@ async function fillUser(input)
     if(!id || !database[id])
         return;
 
-    name.value = database[id].first_name;
-    phone.value = database[id].username;
-    address.value = database[id].Addresses[0].address;
-    pin.value = database[id].Addresses[0].pincode;
-    gst.value = database[id].Addresses[0].gst || "";
+    name.value = database[id].name;
+    phone.value = database[id].phone;
+    address.value = database[id].address;
+    pin.value = database[id].pincode;
+    gst.value = database[id].gst || "";
 }
 
 

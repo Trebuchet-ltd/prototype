@@ -23,14 +23,11 @@ def invoice_data_validator(invoice_data):
 
 
 def create_models(data):
-    phone, name, address, pincode, user, gst = range(6)
-    for key in data.keys():
-        locals()[key] = data[key]
-
-    customer, _ = User.objects.get_or_create(username=phone, first_name=name)
-
-    address, _ = Addresses.objects.get_or_create(name=name, address=address, pincode=pincode, phone=phone, user=user,
-                                                 state='kerala', gst=gst)
+    customer, _ = User.objects.get_or_create(username=data["phone"], first_name=data["name"])
+    address, _ = Addresses.objects.get_or_create(
+        name=data["name"], address=data["address"], pincode=data["pincode"],
+        phone=data["phone"], user=customer, state='kerala', gst=data["gst"]
+    )
 
     return customer, address
 
@@ -70,10 +67,10 @@ def add_items(products, order=None, purchase=None):
         return total
 
 
-def invoice_data_processor(invoice_post_data):
+def invoice_data_processor(invoice_post_data, org):
     customer, address = create_models(invoice_post_data)
 
-    order = Orders.objects.create(user=customer, is_seen=True, status='d', address=address)
+    order = Orders.objects.create(user=customer, is_seen=True, status='d', address=address, organisation=org)
     transaction = TransactionDetails.objects.create(order=order, user=customer, payment_status='paid', )
 
     total = add_items(invoice_post_data['products'], order=order)
@@ -85,9 +82,9 @@ def invoice_data_processor(invoice_post_data):
     return order
 
 
-def product_data_processor(invoice_post_data):
+def product_data_processor(invoice_post_data, org):
     customer, address = create_models(invoice_post_data)
-    purchase = Purchase.objects.create(user=customer, address=address)
+    purchase = Purchase.objects.create(user=customer, address=address, organisation=org)
 
     total = add_items(invoice_post_data['products'], purchase=purchase)
 
