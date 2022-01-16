@@ -67,7 +67,7 @@ function printBill({total, order_item, address}) {
 
     const rows = order_item
         .map(({quantity, item, is_cleaned, type_of_quantity}, i) => ({
-            quantity: String(item.weight  * quantity),
+            quantity: String(quantity),
             price: String((is_cleaned ? item.cleaned_price : item.price) * item.weight  * quantity),
             title: String(`${item.title}${is_cleaned ? " Cleaned": ""}`),
             sl: String(i+1)

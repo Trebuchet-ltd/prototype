@@ -30,12 +30,9 @@ function calculateTotal() {
 
 function calculateRow(rowId) {
     const row = document.getElementsByTagName("tr")[rowId];
-    const price = Number(row.querySelector("#rate_wo_gst").value || 0) *
-        Number(row.querySelector("#quantity").value || 0)
 
-    row.querySelector("#amt_wo_gst").value = price;
-    row.querySelector("#amt").value = price +
-        price * (Number(row.querySelector("#s_gst").value || 0) + Number(row.querySelector("#c_gst").value || 0));
+    row.querySelector("#amt").value = Number(row.querySelector("#rate_wo_gst").value || 0) *
+        Number(row.querySelector("#quantity").value || 0);
 
     calculateTotal();
 }
@@ -46,9 +43,8 @@ async function fillRow(rowId, item) {
     row.querySelector("#id").value = item?.id || "";
     row.querySelector("#code").value = item?.code || "";
     row.querySelector("#name").value = item?.title || "";
-    row.querySelector("#quantity").value = item ? row.querySelector("#quantity").value || 1 : 0;
-    row.querySelector("#s_gst").value = (item?.product_gst_percentage || 0) / 2;
-    row.querySelector("#c_gst").value = (item?.product_gst_percentage || 0) / 2;
+    row.querySelector("#quantity").value = item ? Number(row.querySelector("#quantity").value) || 1 : 0;
+    row.querySelector("#s_gst").value = (item?.gst_percent || 0);
     row.querySelector("#rate_wo_gst").value = item?.price || 0;
 
     calculateRow(rowId);
@@ -67,7 +63,7 @@ async function search(row, name, code = null) {
 
     [code, name] = [code?.replace("*", ""), name?.replace("-Cleaned", "")]
 
-    const results = await fetch(`/api/products/?${code ? "code" : "search"}=${name || code}`)
+    const results = await fetch(`/bill/bill_products?${code ? "code" : "title"}=${name || code}`)
         .then((res) => res.json())
         .then((json) => json.results);
 
@@ -79,7 +75,7 @@ async function search(row, name, code = null) {
 
     const options = results.map((result) => `<option data-id="${result.id}" value="${code ? result.code : result.title}" >`);
 
-    document.getElementById("name_options").innerHTML = options.join("");
+    document.getElementById(name ? "name_options" : "code_options").innerHTML = options.join("");
 }
 
 async function checkout() {
@@ -94,6 +90,7 @@ async function checkout() {
         const id = Number(row.querySelector("#id").value?.replace("*", ""));
         const quantity = Number(row.querySelector("#quantity").value);
         const cleaned_status = row.querySelector("#code").value.startsWith("*");
+        const price = row.querySelector("#rate_wo_gst").value
 
         if (!id || !quantity || !name)
             continue;
@@ -105,7 +102,7 @@ async function checkout() {
             continue;
         }
 
-        names[name] = products.push({id, quantity, cleaned_status}) - 1;
+        names[name] = products.push({id, quantity, cleaned_status, price}) - 1;
     }
 
     if (products.length === 0)
@@ -126,6 +123,7 @@ async function checkout() {
                     pincode: document.getElementById("customer-pin-input").value,
                     phone: document.getElementById("customer-phone-input").value,
                     gst: document.getElementById("customer-gst-input").value,
+                    type: document.getElementById("invoice_type").value,
                     products
                 }
             )

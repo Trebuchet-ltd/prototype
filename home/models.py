@@ -6,6 +6,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 # Create your models here.
+from billing.models import BillingProduct
 from organisation.models import Organisation
 
 
@@ -52,9 +53,7 @@ class Product(models.Model):
     weight = models.FloatField(default=1)
     pieces = models.IntegerField(default=1)
     serves = models.IntegerField(default=4)
-    can_be_cleaned = models.BooleanField(default=0, blank=True, null=True,
-                                         help_text='1->Can be cleaned, 0->Can not be cleaned')
-    cleaned_price = models.FloatField(blank=True, null=True, )
+
     weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0, ), blank=True, null=True,
                                  default=list)
     discount = models.FloatField(default=0, help_text='discount in percentage')
@@ -62,7 +61,6 @@ class Product(models.Model):
     nutrition = models.ManyToManyField(Nutrition, through=NutritionQuantity, related_name='nutrition_quantity')
     product_gst_percentage = models.FloatField(default=0)
     product_rate_with_gst = models.FloatField(default=0)
-
 
     def __str__(self):
         return self.title
@@ -185,8 +183,7 @@ class Orders(models.Model):
         ('m', 'morning'),
         ('e', 'evening')
     )
-    user = models.ForeignKey(User, related_name="orders", on_delete=models.SET_NULL, null=True,
-                             blank=True)
+    user = models.ForeignKey(User, related_name="orders", on_delete=models.SET_NULL, null=True, blank=True)
     total = models.FloatField(default=0)
     address = models.ForeignKey(Addresses, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
     is_seen = models.IntegerField(default=0, blank=True, null=True, help_text='1->Seen, 0->Not seen',
@@ -197,13 +194,11 @@ class Orders(models.Model):
     coupon = models.ForeignKey(Coupon, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
     used_points = models.IntegerField(default=0, blank=True, null=True)
     organisation = models.ForeignKey('organisation.Organisation', on_delete=models.CASCADE, default=1)
+    invoice_number = models.PositiveIntegerField()
+    type = models.CharField(max_length=1, choices=[("b", "B to B"), ("c", "C to C")], default="c")
 
     def __str__(self):
         return f"{self.user} , date-{self.date} , status -{self.status} "
-
-    @property
-    def invoice_number(self):
-        return self.id
 
     @property
     def invoice_date(self):
@@ -216,7 +211,7 @@ class Purchase(models.Model):
     total = models.FloatField(default=0)
     address = models.ForeignKey(Addresses, related_name="purchase", on_delete=models.CASCADE, blank=True, null=True)
     date = models.DateField(auto_now_add=True)
-    organisation = models.ForeignKey('organisation.Organisation', on_delete=models.CASCADE,  default=1)
+    organisation = models.ForeignKey('organisation.Organisation', on_delete=models.CASCADE, default=1)
 
     @property
     def invoice_number(self):
@@ -228,8 +223,8 @@ class Purchase(models.Model):
 
 
 class OrderItem(models.Model):
-    item = models.ForeignKey(Product, related_name="order_item", on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
+    item = models.ForeignKey(BillingProduct, related_name="order_item", on_delete=models.CASCADE)
+    quantity = models.FloatField()
     price = models.FloatField(default=0)
     order = models.ForeignKey(Orders, related_name="order_item", on_delete=models.CASCADE, blank=True, null=True, )
     purchase = models.ForeignKey(Purchase, related_name="order_item", on_delete=models.CASCADE, blank=True, null=True, )
@@ -237,12 +232,6 @@ class OrderItem(models.Model):
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
 
     def __str__(self):
-        if self.is_cleaned:
-            cleaned_status = 'cleaned'
-        else:
-            cleaned_status = ''
-        if self.item.type_of_quantity:
-            return f"{self.item} {cleaned_status} - {self.quantity * self.weight_variants / 1000} kg "
         return f"{self.item} - {self.quantity} items "
 
 
@@ -323,7 +312,7 @@ class Tokens(models.Model):
     total_points_yet = models.IntegerField(default=0)
     amount_saved = models.IntegerField(default=0)
     organisation = models.ForeignKey(Organisation, related_name='tokens', on_delete=models.SET_NULL, null=True,
-                            blank=True)
+                                     blank=True)
 
     def __str__(self):
         return f"{self.user} "

@@ -10,3 +10,8 @@ class Organisation(models.Model):
     show_own_website = models.BooleanField()
     mobile_number = models.CharField(max_length=13)
 
+    c_invoice_count = models.PositiveIntegerField(default=0)
+    b_invoice_count = models.PositiveIntegerField(default=0)
+    c_invoice_prefix = models.CharField(max_length=5)
+    b_invoice_prefix = models.CharField(max_length=5)
+

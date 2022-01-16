@@ -6,12 +6,12 @@ from . import views
 
 router = DefaultRouter()
 
-router.register('', views.HSNViewSet)
-router.register('products', views.BillingViewSet)
+router.register('hsn', views.HSNViewSet)
+router.register('bill_products', views.BillingViewSet)
 
 urlpatterns = [
     path('', views.landing_page, name='landing_page'),
-    path(r'hsn', include(router.urls)),
+    path('', include(router.urls)),
     path('purchases', views.purchases, name='purchases'),
     path('purchases/new', views.purchase_create, name='purchase_create'),
 

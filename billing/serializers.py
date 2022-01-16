@@ -12,4 +12,4 @@ class HSNSerializer(serializers.ModelSerializer):
 class BillingProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = BillingProduct
-        fields = ['title', 'product_hsn', 'code', 'price', 'stock', 'discount', 'price2', 'price3', 'gst_percent']
+        fields = ['id', 'title', 'product_hsn', 'code', 'price', 'stock', 'discount', 'price2', 'price3', 'gst_percent']

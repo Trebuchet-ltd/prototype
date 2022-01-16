@@ -24,6 +24,8 @@ class BillingProduct(models.Model):
     price3 = models.FloatField(default=0)
     gst_percent = models.PositiveIntegerField(validators=[MaxValueValidator(100)], default=0)
     organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT)
+    can_be_cleaned = models.BooleanField(default=False)
+    cleaned_price = models.FloatField(blank=True, null=True)
 
     def __str__(self):
         return self.title

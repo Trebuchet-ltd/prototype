@@ -20,7 +20,12 @@
         <tbody class="two-col-form">
         {% for order in orders %}
             <tr>
-                <td>{{ order.id }}</td>
+                <td>
+                    {% if order.type == "c" %}
+                        {{ order.organisation.c_invoice_prefix }}
+                    {% else %}
+                        {{ order.organisation.b_invoice_prefix }}
+                    {% endif %}{{ order.invoice_number }}</td>
                 <td>{{ order.date }}</td>
                 <td>{{ order.user.first_name }}</td>
                 <td><a href="invoices/{{ order.id }}">
