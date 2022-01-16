@@ -16,15 +16,21 @@
                 <td class="form-input-td">{{ product_form.title }}</td>
             </tr>
             <tr>
-                <th scope="row" class="text-right">HSN:</th>
-                <td class="form-input-td">{{ product_form.product_hsn }}</td>
+                <th scope="row" class="text-right">Product Code:</th>
+                <td class="form-input-td">{{ product_form.code }}</td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right"><label for="id_product_hsn">HSN:</label></th>
+                <td class="form-input-td"><input type="text" name="product_hsn" id="id_product_hsn" list="hsn"></td>
+            </tr>
+            <tr>
+                <th scope="row" class="text-right">GST Percent</th>
+                <td class="form-input-td">{{ product_form.gst_percent }}</td>
             </tr>
             <tr>
                 <th scope="row" class="text-right">Price:</th>
                 <td class="form-input-td">{{ product_form.price }}</td>
             </tr>
-
-
             <tr>
                 <th scope="row" class="text-right">Product stock:</th>
                 <td class="form-input-td">{{ product_form.stock }}</td>
@@ -38,9 +44,32 @@
                 <th scope="row" class="text-right">price 3</th>
                 <td class="form-input-td">{{ product_form.price3 }}</td>
             </tr>
+            <tr>
+                <th scope="row" class="text-right">Discount</th>
+                <td class="form-input-td">{{ product_form.discount }}</td>
+            </tr>
             </tbody>
         </table>
 
         <input type="submit" class="btn btn-primary float-right" value="Submit">
     </form>
+
+    <datalist id="hsn"></datalist>
+
+    <script>
+        const gst = document.getElementById("id_gst_percent");
+        const hsn = document.getElementById("id_product_hsn");
+        const list = document.getElementById("hsn");
+
+        const db = {};
+
+        hsn.onkeyup = async ({target}) => {
+            const {results} = await fetch(`/bill/hsn/?search=${target.value}`).then((res) => res.json());
+
+            list.innerHTML = results.map(({first_name, id}) => `<option data-id="${id}" value="${first_name}">`)
+                .join("");
+
+            results.forEach(({id, Addresses}) => db[id] = Addresses[0])
+        }
+    </script>
 {% endblock %}

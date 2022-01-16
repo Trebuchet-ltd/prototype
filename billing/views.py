@@ -162,10 +162,11 @@ def product_add(request):
         product_form = ProductForm(request.POST)
         if product_form.is_valid():
             new_product = product_form.save(commit=False)
-            new_product.user = request.user
+            new_product.organisation = request.user.tokens.organisation
             new_product.save()
 
-            return redirect('products')
+        print(product_form.errors)
+
     context = {'product_form': ProductForm()}
     return render(request, 'gstbillingapp/product_edit.html', context)
 
