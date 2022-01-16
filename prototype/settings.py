@@ -70,7 +70,8 @@ INSTALLED_APPS = [
     # custom
     'home',
     'auth_login',
-    'billing'
+    'billing',
+    'organisation',
 ]
 
 application_name = "dreameat"
@@ -154,7 +155,6 @@ USE_L10N = True
 USE_TZ = True
 
 DEPLOYMENT_URL = 'https://api.dev.dreameat.in'
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/

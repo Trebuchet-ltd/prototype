@@ -11,7 +11,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from home.models import Orders, OrderItem
+from home.models import Orders
 from home.models import Product
 from .forms import ProductForm
 from .utils import invoice_data_processor
@@ -58,8 +58,6 @@ def invoice_create(request):
         print(f"Valid Invoice Data {json.loads(request.body) = }")
         invoice_data_processor(invoice_data)
 
-        customer = None
-
     return render(request, 'gstbillingapp/invoice_create.html', context)
 
 
@@ -76,8 +74,7 @@ def orders(request):
 
 @login_required
 def invoices(request):
-    context = {}
-    context['orders'] = Orders.objects.all().order_by('-id')
+    context = {'orders': Orders.objects.all().order_by('-id')}
     return render(request, 'gstbillingapp/invoices.html', context)
 
 
@@ -92,15 +89,13 @@ def invoice_delete(request):
 
 @login_required
 def customers(request):
-    context = {}
-    context['customers'] = User.objects.all()
+    context = {'customers': User.objects.all()}
     return render(request, 'gstbillingapp/customers.html', context)
 
 
 @login_required
 def products(request):
-    context = {}
-    context['products'] = Product.objects.all()
+    context = {'products': Product.objects.all()}
     return render(request, 'gstbillingapp/products.html', context)
 
 
@@ -110,10 +105,9 @@ def product_edit(request, product_id):
     if request.method == "POST":
         product_form = ProductForm(request.POST, instance=product_obj)
         if product_form.is_valid():
-            new_product = product_form.save()
+            product_form.save()
             return redirect('products')
-    context = {}
-    context['product_form'] = ProductForm(instance=product_obj)
+    context = {'product_form': ProductForm(instance=product_obj)}
     return render(request, 'gstbillingapp/product_edit.html', context)
 
 
@@ -127,8 +121,7 @@ def product_add(request):
             new_product.save()
 
             return redirect('products')
-    context = {}
-    context['product_form'] = ProductForm()
+    context = {'product_form': ProductForm()}
     return render(request, 'gstbillingapp/product_edit.html', context)
 
 
@@ -141,6 +134,10 @@ def product_delete(request):
     return redirect('products')
 
 
+@login_required
 def landing_page(request):
-    context = {}
-    return render(request, 'gstbillingapp/pages/landing_page.html', context)
+
+    if request.user.tokens.org:
+        context = {"org": request.user.tokens.org}
+        return render(request, 'gstbillingapp/pages/landing_page.html', context)
+    return redirect('/')
