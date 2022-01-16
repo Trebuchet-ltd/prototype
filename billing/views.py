@@ -87,7 +87,7 @@ def orders(request):
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def invoices(request):
-    context = {'orders': Orders.objects.all().order_by('-id')}
+    context = {'orders': Orders.objects.filter(organisation=request.user.tokens.organisation).order_by('-id')}
     return render(request, 'gstbillingapp/invoices.html', context)
 
 
@@ -150,8 +150,7 @@ def show_invoice(request, invoice_id):
     invoice = get_object_or_404(Orders, id=invoice_id, organisation=request.user.tokens.organisation)
     items = OrderItem.objects.filter(order=invoice, organisation=request.user.tokens.organisation)
 
-    context = {"invoice": invoice, "items": items}
-    return render(request, 'gstbillingapp/invoice_show.html', context=context)
+    return render(request, 'gstbillingapp/invoice_show.html', context={"invoice": invoice, "items": items})
 
 
 @login_required
