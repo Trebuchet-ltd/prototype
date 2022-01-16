@@ -1,6 +1,8 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from organisation.models import Organisation
+
 
 class HsnCode(models.Model):
     code = models.CharField(max_length=10, primary_key=True)
@@ -14,7 +16,8 @@ class BillingProduct(models.Model):
     code = models.CharField(max_length=8)
     price = models.FloatField()
     stock = models.IntegerField()
-    discount = models.PositiveIntegerField(validators=[MaxValueValidator(100)])
+    discount = models.PositiveIntegerField(validators=[MaxValueValidator(100)], default=0)
     price2 = models.FloatField(default=0)
     price3 = models.FloatField(default=0)
     gst_percent = models.PositiveIntegerField(validators=[MaxValueValidator(100)])
+    organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT)
