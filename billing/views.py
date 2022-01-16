@@ -2,21 +2,24 @@ import datetime
 import json
 
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
-from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from home.models import Orders, OrderItem, Purchase
 from home.models import Product
+from home.serializers import OrderSerializer
 from .forms import ProductForm
 from .utils import invoice_data_processor, product_data_processor
-from home.serializers import OrderSerializer
+
+
+def test(user):
+    return True if user.tokens.organisation else False
 
 
 def login_view(request):
@@ -55,11 +58,13 @@ def refactor(request, function, model):
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def invoice_create(request):
     return render(request, 'gstbillingapp/invoice_create.html', refactor(request, invoice_data_processor, Orders))
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def purchase_create(request):
     return render(request, 'gstbillingapp/purchase_create.html', refactor(request, product_data_processor, Purchase))
 
@@ -76,18 +81,21 @@ def orders(request):
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def invoices(request):
     context = {'orders': Orders.objects.all().order_by('-id')}
     return render(request, 'gstbillingapp/invoices.html', context)
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def purchases(request):
     context = {'orders': Purchase.objects.all().order_by('-id')}
     return render(request, 'gstbillingapp/purchases.html', context)
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def invoice_delete(request):
     if request.method == "POST":
         invoice_id = request.POST["invoice_id"]
@@ -97,18 +105,21 @@ def invoice_delete(request):
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def customers(request):
     context = {'customers': User.objects.all()}
     return render(request, 'gstbillingapp/customers.html', context)
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def products(request):
     context = {'products': Product.objects.all()}
     return render(request, 'gstbillingapp/products.html', context)
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def product_edit(request, product_id):
     product_obj = Product.objects.get(id=product_id)
     if request.method == "POST":
@@ -121,6 +132,7 @@ def product_edit(request, product_id):
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def invoice_viewer(request, invoice_id):
     invoice_obj = Orders.objects.get(id=invoice_id)
 
@@ -128,6 +140,7 @@ def invoice_viewer(request, invoice_id):
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def show_invoice(request, invoice_id):
     invoice = Orders.objects.get(id=invoice_id)
     items = OrderItem.objects.filter(order=invoice)
@@ -137,6 +150,7 @@ def show_invoice(request, invoice_id):
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def product_add(request):
     if request.method == "POST":
         product_form = ProductForm(request.POST)
@@ -151,6 +165,7 @@ def product_add(request):
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def product_delete(request):
     if request.method == "POST":
         product_id = request.POST["product_id"]
@@ -160,8 +175,8 @@ def product_delete(request):
 
 
 @login_required
+@user_passes_test(test, redirect_field_name='/')
 def landing_page(request):
-
     if request.user.tokens.org:
         context = {"org": request.user.tokens.org}
         return render(request, 'gstbillingapp/pages/landing_page.html', context)
