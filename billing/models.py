@@ -3,9 +3,9 @@ from django.db import models
 
 
 class HsnCode(models.Model):
-    code = models.CharField(max_length=6, primary_key=True)
-    description = models.TextField()
-    gst_percent = models.FloatField(validators=[MaxValueValidator(100), MinValueValidator(0)])
+    code = models.CharField(max_length=10, primary_key=True)
+    description = models.TextField(max_length=1500, blank=True, null=True)
+    gst_percent = models.FloatField(validators=[MaxValueValidator(100), MinValueValidator(0)], blank=True, null=True)
 
 
 class BillingProduct(models.Model):
