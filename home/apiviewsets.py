@@ -18,7 +18,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     API end point to get all product details
     """
     http_method_names = ['get']
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(organisation__show_own_website=True)
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ['bestSeller', 'meat', 'meat__category', "meat__code", 'code']
@@ -218,8 +218,6 @@ def confirm_order(request):
     if not is_available_district(address_obj.pincode):
         logger.info("Request not accepted because pincode is not available ")
         return Response({"error": "Delivery to this address is not available"}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
-
 
     amount, actual_amount = total_amount(user, address_obj, coupon_code, points)
     amount_saved = actual_amount - amount

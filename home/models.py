@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-
 # Create your models here.
 from organisation.models import Organisation
 
@@ -63,6 +62,7 @@ class Product(models.Model):
     nutrition = models.ManyToManyField(Nutrition, through=NutritionQuantity, related_name='nutrition_quantity')
     product_gst_percentage = models.FloatField(default=0)
     product_rate_with_gst = models.FloatField(default=0)
+    organisation = models.ForeignKey('organisation.Organisation', on_delete=models.PROTECT, blank=True, null=True)
 
     def __str__(self):
         return self.title
@@ -196,6 +196,7 @@ class Orders(models.Model):
     status = models.CharField(max_length=10, choices=order_status, default='preparing')
     coupon = models.ForeignKey(Coupon, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
     used_points = models.IntegerField(default=0, blank=True, null=True)
+    organisation = models.ForeignKey('organisation.Organisation',on_delete=models.CASCADE )
 
     def __str__(self):
         return f"{self.user} , date-{self.date} , status -{self.status} "
@@ -322,7 +323,6 @@ class Tokens(models.Model):
     amount_saved = models.IntegerField(default=0)
     org = models.ForeignKey(Organisation, related_name='tokens', on_delete=models.SET_NULL, null=True,
                             blank=True)
-
 
     def __str__(self):
         return f"{self.user} "
