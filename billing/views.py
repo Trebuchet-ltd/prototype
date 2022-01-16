@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, filters
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -194,4 +194,5 @@ class HSNViewSet(viewsets.ModelViewSet):
     queryset = HsnCode.objects.all()
     serializer_class = HSNSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    filter_backends = [filters.SearchFilter]
     search_fields = ['code', 'description', ]
