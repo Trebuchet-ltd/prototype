@@ -47,6 +47,7 @@ def add_items(products, order=None, purchase=None):
                 if cleaned and item.can_be_cleaned:
                     total += item.cleaned_price * weight
                 else:
+
                     total += item.price * weight
 
                 item.stock -= int(weight)

@@ -7,6 +7,9 @@ from django.db import models
 
 
 # Create your models here.
+from organisation.models import Organisation
+
+
 class Nutrition(models.Model):
     name = models.CharField(max_length=40)
 
@@ -36,7 +39,6 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    weight_choice = ((250, 250), (500, 500), (1000, 1000))
     title = models.CharField(max_length=255)
     short_description = models.TextField(max_length=2048, default='')
     product_hsn = models.CharField(max_length=50, null=True, blank=True)
@@ -54,8 +56,8 @@ class Product(models.Model):
     can_be_cleaned = models.BooleanField(default=0, blank=True, null=True,
                                          help_text='1->Can be cleaned, 0->Can not be cleaned')
     cleaned_price = models.FloatField(blank=True, null=True, )
-    weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0,
-                                                     choices=weight_choice), blank=True, null=True, default=list)
+    weight_variants = ArrayField(models.IntegerField(blank=True, null=True, default=0, ), blank=True, null=True,
+                                 default=list)
     discount = models.FloatField(default=0, help_text='discount in percentage')
     icon = models.ImageField(upload_to='images/', null=True, blank=True, help_text="Upload the icon ")
     nutrition = models.ManyToManyField(Nutrition, through=NutritionQuantity, related_name='nutrition_quantity')
@@ -130,7 +132,8 @@ class Addresses(models.Model):
     pincode = models.CharField(max_length=6)
     state = models.TextField(max_length=25, blank=True, null=True)
     phone = models.CharField(max_length=15)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="Addresses", on_delete=models.CASCADE, blank=True,
+                             null=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     delivery_charge = models.IntegerField(null=True, blank=True, choices=((0, 0), (30, 30), (60, 60)))
@@ -317,6 +320,9 @@ class Tokens(models.Model):
     first_purchase_done = models.BooleanField(default=False)
     total_points_yet = models.IntegerField(default=0)
     amount_saved = models.IntegerField(default=0)
+    org = models.ForeignKey(Organisation, related_name='tokens', on_delete=models.SET_NULL, null=True,
+                            blank=True)
+
 
     def __str__(self):
         return f"{self.user} "

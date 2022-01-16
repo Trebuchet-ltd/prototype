@@ -53,6 +53,7 @@ def refactor(request, function, model):
     return context
 
 
+
 @login_required
 def invoice_create(request):
     return render(request, 'gstbillingapp/invoice_create.html', refactor(request, invoice_data_processor, Orders))
@@ -158,6 +159,10 @@ def product_delete(request):
     return redirect('products')
 
 
+@login_required
 def landing_page(request):
-    context = {}
-    return render(request, 'gstbillingapp/pages/landing_page.html', context)
+
+    if request.user.tokens.org:
+        context = {"org": request.user.tokens.org}
+        return render(request, 'gstbillingapp/pages/landing_page.html', context)
+    return redirect('/')

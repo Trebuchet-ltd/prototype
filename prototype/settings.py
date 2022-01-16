@@ -70,7 +70,8 @@ INSTALLED_APPS = [
     # custom
     'home',
     'auth_login',
-    'billing'
+    'billing',
+    'organisation',
 ]
 
 application_name = "dreameat"
