@@ -36,38 +36,36 @@ def login_view(request):
     return render(request, 'gstbillingapp/login.html', context)
 
 
-def refactor(request, function, model):
-    context = {}
-    last_order = model.objects.all().order_by('-id').first()
-    if last_order:
-        context['default_invoice_number'] = last_order.id + 1
-    else:
-        context['default_invoice_number'] = 1
+def refactor(request, function, model, org):
+    context = {
+        'default_invoice_number': 1 + (model.objects.all().order_by('-id').first() or {"id": 0})["id"],
+        'default_invoice_date': datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
+    }
 
-    context['default_invoice_date'] = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
     if request.method == 'POST':
         invoice_data = json.loads(request.body)
-
-        function(invoice_data)
+        function(invoice_data, org)
 
     return context
 
 
 @login_required
 def invoice_create(request):
-    return render(request, 'gstbillingapp/invoice_create.html', refactor(request, invoice_data_processor, Orders))
+    context = refactor(request, invoice_data_processor, Orders, request.user.token.organisation)
+    return render(request, 'gstbillingapp/invoice_create.html', context)
 
 
 @login_required
 def purchase_create(request):
-    return render(request, 'gstbillingapp/purchase_create.html', refactor(request, product_data_processor, Purchase))
+    context = refactor(request, invoice_data_processor, Orders, request.user.token.organisation)
+    return render(request, 'gstbillingapp/purchase_create.html', context)
 
 
 @api_view(["POST"])
 def orders(request):
     invoice_data = request.data
 
-    order = invoice_data_processor(invoice_data)
+    order = invoice_data_processor(invoice_data, request.user.token.organisation)
 
     serializer = OrderSerializer(data=order, many=False)
     serializer.is_valid(raise_exception=True)
@@ -160,7 +158,6 @@ def product_delete(request):
 
 @login_required
 def landing_page(request):
-
     if request.user.tokens.org:
         context = {"org": request.user.tokens.org}
         return render(request, 'gstbillingapp/pages/landing_page.html', context)

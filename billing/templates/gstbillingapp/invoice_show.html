@@ -7,152 +7,124 @@
 
 {% block content %}
 
-    <h2>Invoice</h2>
+    <div class="offset-xl-2 col-xl-8 col-lg-12 col-md-12 col-sm-12 col-12 padding">
+        <div class="card">
+            <div class="card-header p-4">
+                <div class="float-right">
+                    <h3 class="mb-0">Invoice #{{ invoice.id }}</h3>
+                    Date: {% string invoice.date %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-sm-6">
+                        <h5 class="mb-3">From:</h5>
+                        <h3 class="text-dark mb-1">{{ invoice.organisation.name }}</h3>
+                        <div>{{ invoice.organisation.address }}</div>
+                        <div>Phone: {{ invoice.organisation.mobile_number }}</div>
+                    </div>
+                    <div class="col-sm-6 ">
+                        <h5 class="mb-3">To:</h5>
+                        <h3 class="text-dark mb-1">{{ invoice.user.first_name }}</h3>
+                        <div>{{ invoice.address.address }}</div>
+                        <div>Phone: {{ invoice.address.phone }}</div>
+                    </div>
+                </div>
+                <div class="table-responsive-sm">
+                    <table class="table table-striped">
+                        <thead>
+                        <tr>
+                            <th class="table-active" scope="col" colspan="11">Items</th>
+                        </tr>
+                        <tr>
+                            <th scope="col">SlNo</th>
+                            <th scope="col">Code</th>
+                            <th scope="col">Product</th>
+                            <th scope="col">Weight / Qty</th>
 
-    <form>
+                            <th scope="col">Rate without GST</th>
+                            <th scope="col">Amt without GST</th>
+                            <th scope="col">SGST</th>
+                            <th scope="col">CGST</th>
+                            <th scope="col">IGST</th>
+                            <th scope="col">Amt with GST</th>
+                        </tr>
+                        </thead>
 
-        <table class="table table-bordered">
-            <thead>
-            <tr>
-                <th class="table-active" scope="col" colspan="4">Invoice Details</th>
-            </tr>
-            </thead>
+                        <tbody id="">
+                        {% for item in items %}
+                            <tr>
+                                <td class="form-input-td" id="sl_no" disabled align="center">
+                                    {{ forloop.counter }}
+                                </td>
 
-            <tbody class="two-col-form">
-            <tr>
-                <th scope="row">Invoice Number</th>
-                <td class="form-input-td">
-                    <input name="invoice-number" type="number" class="form-control" placeholder="Invoice Number"
-                           value="{{ invoice.id }}" readonly>
-                </td>
-                <th scope="row">Date</th>
-                <td class="form-input-td">
-                    <input name="invoice-date" type="date" class="form-control" value="{% string invoice.date %}"
-                           readonly>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                                <td class="form-input-td">
+                                    {% code_of item %}
+                                </td>
+                                <td class="form-input-td">
+                                    {% name_of item %}
+                                </td>
 
-        <table class="table table-bordered">
-            <thead>
-            <tr>
-                <th class="table-active" scope="col" colspan="7">Customer Details</th>
-            </tr>
-            </thead>
+                                <td class="form-input-td">
+                                    {% quantity_of item %}
+                                </td>
+                                <td class="form-input-td">
+                                   {{ item.price }}
+                                </td>
+                                <td class="form-input-td">
+                                    {% multiply item.quantity item.price item.item.weight %}
+                                </td>
+                                <td class="form-input-td">
+                                    {% multiply item.item.product_gst_percentage 0.5 %}
+                                </td>
+                                <td class="form-input-td">
+                                    {% multiply item.item.product_gst_percentage 0.5 %}
+                                </td>
+                                <td class="form-input-td">
+                                    0
+                                </td>
+                                <td class="form-input-td">
+                                    {% price_of item %}
+                                </td>
+                                <td hidden disabled>
+                                    {{ item.item.id }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4 col-sm-5">
+                    </div>
+                    <div class="col-lg-4 col-sm-5 ml-auto">
+                        <table class="table table-clear">
+                            <tbody>
+                            <tr>
+                                <td class="left">
+                                    <strong class="text-dark">Total</strong></td>
+                                <td class="right">
+                                    <strong class="text-dark">{{ invoice.total }} ₹</strong>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <tbody>
-            <tr>
-                <th scope="row">Customer Name</th>
-                <td class="form-input-td customer_search_area">
-                    <input value="{{ invoice.user.first_name }}" type="text" class="form-control customer_search_input"
-                           id="customer-name-input" placeholder="Customer Name" required>
-                </td>
-                <th scope="row">Customer Address</th>
-                <td class="form-input-td" colspan="3">
-                    <input type="text" class="form-control" id="customer-address-input" placeholder="Customer Address"
-                           value="{{ invoice.address.address }}" required>
-                </td>
-            </tr>
-            <tr>
-                <th scope="row">Customer Mobile Number</th>
-                <td class="form-input-td">
-                    <input type="tel" class="form-control" id="customer-phone-input"
-                           value="{{ invoice.user.username }}" placeholder="Customer Mobile Number" required>
-                </td>
-                <th scope="row">Pin Code</th>
-                <td class="form-input-td">
-                    <input value="{{ invoice.address.pincode }}"
-                           type="number" class="form-control" id="customer-pin-input" placeholder="PIN Code" required>
-                </td>
-                <th scope="row">GST</th>
-                <td class="form-input-td">
-                    <input type="text" class="form-control" id="customer-gst-input" placeholder="Customer GST">
-                </td>
-            </tr>
+    <footer>
+        <button type="button" class="btn-primary px-3 py-1 mb-5 mt-3" onclick="printer()" id="printer">Print</button>
+    </footer>
 
-            </tbody>
-        </table>
-
-        <table class="table table-bordered" id="invoice-form-items-table">
-            <thead>
-            <tr>
-                <th class="table-active" scope="col" colspan="11">Items</th>
-            </tr>
-            <tr>
-                <th scope="col">SlNo</th>
-                <th scope="col">Code</th>
-                <th scope="col">Product</th>
-                <th scope="col">Weight / Qty</th>
-
-                <th scope="col">Rate without GST</th>
-                <th scope="col">Amt without GST</th>
-                <th scope="col">SGST</th>
-                <th scope="col">CGST</th>
-                <th scope="col">IGST</th>
-                <th scope="col">Amt with GST</th>
-            </tr>
-            </thead>
-
-            <tbody id="invoice-form-items-table-body">
-            {% for item in items %}
-                <tr>
-                    <td class="form-input-td" id="sl_no" disabled align="center">
-                    </td>
-
-                    <td class="form-input-td">
-                        <input value="{% code_of item %}"
-                               type="text" id="code" list="code_options"
-                               class="form-control product_search_area product_search_input" placeholder="Product Code">
-                    </td>
-                    <td class="form-input-td">
-                        <input value="{% name_of item %}"
-                               type="text" id="name" list="name_options"
-                               class="form-control product_search_area product_search_input" placeholder="Product">
-                    </td>
-
-                    <td class="form-input-td">
-                        <input value="{% quantity_of item %}" type="text" id="quantity"
-                               class="form-control" placeholder="Quantity">
-                    </td>
-                    <td class="form-input-td">
-                        <input {{ item.price }} type="number" id="rate_wo_gst" step="any" class="form-control" readonly>
-                    </td>
-                    <td class="form-input-td">
-                        <input value="{% multiply item.quantity item.price item.item.weight %}"
-                               type="number" id="amt_wo_gst" step="any" class="form-control" readonly>
-                    </td>
-                    <td class="form-input-td">
-                        <input value="{% multiply item.item.product_gst_percentage 0.5 %}"
-                                type="number" id="s_gst" step="any" class="form-control" readonly>
-                    </td>
-                    <td class="form-input-td">
-                        <input value="{% multiply item.item.product_gst_percentage 0.5 %}"
-                                type="number" id="c_gst" step="any" class="form-control" readonly>
-                    </td>
-                    <td class="form-input-td">
-                        <input value="0" type="number" id="i_gst" step="any" class="form-control" readonly>
-                    </td>
-                    <td class="form-input-td">
-                        <input value="{% price_of item %}"
-                               type="number" id="amt" step="any" class="form-control" readonly>
-                    </td>
-                    <td hidden disabled>
-                        <input id="id" value="{{ item.item.id }}">
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-
-            <tr>
-                <td colspan="9" class="text-center align-content-center"><strong>TOTAL:</strong></td>
-                <td colspan="2" class="text-center">
-                    <input value="{{ invoice.total }}" id="invoice-total" type="number" step="any" class="form-control"
-                           readonly>
-                </td>
-            </tr>
-
-        </table>
-    </form>
+    <script>
+        function printer() {
+            document.getElementById("printer").hidden = true;
+            window.print();
+            document.getElementById("printer").hidden = false;
+        }
+    </script>
 
 {% endblock %}

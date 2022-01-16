@@ -29,7 +29,7 @@ def quantity_of(item):
 
 @register.simple_tag()
 def price_of(item):
-    return item.quantity * item.price * item.item.weight * (item.item.product_gst_percentage + 100)
+    return item.quantity * item.price * item.item.weight * (item.item.product_gst_percentage/100.0 + 1)
 
 
 @register.simple_tag()
