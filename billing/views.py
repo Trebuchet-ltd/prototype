@@ -165,7 +165,7 @@ def product_add(request):
             new_product.organisation = request.user.tokens.organisation
             if new_product.product_hsn:
                 new_product.product_hsn.gst_percent = new_product.gst_percent
-                new_product.product_hsn.gst_percent.save()
+                new_product.product_hsn.save()
             new_product.save()
 
         print(product_form.errors, product_form.is_valid())
