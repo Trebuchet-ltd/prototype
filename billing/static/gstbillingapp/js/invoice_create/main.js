@@ -63,7 +63,7 @@ async function search(row, name, code = null) {
 
     [code, name] = [code?.replace("*", ""), name?.replace("-Cleaned", "")]
 
-    const results = await fetch(`/bill/bill_products?${code ? "code" : "title"}=${name || code}`)
+    const results = await fetch(`/bill/bill_products?${code ? "code" : "search"}=${name || code}`)
         .then((res) => res.json())
         .then((json) => json.results);
 

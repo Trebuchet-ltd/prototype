@@ -66,6 +66,7 @@ def refactor(request, function, model, org):
 @user_passes_test(test, redirect_field_name='/')
 def invoice_create(request):
     context = refactor(request, invoice_data_processor, Orders, request.user.tokens.organisation)
+
     return render(request, 'gstbillingapp/invoice_create.html', context)
 
 
