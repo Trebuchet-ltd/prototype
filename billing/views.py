@@ -226,7 +226,7 @@ class BillingViewSet(viewsets.ModelViewSet):
     queryset = BillingProduct.objects.all()
     serializer_class = BillingProductSerializer
     permission_classes = [IsOrganiserUser]
-    ilter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
+    filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'product_hsn', 'code']
     filterset_fields  = ['title', 'product_hsn', 'code']
 
