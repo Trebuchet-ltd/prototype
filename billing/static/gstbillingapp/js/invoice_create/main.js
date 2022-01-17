@@ -124,6 +124,7 @@ async function checkout() {
                     phone: document.getElementById("customer-phone-input").value,
                     gst: document.getElementById("customer-gst-input").value,
                     type: document.getElementById("invoice_type").value,
+                    form: document.getElementById("form-category").value,
                     products
                 }
             )

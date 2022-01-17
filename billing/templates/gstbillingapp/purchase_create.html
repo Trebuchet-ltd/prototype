@@ -41,6 +41,7 @@
             </thead>
 
             <tbody>
+
             <tr>
                 <th scope="row">Customer Name</th>
                 <td class="form-input-td customer_search_area">
@@ -105,6 +106,16 @@
         </table>
 
         {% csrf_token %}
+        <td class="form-input-td ">
+            <select id="invoice_type" hidden required>
+                <option value="c" selected>B to C</option>
+            </select>
+        </td>
+        <td class="form-input-td ">
+            <select id="form-category" hidden required>
+                <option value="c" selected>purchase</option>
+            </select>
+        </td>
 
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>

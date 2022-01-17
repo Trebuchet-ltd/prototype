@@ -194,7 +194,7 @@ class Orders(models.Model):
     coupon = models.ForeignKey(Coupon, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
     used_points = models.IntegerField(default=0, blank=True, null=True)
     organisation = models.ForeignKey('organisation.Organisation', on_delete=models.CASCADE, default=1)
-    invoice_number = models.PositiveIntegerField()
+    invoice_number = models.PositiveIntegerField(default=0)
     type = models.CharField(max_length=1, choices=[("b", "B to B"), ("c", "C to C")], default="c")
 
     def __str__(self):
