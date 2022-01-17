@@ -105,15 +105,19 @@
     </div>
 
     <footer>
-        <button type="button" class="btn-primary px-3 py-1 mb-5 mt-3" onclick="printStart()" id="printer">Print</button>
+        <button type="button" class="btn-primary px-3 py-1 mb-5 mt-3" onclick="printBill()" id="printer">Print</button>
     </footer>
 
-    <script src="{% static "gstbillingapp/js/invoice_show/printer.js" %}"></script>
-
     <script>
-        function printStart()
+        function printBill()
         {
-            printBill()
+            const printer = window.open("", "_blank");
+
+            printer.document.write(`<pre>{{ bill }}</pre>`);
+            printer.document.close();
+
+            printer.focus();
+            printer.print();
         }
     </script>
 

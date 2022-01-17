@@ -1,4 +1,5 @@
 import datetime
+from typing import List
 
 from django.contrib.auth.models import User
 
@@ -96,3 +97,81 @@ def product_data_processor(invoice_post_data, org):
     purchase.save()
 
     return purchase
+
+
+def render_bill(body, qty, total, seller, customer, date, invoice_id, gst_subtotal):
+    return f"""
+GST IN: {seller['gst']:<{55}}Phone : {seller['phone']:>{12}}
+{seller['name']:^{83}}
+{seller['address']:^{83}}
+{"Tax Invoice":^{83}}
+
+    To                                           Invoice Number : {invoice_id}
+                                                 Invoice Date : {date}
+        {customer['name']}
+        {customer['address']}
+        {customer['phone']}
+        {customer['gst']}
+        
++---------------------------------------------------------------------------------+
+| Sl |  Code  |             Product             |  Qty  | Price | GST | Net Price |
++---------------------------------------------------------------------------------+
+{body}
++---------------------------------------------------------------------------------+
+|                                                           Sub Total:            |
++---------------------------------------------------------------------------------+
+{gst_subtotal}
++---------------------------------------------------------------------------------+
+|             Total                             |{qty:>{7}}|{total:>{25}}|
++---------------------------------------------------------------------------------+
+    """
+
+
+def create_bill(invoice: Orders, items: List[OrderItem], invoice_id):
+    rows = []
+    qty, total, gst = 0, 0, 0
+
+    for sl, i in enumerate(items):
+        ii = i.item
+
+        net = i.price * i.quantity
+        title = ii.title
+        line2 = False
+
+        qty += i.quantity
+        total += net
+        gst += ii.gst_percent * net / (100.0 + ii.gst_percent)
+
+        if len(title) > 33:
+            line1 = title[:32] + '-'
+            line2 = title[32:]
+        else:
+            line1 = title
+        rows.append(
+            f"|{sl + 1:>{4}}|{ii.code:<{8}}|{line1:<{33}}|{i.quantity:>{7}}|{i.price:>{7}}|{ii.gst_percent:>{4}}%|{net:>{11}}|")
+        if line2:
+            rows.append(f"|{'':>{4}}|{'':<{8}}|{line2:<{33}}|{'':>{7}}|{'':<{7}}|{'':<{5}}|{'':>{11}}|")
+
+    seller = {
+        "name": invoice.organisation.name,
+        "phone": invoice.organisation.address.phone,
+        "gst": invoice.organisation.gst_no,
+        "address": invoice.organisation.address.address
+    }
+
+    customer = {
+        "name": invoice.address.name,
+        "phone": invoice.address.phone,
+        "address": invoice.address.address,
+        "gst": invoice.address.gst
+    }
+
+    if 670001 < int(invoice.address.pincode) < 695615:
+        g = str(round(gst / 2, 1))
+        gst_s = f"|{'':<{62}}CGST : {g:<{12}}|"
+        gst_s += f"\n|{'':<{62}}SGST : {g:<{12}}|"
+    else:
+        g = str(round(gst, 1))
+        gst_s = f"|{'':<{62}}IGST : {g:<{12}}|"
+
+    return render_bill("\n".join(rows), qty, total, seller, customer, invoice.date, invoice_id, gst_s)

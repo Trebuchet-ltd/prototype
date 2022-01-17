@@ -5,6 +5,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -18,7 +19,7 @@ from home.serializers import OrderSerializer
 from .forms import ProductForm
 from .models import HsnCode, BillingProduct
 from .serializers import HSNSerializer, BillingProductSerializer
-from .utils import invoice_data_processor, product_data_processor
+from .utils import invoice_data_processor, product_data_processor, create_bill
 
 
 def test(user):
@@ -147,13 +148,27 @@ def invoice_viewer(request, invoice_id):
 
 @login_required
 @user_passes_test(test, redirect_field_name='/')
+def get_bill(request, invoice_id):
+    invoice = get_object_or_404(Orders, id=invoice_id, organisation=request.user.tokens.organisation)
+    items = OrderItem.objects.filter(order=invoice)
+
+    prefix = invoice.organisation.c_invoice_prefix if invoice.type == "c" else invoice.organisation.b_invoice_prefix
+
+    bill = create_bill(invoice, items, f'{prefix}{invoice.invoice_number}')
+
+    return JsonResponse({"bill": bill})
+
+@login_required
+@user_passes_test(test, redirect_field_name='/')
 def show_invoice(request, invoice_id):
     invoice = get_object_or_404(Orders, id=invoice_id, organisation=request.user.tokens.organisation)
     items = OrderItem.objects.filter(order=invoice)
 
     prefix = invoice.organisation.c_invoice_prefix if invoice.type == "c" else invoice.organisation.b_invoice_prefix
 
-    context = {"invoice": invoice, "items": items, "invoice_number": f'{prefix}{invoice.invoice_number}'}
+    bill = create_bill(invoice, items, f'{prefix}{invoice.invoice_number}')
+
+    context = {"invoice": invoice, "items": items, "invoice_number": f'{prefix}{invoice.invoice_number}', "bill": bill}
 
     return render(request, 'gstbillingapp/invoice_show.html', context=context)
 

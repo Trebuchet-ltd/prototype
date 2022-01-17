@@ -96,7 +96,7 @@ async function checkout() {
             continue;
 
         if (name in names) {
-            if(window.confirm(`Merge Duplicate entry for ${name} ?`))
+            if (window.confirm(`Merge Duplicate entry for ${name} ?`))
                 products[names[name]] = {...products[names[name]], quantity: quantity + products[names[name]].quantity};
 
             continue;
@@ -127,9 +127,19 @@ async function checkout() {
                     products
                 }
             )
-        });
+        }).then((res) => res.json())
 
-    printBill(await order.json());
+    const {bill} = await fetch(`/bill/get/${await order.id}`).then((res) => res.json());
+
+    const printer = window.open("", "_blank");
+
+    printer.document.write(`<pre>${ bill }</pre>`);
+    printer.document.close();
+
+    printer.focus();
+    printer.print();
+
+    // printBill(await order.json());
 }
 
 for (let i = 0; i < 3; i++)

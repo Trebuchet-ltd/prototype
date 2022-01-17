@@ -28,6 +28,7 @@ urlpatterns = [
     path('products/add', views.product_add, name='product_add'),
     path('products/edit/<int:product_id>', views.product_edit, name='product_edit'),
     path('invoices/<int:invoice_id>', views.show_invoice, name='show_invoice'),
+    path('get/<int:invoice_id>', views.get_bill, name='get_bill'),
     path('products/delete', views.product_delete, name='product_delete'),
 
 ]
