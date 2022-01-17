@@ -1,7 +1,7 @@
 import datetime
 import json
-import django_filters
 
+import django_filters
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
@@ -160,6 +160,7 @@ def get_bill(request, invoice_id):
 
     return JsonResponse({"bill": bill})
 
+
 @login_required
 @user_passes_test(test, redirect_field_name='/')
 def show_invoice(request, invoice_id):
@@ -230,7 +231,7 @@ class BillingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOrganiserUser]
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
     search_fields = ['title', 'product_hsn', 'code']
-    filterset_fields  = ['title', 'product_hsn', 'code']
+    filterset_fields = ['title', 'product_hsn', 'code']
 
     def get_queryset(self):
         if self.request.user.tokens.organisation:

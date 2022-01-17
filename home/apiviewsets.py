@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from authentication.permissions import IsOwner, IsMyCartItem
-from billing.utils import invoice_data_processor, product_data_processor
+from billing.utils import invoice_data_processor
 from home.serializers import *
 from .functions import *
 
@@ -287,10 +287,8 @@ class OrderViewSets(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"], url_path='order')
     def order(self, request, *args, **kwargs):
         invoice_data = request.data
-        if invoice_data['form'] == "invoice":
-            order = invoice_data_processor(invoice_data, request.user.tokens.organisation)
-        else:
-            order = product_data_processor(invoice_data, request.user.tokens.organisation)
+
+        order = invoice_data_processor(invoice_data, request.user.tokens.organisation)
 
         serializer = self.get_serializer(order, many=False)
         return Response(serializer.data, status=200)
