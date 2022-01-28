@@ -76,7 +76,6 @@ def signin(request):
     if request.method == "POST":
         email = request.POST["email"]
         password = request.POST["password"]
-        print(email, password)
         if not email or not password:
             context1['pswderr'] = "Text fields cannot be empty"
         user = authenticate(request, username=email, password=password)

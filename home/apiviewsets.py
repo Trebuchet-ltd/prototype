@@ -273,10 +273,10 @@ class CartViewSets(viewsets.ModelViewSet):
 
 
 class OrderViewSets(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Orders.objects.all()
     serializer_class = OrderSerializer
-    http_method_names = ['get', 'post']
+    http_method_names = ['get', ]
 
     def get_queryset(self):
         if self.request.user.is_superuser:
