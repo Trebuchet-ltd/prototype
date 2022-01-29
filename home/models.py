@@ -193,7 +193,7 @@ class Orders(models.Model):
     status = models.CharField(max_length=10, choices=order_status, default='preparing')
     coupon = models.ForeignKey(Coupon, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
     used_points = models.IntegerField(default=0, blank=True, null=True)
-    organisation = models.ForeignKey('organisation.Organisation', on_delete=models.CASCADE, default=1)
+    organisation = models.ForeignKey('organisation.Organisation', on_delete=models.CASCADE)
     invoice_number = models.PositiveIntegerField(default=0)
     type = models.CharField(max_length=1, choices=[("b", "B to B"), ("c", "C to C")], default="c")
 
@@ -211,7 +211,7 @@ class Purchase(models.Model):
     total = models.FloatField(default=0)
     address = models.ForeignKey(Addresses, related_name="purchase", on_delete=models.CASCADE, blank=True, null=True)
     date = models.DateField(auto_now_add=True)
-    organisation = models.ForeignKey('organisation.Organisation', on_delete=models.CASCADE, default=1)
+    organisation = models.ForeignKey('organisation.Organisation', on_delete=models.CASCADE)
 
     @property
     def invoice_number(self):
