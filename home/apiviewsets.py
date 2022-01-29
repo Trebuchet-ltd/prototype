@@ -187,6 +187,11 @@ def confirm_order(request):
     "points":num
 
     }
+    {
+    "date":"2022-11-05",
+    "time":"evening",
+    "selected_address":5
+    }
     """
     user = request.user
 

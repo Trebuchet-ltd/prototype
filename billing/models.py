@@ -16,6 +16,7 @@ class HsnCode(models.Model):
 class BillingProduct(models.Model):
     title = models.CharField(max_length=255)
     product_hsn = models.ForeignKey(HsnCode, on_delete=models.SET_NULL, blank=True, null=True)
+    product=models.ForeignKey("home.Product", on_delete=models.PROTECT, blank=True, null=True)
     code = models.CharField(max_length=8)
     price = models.FloatField()
     stock = models.IntegerField(default=0)
