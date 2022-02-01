@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from billing.serializers import BillingProductSerializer
+from billing.serializers import BillingProductSerializer, SellerSerializer
 from .models import ImageModel, CartModel
 from .models import Product
 from .models import Tokens, CartItem, TransactionDetails, \
@@ -37,8 +37,12 @@ class GetCategorySerializer(serializers.ModelSerializer):
 
 class GetProductSerializer(serializers.ModelSerializer):
     images = GetImageSerializer(many=True, required=False)
+    sellers = SellerSerializer(many=True, read_only=True)
     nutrition = GetNutritionQuantitySerializer(many=True, read_only=True)
     meat = GetCategorySerializer(read_only=True, many=False)
+    price = serializers.SerializerMethodField()
+    stock = serializers.SerializerMethodField()
+    discount = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -46,8 +50,20 @@ class GetProductSerializer(serializers.ModelSerializer):
             'id', 'title', 'code', 'description', 'short_description', 'price', 'stock',
             'meat', 'images', 'bestSeller', "weight", 'rating',
             'weight_variants', 'pieces', 'serves', "discount", 'recipe_box',
-            'nutrition', 'product_gst_percentage', 'product_rate_with_gst', 'type_of_quantity'
+            'nutrition', 'product_gst_percentage', 'product_rate_with_gst', 'type_of_quantity', 'sellers'
         ]
+
+    @classmethod
+    def get_price(cls, product):
+        return product.sellers.all().first().price
+
+    @classmethod
+    def get_stock(cls, product):
+        return product.sellers.all().first().stock
+
+    @classmethod
+    def get_discount(cls, product):
+        return product.sellers.all().first().discount
 
 
 class GetShadowProductSerializer(serializers.ModelSerializer):

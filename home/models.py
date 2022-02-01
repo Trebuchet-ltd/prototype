@@ -100,6 +100,10 @@ class CartModel(models.Model):
         return f"{self.user}'s cart"
 
 
+def get_org():
+    return Organisation.objects.all().first().id
+
+
 class CartItem(models.Model):
     weight_choice = ((250, 250), (500, 500), (1000, 1000))
     item = models.ForeignKey(Product, related_name="cart_item", on_delete=models.CASCADE, blank=True, null=True)
@@ -107,6 +111,27 @@ class CartItem(models.Model):
     cart = models.ForeignKey(CartModel, related_name="items", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
+    organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT, default=get_org)
+
+    def total(self):
+        actual_amount = 0
+        if self.quantity < 0:
+            self.quantity = -1 * self.quantity
+            self.save()
+
+        b_item = self.item.sellers.filter(organisation=self.organisation).first()
+
+        if self.is_cleaned:
+            actual_amount += (self.quantity * b_item.cleaned_price * self.weight_variants / 1000)
+            amount = actual_amount * (100 - b_item.discount) / 100
+        else:
+            if self.item.type_of_quantity:
+                actual_amount += self.quantity * b_item.price * self.weight_variants / 1000
+                amount = actual_amount * (100 - b_item.discount) / 100
+            else:
+                actual_amount += self.quantity * b_item.price
+                amount = actual_amount * (100 - b_item.discount) / 100
+        return amount, actual_amount
 
     def __str__(self):
         if self.is_cleaned:
@@ -206,7 +231,7 @@ class Orders(models.Model):
 
 
 class Purchase(models.Model):
-    user = models.ForeignKey(User, related_name="purchase", on_delete=models.SET_NULL, null=True,
+    user = models.ForeignKey(User, related_name="purchase", on_delete=models.PROTECT, null=True,
                              blank=True)
     total = models.FloatField(default=0)
     address = models.ForeignKey(Addresses, related_name="purchase", on_delete=models.CASCADE, blank=True, null=True)
@@ -230,9 +255,30 @@ class OrderItem(models.Model):
     purchase = models.ForeignKey(Purchase, related_name="order_item", on_delete=models.CASCADE, blank=True, null=True, )
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
+    organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT, default=get_org)
 
     def __str__(self):
         return f"{self.item} - {self.quantity} items "
+
+    # def total(self):
+    #     actual_amount = 0
+    #     if self.quantity < 0:
+    #         self.quantity = -1 * self.quantity
+    #         self.save()
+    #
+    #     b_item = self.item.filter(organisation=self.organisation).first()
+    #
+    #     if self.is_cleaned:
+    #         actual_amount += (self.quantity * b_item.cleaned_price * self.weight_variants / 1000)
+    #         amount = actual_amount * (100 - b_item.discount) / 100
+    #     else:
+    #         if self.item.product.type_of_quantity:
+    #             actual_amount += self.quantity * b_item.price * self.weight_variants / 1000
+    #             amount = actual_amount * (100 - b_item.discount) / 100
+    #         else:
+    #             actual_amount += self.quantity * b_item.price
+    #             amount = actual_amount * (100 - b_item.discount) / 100
+    #     return amount, actual_amount
 
 
 def create_new_transaction_id():
@@ -262,6 +308,7 @@ class TransactionDetails(models.Model):
     invoice_amt_sgst = models.FloatField(default=0)
     invoice_amt_igst = models.FloatField(default=0)
     invoice_amt_with_gst = models.FloatField(default=0)
+    organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT, default=get_org)
 
 
 class TempOrder(models.Model):
@@ -285,6 +332,7 @@ class TempItem(models.Model):
     order = models.ForeignKey(TempOrder, related_name="temp_item", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
+    organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT, default=get_org)
 
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
@@ -311,7 +359,7 @@ class Tokens(models.Model):
     first_purchase_done = models.BooleanField(default=False)
     total_points_yet = models.IntegerField(default=0)
     amount_saved = models.IntegerField(default=0)
-    organisation = models.ForeignKey(Organisation, related_name='tokens', on_delete=models.SET_NULL, null=True,
+    organisation = models.ForeignKey(Organisation, related_name='tokens', on_delete=models.PROTECT, null=True,
                                      blank=True)
 
     def __str__(self):

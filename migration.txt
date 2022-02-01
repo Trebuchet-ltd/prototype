@@ -1,0 +1,9 @@
+
+
+python3 -Xutf8 manage.py dumpdata > data.json
+python3 -Xutf8 manage.py loaddata data.json
+
+
+
+from django.contrib.contenttypes.models import ContentType
+ContentType.objects.all().delete()

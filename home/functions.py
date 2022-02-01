@@ -2,16 +2,17 @@
 This file contains all the supporting functions needed for api view sets
 
 """
+import datetime
+import hashlib
+import hmac
 import logging
 
 import requests
-from .models import *
 from django.contrib.gis.geos import GEOSGeometry
 from requests.auth import HTTPBasicAuth
-import datetime
+
 import prototype.settings as settings
-import hmac
-import hashlib
+from .models import *
 
 logger = logging.getLogger("home")
 
@@ -103,7 +104,7 @@ def create_temp_order(user, payment_id, date, time, address_obj, coupon_code='',
             f"Adding {item.item}-{item.quantity} -{item.weight_variants} -variant cleaned status {item.is_cleaned} ")
         temp_item = TempItem.objects.create(item=item.item, quantity=item.quantity, order=order,
                                             weight_variants=item.weight_variants,
-                                            is_cleaned=item.is_cleaned)
+                                            is_cleaned=item.is_cleaned, organisation=item.organisation)
 
         temp_item.save()
     logger.info(f"created temporary order {order}")
@@ -210,12 +211,11 @@ def is_out_of_stock(user):
     """ This function checks the stock availability of the product """
     logger.info(f"checking availability of stocks .... for user {user}")
     for item in user.cart.items.all():
-
         if item.item.type_of_quantity:
             reduction_in_stock = item.weight_variants * item.quantity / 1000
         else:
             reduction_in_stock = item.quantity
-        if item.item.stock - reduction_in_stock < 0:
+        if item.item.sellers.filter(organisation=item.organisation).first().stock - reduction_in_stock < 0:
             logger.warning(f"{item.item} is out of stock")
             return item.item
     logger.info(f"checking completed all items are available for user {user} ")
@@ -311,28 +311,10 @@ def total_amount(user, address_obj, coupon_code='', points=False, without_coupon
     amount = 0
     actual_amount = 0
     for item in cart.items.all():
-        if item.quantity > 0:
-            if item.is_cleaned:
-                actual_amount += (item.quantity * item.item.cleaned_price * item.weight_variants / 1000)
-                amount = actual_amount * (100 - item.item.discount) / 100
-            else:
-                if item.item.type_of_quantity:
-                    actual_amount += item.quantity * item.item.price * item.weight_variants / 1000
-                    amount = actual_amount * (100 - item.item.discount) / 100
-                else:
-                    actual_amount += item.quantity * item.item.price
-                    amount = actual_amount * (100 - item.item.discount) / 100
-        elif item.quantity < 0:
-            if item.is_cleaned:
-                actual_amount += -item.quantity * item.item.cleaned_price * item.weight_variants / 1000
-                amount = actual_amount * (100 - item.item.discount) / 100
-            else:
-                if item.item.type_of_quantity:
-                    actual_amount -= item.quantity * item.item.price * item.weight_variants / 1000
-                    amount = actual_amount * (100 - item.item.discount) / 100
-                else:
-                    actual_amount -= item.quantity * item.item.price
-                    amount = actual_amount * (100 - item.item.discount) / 100
+        t_amount, ta_amount = item.total()
+        actual_amount += ta_amount
+        amount += t_amount
+
     logger.info(f"Amount calculated before adding delivery charge is {amount}")
     if amount <= 0:  # if the amount is 0 then it should not add the delivery charge
         return 0, 0
@@ -400,6 +382,15 @@ def verify_signature(request):
         logger.warning(e)
 
 
+def create_order(temp_items, temp_order, transaction_details):
+    orgs = []
+    for i in temp_items.all():
+        if i.organisation not in orgs:
+            orgs.append(i)
+    for org in orgs:
+        items = temp_items.items.sellers().filter(organisation=org)
+
+
 def handle_payment(transaction_id, payment_status):
     try:
         transaction_details = TransactionDetails.objects.get(transaction_id=transaction_id)
@@ -445,7 +436,7 @@ def handle_payment(transaction_id, payment_status):
         token.save()
         logger.info(f"first purchase done status = {user.tokens.first_purchase_done}")
 
-        create_order_items(cart, temp_items, order)
+        # create_order_items(cart, temp_items, order)
         temp_order.delete()
         logger.info("order creation completed")
     except TempOrder.DoesNotExist:
