@@ -278,7 +278,7 @@ class CartViewSets(viewsets.ModelViewSet):
 
 
 class OrderViewSets(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
     queryset = Orders.objects.all()
     serializer_class = OrderSerializer
     http_method_names = ['get', ]

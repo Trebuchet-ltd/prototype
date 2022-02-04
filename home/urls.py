@@ -14,7 +14,6 @@ router.register(r'recipe_box', RecipeBoxViewSet)
 router.register(r"reviews", ReviewViewSet)
 
 urlpatterns = [
-
     path(r'', include(router.urls)),
     path(r'transaction/', confirm_order),
     path(r'payment/', payment),
