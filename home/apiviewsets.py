@@ -23,7 +23,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ['bestSeller', 'meat', 'meat__category', "meat__code", 'code']
     filter_backends = [filters.SearchFilter, django_filters.rest_framework.DjangoFilterBackend]
-    search_fields = ['title', 'short_description', 'description', 'can_be_cleaned', 'weight_variants']
+    search_fields = ['title', 'short_description', 'description', 'weight_variants']
 
     @action(detail=False, methods=["get", ], url_path='offers')
     def offers(self, request, *args, **kwargs):
