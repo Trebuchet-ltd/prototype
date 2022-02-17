@@ -42,7 +42,10 @@ class GetProductSerializer(serializers.ModelSerializer):
     meat = GetCategorySerializer(read_only=True, many=False)
     price = serializers.SerializerMethodField()
     stock = serializers.SerializerMethodField()
-    discount = serializers.SerializerMethodField()
+    can_be_cleaned = serializers.SerializerMethodField()
+    cleaned_price = serializers.SerializerMethodField()
+
+    # discount = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -50,7 +53,8 @@ class GetProductSerializer(serializers.ModelSerializer):
             'id', 'title', 'code', 'description', 'short_description', 'price', 'stock',
             'meat', 'images', 'bestSeller', "weight", 'rating',
             'weight_variants', 'pieces', 'serves', "discount", 'recipe_box',
-            'nutrition', 'product_gst_percentage', 'product_rate_with_gst', 'type_of_quantity', 'sellers'
+            'nutrition', 'product_gst_percentage', 'product_rate_with_gst', 'type_of_quantity', 'sellers',
+            'can_be_cleaned', 'cleaned_price'
         ]
 
     @classmethod
@@ -64,6 +68,14 @@ class GetProductSerializer(serializers.ModelSerializer):
     @classmethod
     def get_discount(cls, product):
         return product.sellers.all().first().discount
+
+    @classmethod
+    def get_can_be_cleaned(cls, product):
+        return product.sellers.all().first().can_be_cleaned
+
+    @classmethod
+    def get_cleaned_price(cls, product):
+        return product.sellers.all().first().cleaned_price
 
 
 class GetShadowProductSerializer(serializers.ModelSerializer):
@@ -183,11 +195,12 @@ class GetAddressSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     item = BillingProductSerializer(read_only=True, required=False, many=False)
+    images = GetImageSerializer(source='item.product', read_only=True)
 
     class Meta:
         model = OrderItem
         fields = [
-            'item', 'quantity', 'weight_variants', 'is_cleaned'
+            'item', 'quantity', 'weight_variants', 'is_cleaned', 'images'
         ]
 
 

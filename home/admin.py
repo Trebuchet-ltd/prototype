@@ -17,6 +17,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     def orders_products(self, obj):
         order_items = models.OrderItem.objects.filter(order=obj)
+        print(f'{order_items = }')
 
         try:
             orders = []
@@ -26,7 +27,7 @@ class OrderAdmin(admin.ModelAdmin):
                     cleaned_status = 'cleaned'
                 else:
                     cleaned_status = ''
-                if order_item.item.type_of_quantity:
+                if order_item.item.product.type_of_quantity:
                     orders.append(f" {str(order_item.item).title()} {cleaned_status} "
                                   f"{order_item.quantity * order_item.weight_variants / 1000} kg , ")
                 else:

@@ -140,6 +140,7 @@ def get_payment_link(user, amount, amount_saved, address_obj):
     transaction_details.save()
     logger.info(f"created transaction details object for {user}")
     amount *= 100  # converting rupees to paisa
+    amount = int(amount)
     try:
         url = 'https://api.razorpay.com/v1/payment_links'
 
@@ -382,17 +383,32 @@ def verify_signature(request):
         logger.warning(e)
 
 
-def create_order(temp_items, temp_order, transaction_details):
-    orgs = []
+def create_order(user, temp_items, temp_order, transaction_details):
+    orgs = {}
     for i in temp_items.all():
         if i.organisation not in orgs:
-            orgs.append(i)
+            try:
+                orgs[i.organisation.id].append(i)
+            except KeyError:
+                orgs[i.organisation.id] = [i]
     for org in orgs:
-        items = temp_items.items.sellers().filter(organisation=org)
+        # TODO add organisation parameter to below fn when expanding organisation
+        order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
+                                      address_id=temp_order.address_id,
+                                      total=transaction_details.total,
+                                      status="p", coupon=temp_order.coupon, used_points=temp_order.used_points,
+                                      )
+
+        logger.info("creating order")
+        order.save()
+        create_order_items(user.cart, orgs[org], order)
+        if order.used_points:
+            reduce_points(user)
 
 
 def handle_payment(transaction_id, payment_status):
     try:
+        logger.info(transaction_id)
         transaction_details = TransactionDetails.objects.get(transaction_id=transaction_id)
         transaction_details.payment_status = payment_status
         logger.info(f"payment status {transaction_details.payment_status}")
@@ -404,26 +420,7 @@ def handle_payment(transaction_id, payment_status):
         temp_items = TempItem.objects.filter(order=temp_order)
         user = transaction_details.user
         logger.info(f"user - {user.username}")
-        cart = user.cart
-        if temp_order.coupon:
-            coupon_obj = Coupon.objects.filter(code=temp_order.coupon)
-            print(coupon_obj, temp_order.coupon)
-            logger.info(f"Payment done by using coupon {temp_order.coupon.code}")
-            order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
-                                          address_id=temp_order.address_id,
-                                          total=transaction_details.total,
-                                          status="p", coupon=temp_order.coupon, used_points=temp_order.used_points)
-        else:
-            order = Orders.objects.create(user=user, date=temp_order.date, time=temp_order.time[0],
-                                          address_id=temp_order.address_id,
-                                          total=transaction_details.total, status="p",
-                                          used_points=temp_order.used_points)
-        logger.info("creating order")
-        order.save()
-        if order.used_points:
-            reduce_points(user)
-        transaction_details.order = order
-        transaction_details.save()
+        create_order(user, temp_items, temp_order, transaction_details)
 
         token = user.tokens
         token.amount_saved += transaction_details.amount_saved
@@ -436,8 +433,7 @@ def handle_payment(transaction_id, payment_status):
         token.save()
         logger.info(f"first purchase done status = {user.tokens.first_purchase_done}")
 
-        # create_order_items(cart, temp_items, order)
-        temp_order.delete()
+        # temp_order.delete()
         logger.info("order creation completed")
     except TempOrder.DoesNotExist:
         logger.warning("Temporary order does not exist  already created an order from this")
@@ -447,8 +443,10 @@ def handle_payment(transaction_id, payment_status):
 
 def create_order_items(cart, temp_items, order):
     logger.info("creating order items")
-    for item in temp_items.all():
-        order_item = OrderItem.objects.create(item=item.item, quantity=item.quantity, order=order,
+    for item in temp_items:
+        b_item = item.item.sellers.filter(organisation=order.organisation).first()
+        order_item = OrderItem.objects.create(item=b_item,
+                                              quantity=item.quantity, order=order,
                                               weight_variants=item.weight_variants,
                                               is_cleaned=item.is_cleaned)
         order_item.save()
@@ -456,11 +454,11 @@ def create_order_items(cart, temp_items, order):
             reduction_in_stock = item.weight_variants * item.quantity / 1000
         else:
             reduction_in_stock = item.quantity
-        item.item.stock -= reduction_in_stock
-        item.item.save()
+        b_item.stock -= reduction_in_stock
+        b_item.save()
         CartItem.objects.filter(item=item.item, weight_variants=item.weight_variants,
                                 is_cleaned=item.is_cleaned).delete()
-        item.delete()
+        # item.delete()
 
     cart.total = 0
     cart.save()

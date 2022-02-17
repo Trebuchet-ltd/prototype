@@ -104,6 +104,27 @@ def get_org():
     return Organisation.objects.all().first().id
 
 
+def calculate_total(item):
+    actual_amount = 0
+    if item.quantity < 0:
+        item.quantity = -1 * item.quantity
+        item.save()
+
+    b_item = item.item.sellers.filter(organisation=item.organisation).first()
+
+    if item.is_cleaned and b_item.can_be_cleaned:
+        actual_amount += (item.quantity * b_item.cleaned_price * item.weight_variants / 1000)
+        amount = actual_amount * (100 - b_item.discount) / 100
+    else:
+        if item.item.type_of_quantity:
+            actual_amount += item.quantity * b_item.price * item.weight_variants / 1000
+            amount = actual_amount * (100 - b_item.discount) / 100
+        else:
+            actual_amount += item.quantity * b_item.price
+            amount = actual_amount * (100 - b_item.discount) / 100
+    return amount, actual_amount
+
+
 class CartItem(models.Model):
     weight_choice = ((250, 250), (500, 500), (1000, 1000))
     item = models.ForeignKey(Product, related_name="cart_item", on_delete=models.CASCADE, blank=True, null=True)
@@ -114,24 +135,7 @@ class CartItem(models.Model):
     organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT, default=get_org)
 
     def total(self):
-        actual_amount = 0
-        if self.quantity < 0:
-            self.quantity = -1 * self.quantity
-            self.save()
-
-        b_item = self.item.sellers.filter(organisation=self.organisation).first()
-
-        if self.is_cleaned:
-            actual_amount += (self.quantity * b_item.cleaned_price * self.weight_variants / 1000)
-            amount = actual_amount * (100 - b_item.discount) / 100
-        else:
-            if self.item.type_of_quantity:
-                actual_amount += self.quantity * b_item.price * self.weight_variants / 1000
-                amount = actual_amount * (100 - b_item.discount) / 100
-            else:
-                actual_amount += self.quantity * b_item.price
-                amount = actual_amount * (100 - b_item.discount) / 100
-        return amount, actual_amount
+        return calculate_total(self)
 
     def __str__(self):
         if self.is_cleaned:
@@ -218,7 +222,7 @@ class Orders(models.Model):
     status = models.CharField(max_length=10, choices=order_status, default='preparing')
     coupon = models.ForeignKey(Coupon, related_name="orders", on_delete=models.CASCADE, blank=True, null=True)
     used_points = models.IntegerField(default=0, blank=True, null=True)
-    organisation = models.ForeignKey('organisation.Organisation', on_delete=models.CASCADE)
+    organisation = models.ForeignKey('organisation.Organisation', on_delete=models.CASCADE, default=1)
     invoice_number = models.PositiveIntegerField(default=0)
     type = models.CharField(max_length=1, choices=[("b", "B to B"), ("c", "C to C")], default="c")
 
@@ -260,25 +264,8 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.item} - {self.quantity} items "
 
-    # def total(self):
-    #     actual_amount = 0
-    #     if self.quantity < 0:
-    #         self.quantity = -1 * self.quantity
-    #         self.save()
-    #
-    #     b_item = self.item.filter(organisation=self.organisation).first()
-    #
-    #     if self.is_cleaned:
-    #         actual_amount += (self.quantity * b_item.cleaned_price * self.weight_variants / 1000)
-    #         amount = actual_amount * (100 - b_item.discount) / 100
-    #     else:
-    #         if self.item.product.type_of_quantity:
-    #             actual_amount += self.quantity * b_item.price * self.weight_variants / 1000
-    #             amount = actual_amount * (100 - b_item.discount) / 100
-    #         else:
-    #             actual_amount += self.quantity * b_item.price
-    #             amount = actual_amount * (100 - b_item.discount) / 100
-    #     return amount, actual_amount
+    def total(self):
+        return calculate_total(self)
 
 
 def create_new_transaction_id():
@@ -333,6 +320,9 @@ class TempItem(models.Model):
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
     organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT, default=get_org)
+
+    def total(self):
+        return calculate_total(self)
 
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
