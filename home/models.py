@@ -101,7 +101,7 @@ class CartModel(models.Model):
 
 
 def get_org():
-    return Organisation.objects.all().first().id
+    return Organisation.objects.all().first().id if Organisation.objects.exists() else None
 
 
 def calculate_total(item):
@@ -132,7 +132,7 @@ class CartItem(models.Model):
     cart = models.ForeignKey(CartModel, related_name="items", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0, choices=weight_choice)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
-    organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT, default=get_org)
+    organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT, blank=True, null=True)
 
     def total(self):
         return calculate_total(self)
@@ -319,7 +319,7 @@ class TempItem(models.Model):
     order = models.ForeignKey(TempOrder, related_name="temp_item", on_delete=models.CASCADE)
     weight_variants = models.IntegerField(blank=True, null=True, default=0)
     is_cleaned = models.BooleanField(default=0, blank=True, null=True, help_text='1->Cleaned, 0->Not cleaned')
-    organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT, default=get_org)
+    organisation = models.ForeignKey(Organisation, on_delete=models.PROTECT, blank=True, null=True)
 
     def total(self):
         return calculate_total(self)
