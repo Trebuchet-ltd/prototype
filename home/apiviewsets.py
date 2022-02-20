@@ -18,7 +18,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     API end point to get all product details
     """
     http_method_names = ['get']
-    queryset = Product.objects.all()
+    queryset = Product.objects.exclude(sellers=None)
     serializer_class = GetProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filterset_fields = ['bestSeller', 'meat', 'meat__category', "meat__code", 'code']
